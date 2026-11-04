@@ -44,7 +44,7 @@
 
 .board canvas {
   display: block;
-  touch-action: manipulation;
+  touch-action: none;
 }
 
 .result {

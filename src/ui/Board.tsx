@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import { dirOf } from '../game/sim'
 import type { Cell, Level } from '../game/types'
 
@@ -15,16 +16,54 @@ const ON = '#ff6b4a'
 const OFF = '#4a5266'
 const SOURCE = '#ffd166'
 
+const EDGE = 12
+const MIN_CELL = 36
+const MAX_CELL = 64
+
 interface Geom {
   cell: number
   ox: number
   oy: number
+  camX: number
+  camY: number
+  w: number
+  h: number
+  mapW: number
+  mapH: number
+}
+
+interface Drag {
+  id: number
+  x: number
+  y: number
+  camX: number
+  camY: number
+  moved: boolean
+}
+
+function clampCamera(x: number, y: number, w: number, h: number, mapW: number, mapH: number) {
+  return {
+    x: mapW <= w ? (w - mapW) / 2 : Math.min(EDGE, Math.max(w - mapW - EDGE, x)),
+    y: mapH <= h ? (h - mapH) / 2 : Math.min(EDGE, Math.max(h - mapH - EDGE, y)),
+  }
 }
 
 export function Board({ level, cells, powers, onCell }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const geom = useRef<Geom>({ cell: 0, ox: 0, oy: 0 })
+  const geom = useRef<Geom>({
+    cell: 0,
+    ox: 0,
+    oy: 0,
+    camX: 0,
+    camY: 0,
+    w: 0,
+    h: 0,
+    mapW: 0,
+    mapH: 0,
+  })
+  const drag = useRef<Drag | null>(null)
+  const [cam, setCam] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -43,30 +82,64 @@ export function Board({ level, cells, powers, onCell }: Props) {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      render(ctx, w, h, level, cells, powers, geom.current)
+      render(ctx, w, h, level, cells, powers, cam, geom.current)
     }
 
     draw()
     const observer = new ResizeObserver(draw)
     observer.observe(wrap)
     return () => observer.disconnect()
-  }, [level, cells, powers])
+  }, [level, cells, powers, cam])
 
-  const handlePointer = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
-    const { cell, ox, oy } = geom.current
-    if (cell <= 0) return
-    const x = Math.floor((event.clientX - rect.left - ox) / cell)
-    const y = Math.floor((event.clientY - rect.top - oy) / cell)
+  const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId)
+    drag.current = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      camX: geom.current.camX,
+      camY: geom.current.camY,
+      moved: false,
+    }
+  }
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const current = drag.current
+    if (!current || current.id !== event.pointerId) return
+    const dx = event.clientX - current.x
+    const dy = event.clientY - current.y
+    if (!current.moved && Math.hypot(dx, dy) > 6) current.moved = true
+    if (!current.moved) return
+    const g = geom.current
+    setCam(clampCamera(current.camX + dx, current.camY + dy, g.w, g.h, g.mapW, g.mapH))
+  }
+
+  const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const current = drag.current
+    if (!current || current.id !== event.pointerId) return
+    drag.current = null
+    if (current.moved) return
+
+    const g = geom.current
+    if (g.cell <= 0) return
+    const rect = event.currentTarget.getBoundingClientRect()
+    const x = Math.floor((event.clientX - rect.left - g.ox) / g.cell)
+    const y = Math.floor((event.clientY - rect.top - g.oy) / g.cell)
     if (x < 0 || y < 0 || x >= level.cols || y >= level.rows) return
     onCell(y * level.cols + x)
   }
 
   return (
     <div className="board" ref={wrapRef}>
-      <canvas ref={canvasRef} onPointerDown={handlePointer} />
+      <canvas
+        ref={canvasRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={() => {
+          drag.current = null
+        }}
+      />
     </div>
   )
 }
@@ -78,21 +151,41 @@ function render(
   level: Level,
   cells: (Cell | null)[],
   powers: number[],
+  cam: { x: number; y: number },
   geom: Geom,
 ) {
   ctx.clearRect(0, 0, w, h)
   ctx.fillStyle = BG
   ctx.fillRect(0, 0, w, h)
 
-  const cell = Math.min((w - 24) / level.cols, (h - 24) / level.rows)
-  const ox = (w - cell * level.cols) / 2
-  const oy = (h - cell * level.rows) / 2
+  const fit = Math.min((w - 24) / level.cols, (h - 24) / level.rows)
+  const cell = Math.min(MAX_CELL, Math.max(MIN_CELL, fit))
+  const mapW = cell * level.cols
+  const mapH = cell * level.rows
+  const clamped = clampCamera(cam.x, cam.y, w, h, mapW, mapH)
+  const ox = clamped.x
+  const oy = clamped.y
+
   geom.cell = cell
   geom.ox = ox
   geom.oy = oy
+  geom.camX = clamped.x
+  geom.camY = clamped.y
+  geom.w = w
+  geom.h = h
+  geom.mapW = mapW
+  geom.mapH = mapH
 
-  for (let y = 0; y < level.rows; y++) {
-    for (let x = 0; x < level.cols; x++) {
+  ctx.fillStyle = '#101319'
+  ctx.fillRect(ox, oy, mapW, mapH)
+
+  const firstX = Math.max(0, Math.floor(-ox / cell))
+  const lastX = Math.min(level.cols - 1, Math.floor((w - ox) / cell))
+  const firstY = Math.max(0, Math.floor(-oy / cell))
+  const lastY = Math.min(level.rows - 1, Math.floor((h - oy) / cell))
+
+  for (let y = firstY; y <= lastY; y++) {
+    for (let x = firstX; x <= lastX; x++) {
       if ((x + y) % 2 === 0) {
         ctx.fillStyle = '#12151f'
         ctx.fillRect(ox + x * cell, oy + y * cell, cell, cell)
@@ -103,22 +196,34 @@ function render(
   ctx.strokeStyle = GRID
   ctx.lineWidth = 1
   ctx.beginPath()
-  for (let x = 0; x <= level.cols; x++) {
+  for (let x = firstX; x <= lastX + 1; x++) {
     ctx.moveTo(Math.round(ox + x * cell) + 0.5, oy)
-    ctx.lineTo(Math.round(ox + x * cell) + 0.5, oy + level.rows * cell)
+    ctx.lineTo(Math.round(ox + x * cell) + 0.5, oy + mapH)
   }
-  for (let y = 0; y <= level.rows; y++) {
+  for (let y = firstY; y <= lastY + 1; y++) {
     ctx.moveTo(ox, Math.round(oy + y * cell) + 0.5)
-    ctx.lineTo(ox + level.cols * cell, Math.round(oy + y * cell) + 0.5)
+    ctx.lineTo(ox + mapW, Math.round(oy + y * cell) + 0.5)
   }
   ctx.stroke()
 
-  for (let i = 0; i < cells.length; i++) {
-    const component = cells[i]
-    if (!component) continue
-    const x = i % level.cols
-    const y = (i - x) / level.cols
-    drawComponent(ctx, component, ox + (x + 0.5) * cell, oy + (y + 0.5) * cell, cell, powers[i] ?? 0, cells, level, x, y)
+  for (let y = firstY; y <= lastY; y++) {
+    for (let x = firstX; x <= lastX; x++) {
+      const i = y * level.cols + x
+      const component = cells[i]
+      if (!component) continue
+      drawComponent(
+        ctx,
+        component,
+        ox + (x + 0.5) * cell,
+        oy + (y + 0.5) * cell,
+        cell,
+        powers[i] ?? 0,
+        cells,
+        level,
+        x,
+        y,
+      )
+    }
   }
 }
 
