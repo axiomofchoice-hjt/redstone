@@ -36,10 +36,8 @@ export default function App() {
   useEffect(() => {
     if (paused) return
     const timer = setInterval(() => {
-      const before = sim.snapshot().powers
-      sim.step()
-      const after = sim.snapshot().powers
-      if (after.some((value, index) => value !== before[index])) repaint()
+      // step() 直接返回画面有没有变化，不用前后各拍一次快照
+      if (sim.step()) repaint()
     }, TICK_MS)
     return () => clearInterval(timer)
   }, [sim, paused])

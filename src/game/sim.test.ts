@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { runLevel, Simulation } from './sim'
-import type { Cell, Level, TestCase } from './types'
+import type { Cell, Dir, Level, TestCase } from './types'
 
 function makeLevel(
   cols: number,
@@ -233,4 +233,49 @@ it('新放的非门若当下被充能，直接就是关，不先亮一个 tick',
   next[1 * cols + 3] = { type: 'not' }
   const second = new Simulation({ ...base, cells: next }, first)
   expect(second.snapshot().powers[1 * cols + 3]).toBe(0)
+})
+
+describe('增量更新', () => {
+  it('逐 tick 与全量算法的结果逐格一致', () => {
+    let seed = 20261105
+    const rnd = () => {
+      seed = (seed * 1103515245 + 12345) % 2147483648
+      return seed / 2147483648
+    }
+    const types: Cell['type'][] = ['wire', 'cross', 'charger', 'repeater', 'not']
+
+    for (let round = 0; round < 30; round++) {
+      const cols = 7
+      const rows = 5
+      const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
+      for (let i = 0; i < cells.length; i++) {
+        if (rnd() > 0.42) continue
+        cells[i] = {
+          type: types[Math.floor(rnd() * types.length)],
+          dir: Math.floor(rnd() * 4) as Dir,
+        }
+      }
+      cells[0] = { type: 'input', id: 'A' }
+      cells[cells.length - 1] = { type: 'output', id: 'L' }
+
+      const level: Level = { id: `r${round}`, name: 'random', cols, rows, cells, tests: [] }
+      const sim = new Simulation(level)
+
+      // 对照：同一时刻用原来的全量算法再算一遍
+      const compare = () => {
+        const full = sim.snapshotFull()
+        if (!full.stable) return
+        const now = sim.snapshot()
+        expect(now.powers, `round ${round}`).toEqual(full.powers)
+        expect(now.outputs, `round ${round}`).toEqual(full.outputs)
+      }
+
+      compare()
+      for (let t = 0; t < 25; t++) {
+        if (rnd() < 0.3) sim.setInputs({ A: rnd() < 0.5 ? 1 : 0 })
+        sim.step()
+        compare()
+      }
+    }
+  })
 })
