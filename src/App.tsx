@@ -30,8 +30,11 @@ export default function App() {
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   // 仿真在后台推进，只在画面有变化时重绘
   const [, repaint] = useReducer((n: number) => n + 1, 0)
+  // 调试用：暂停自动 tick
+  const [paused, setPaused] = useState(false)
 
   useEffect(() => {
+    if (paused) return
     const timer = setInterval(() => {
       const before = sim.snapshot().powers
       sim.step()
@@ -39,7 +42,13 @@ export default function App() {
       if (after.some((value, index) => value !== before[index])) repaint()
     }, TICK_MS)
     return () => clearInterval(timer)
-  }, [sim])
+  }, [sim, paused])
+
+  const nextTick = () => {
+    if (!paused) return
+    sim.step()
+    repaint()
+  }
 
   const powers = sim.snapshot().powers
 
@@ -97,9 +106,21 @@ export default function App() {
             </h1>
           </div>
         </div>
-        <button type="button" className="run" onClick={() => setRun(runLevel(level))}>
-          运行测试
-        </button>
+        <div className="actions">
+          <button
+            type="button"
+            className={paused ? 'debug active' : 'debug'}
+            onClick={() => setPaused((value) => !value)}
+          >
+            暂停
+          </button>
+          <button type="button" className="debug" onClick={nextTick}>
+            下一 tick
+          </button>
+          <button type="button" className="run" onClick={() => setRun(runLevel(level))}>
+            运行测试
+          </button>
+        </div>
       </header>
 
       <Board level={level} cells={level.cells} powers={powers} onCell={handleCell} />
