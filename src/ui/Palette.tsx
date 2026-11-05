@@ -1,6 +1,6 @@
 import type { CellType, Dir } from '../game/types'
 
-export type Tool = CellType
+export type Tool = CellType | 'erase'
 
 const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
   { dir: 0, label: 'W', area: 'up' },
@@ -49,17 +49,26 @@ export function Palette({ tool, dir, alt, onTool, onDir, onAlt }: Props) {
         ))}
       </div>
 
-      <div className="dpad">
-        {DIR_BUTTONS.map((item) => (
-          <button
-            key={item.label}
-            type="button"
-            className={`dir ${item.area}${dir === item.dir ? ' active' : ''}`}
-            onClick={() => onDir(item.dir)}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div className="side">
+        <div className="dpad">
+          {DIR_BUTTONS.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              className={`dir ${item.area}${dir === item.dir ? ' active' : ''}`}
+              onClick={() => onDir(item.dir)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className={tool === 'erase' ? 'erase active' : 'erase'}
+          onClick={() => onTool('erase')}
+        >
+          删除
+        </button>
       </div>
     </div>
   )
