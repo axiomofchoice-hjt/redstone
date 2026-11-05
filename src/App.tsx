@@ -86,11 +86,19 @@ export default function App() {
   return (
     <div className="app">
       <header className="top">
-        <div>
-          <h1>{level.name}</h1>
-          <p className="sub">
-            {level.cols} × {level.rows}
-          </p>
+        <div className="head">
+          {/* 占位：返回暂时没用 */}
+          <button type="button" className="back">
+            返回
+          </button>
+          <div>
+            <h1>
+              第 {level.no ?? 1} 关 · {level.name}
+            </h1>
+            <p className="sub">
+              {level.cols} × {level.rows}
+            </p>
+          </div>
         </div>
         <button type="button" className="run" onClick={() => setRun(runLevel(level))}>
           运行测试

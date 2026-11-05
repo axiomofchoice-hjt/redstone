@@ -30,6 +30,8 @@ export interface TestCase {
 
 export interface Level {
   id: string
+  /** 第几关 */
+  no?: number
   name: string
   cols: number
   rows: number

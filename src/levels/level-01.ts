@@ -10,6 +10,7 @@ const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
  */
 export const level01: Level = {
   id: 'demo-01',
+  no: 1,
   name: '示例关',
   cols,
   rows,
