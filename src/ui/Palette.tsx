@@ -63,9 +63,9 @@ export function Palette({ tool, dir, alt, onTool, onDir, onAlt }: Props) {
           ))}
         </div>
         <div className="stack">
-          {/* 占位：交换功能待定 */}
+          {/* 占位：交互功能待定 */}
           <button type="button" className="swap">
-            交换
+            交互
           </button>
           <button
             type="button"
