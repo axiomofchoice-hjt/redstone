@@ -91,8 +91,12 @@ export function Board({ level, cells, powers, onCell }: Props) {
     const draw = () => {
       const rect = wrap.getBoundingClientRect()
       const dpr = window.devicePixelRatio || 1
-      const w = Math.max(1, Math.floor(rect.width))
-      const h = Math.max(1, Math.floor(rect.height))
+      // 只用内容区（去掉 .board 的内边距），画布不会溢出到左右/下方
+      const style = getComputedStyle(wrap)
+      const padX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+      const padY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+      const w = Math.max(1, Math.floor(rect.width - padX))
+      const h = Math.max(1, Math.floor(rect.height - padY))
       const bw = Math.floor(w * dpr)
       const bh = Math.floor(h * dpr)
       if (canvas.width !== bw || canvas.height !== bh) {
