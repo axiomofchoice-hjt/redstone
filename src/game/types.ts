@@ -1,10 +1,10 @@
 export type Dir = 0 | 1 | 2 | 3
 
-export type CellType = 'wire' | 'cross' | 'charger' | 'not' | 'input' | 'output'
+export type CellType = 'wire' | 'cross' | 'charger' | 'repeater' | 'not' | 'input' | 'output'
 
 export interface Cell {
   type: CellType
-  /** 朝向（前面）。只对有方向的元件有意义：charger / not */
+  /** 朝向（前面）。只对有方向的元件有意义：charger / repeater / not */
   dir?: Dir
   /** input / output 在测试里的标识 */
   id?: string

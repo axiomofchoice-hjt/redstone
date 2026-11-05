@@ -293,6 +293,36 @@ function drawComponent(
       ctx.restore()
       break
     }
+    case 'repeater': {
+      // 二极管符号：横线 - 三角 - 竖线，朝前
+      const angle = (dirOf(component) - 1) * (Math.PI / 2)
+      ctx.save()
+      ctx.translate(cx, cy)
+      ctx.rotate(angle)
+      ctx.strokeStyle = color
+      ctx.fillStyle = color
+      ctx.lineWidth = Math.max(1.5, cell * 0.085)
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctx.beginPath()
+      ctx.moveTo(-cell * 0.46, 0)
+      ctx.lineTo(-cell * 0.06, 0)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(-cell * 0.06, -cell * 0.22)
+      ctx.lineTo(-cell * 0.06, cell * 0.22)
+      ctx.lineTo(cell * 0.22, 0)
+      ctx.closePath()
+      ctx.fill()
+      ctx.beginPath()
+      ctx.moveTo(cell * 0.22, -cell * 0.24)
+      ctx.lineTo(cell * 0.22, cell * 0.24)
+      ctx.moveTo(cell * 0.22, 0)
+      ctx.lineTo(cell * 0.46, 0)
+      ctx.stroke()
+      ctx.restore()
+      break
+    }
     case 'not': {
       // 灯泡符号：圆圈 + 叉
       const r = cell * 0.33
@@ -368,8 +398,10 @@ function drawConnections(
     if (nx < 0 || ny < 0 || nx >= level.cols || ny >= level.rows) return false
     const neighbor = cells[ny * level.cols + nx]
     if (!neighbor) return false
-    // 充能器只有前后能连，侧边不算
-    if (neighbor.type === 'charger') return d % 2 === dirOf(neighbor) % 2
+    // 充能器/中继器只有前后能连，侧边不算
+    if (neighbor.type === 'charger' || neighbor.type === 'repeater') {
+      return d % 2 === dirOf(neighbor) % 2
+    }
     return true
   })
 

@@ -77,6 +77,74 @@ describe('非门', () => {
   })
 })
 
+describe('中继器', () => {
+  const level = makeLevel(
+    3,
+    1,
+    [
+      [0, 0, { type: 'input', id: 'A' }],
+      [1, 0, { type: 'repeater', dir: 1 }],
+      [2, 0, { type: 'output', id: 'L' }],
+    ],
+    [
+      {
+        name: '比充能器晚 1 tick',
+        events: [{ tick: 0, values: { A: 1 } }, { tick: 3, values: { A: 0 } }],
+        checks: [
+          { tick: 0, outputs: { L: 0 } },
+          { tick: 1, outputs: { L: 1 } },
+          { tick: 3, outputs: { L: 1 } },
+          { tick: 4, outputs: { L: 0 } },
+        ],
+      },
+    ],
+  )
+
+  it('后面进，1 tick 后向前面输出', () => {
+    expect(runLevel(level).passed).toBe(true)
+  })
+
+  it('前面接导线也能点亮', () => {
+    const wired = makeLevel(
+      4,
+      1,
+      [
+        [0, 0, { type: 'input', id: 'A' }],
+        [1, 0, { type: 'repeater', dir: 1 }],
+        [2, 0, { type: 'wire' }],
+        [3, 0, { type: 'output', id: 'L' }],
+      ],
+      [{ name: '带导线', events: onAt(0, { A: 1 }), checks: checkAt(1, { L: 1 }) }],
+    )
+    expect(runLevel(wired).passed).toBe(true)
+  })
+
+  it('能当作非门的输入', () => {
+    const toNot = makeLevel(
+      4,
+      1,
+      [
+        [0, 0, { type: 'input', id: 'A' }],
+        [1, 0, { type: 'repeater', dir: 1 }],
+        [2, 0, { type: 'not' }],
+        [3, 0, { type: 'output', id: 'L' }],
+      ],
+      [
+        {
+          name: '中继器后接非门',
+          events: onAt(0, { A: 1 }),
+          checks: [
+            { tick: 0, outputs: { L: 1 } },
+            { tick: 1, outputs: { L: 1 } },
+            { tick: 2, outputs: { L: 0 } },
+          ],
+        },
+      ],
+    )
+    expect(runLevel(toNot).passed).toBe(true)
+  })
+})
+
 describe('交叉导线', () => {
   const level = makeLevel(
     3,

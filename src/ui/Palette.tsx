@@ -12,16 +12,17 @@ const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
 interface Props {
   tool: Tool
   dir: Dir
-  conductor: 'wire' | 'cross'
+  /** false：导线 + 充能器；true：交叉导线 + 中继器 */
+  alt: boolean
   onTool: (tool: Tool) => void
   onDir: (dir: Dir) => void
-  onConductor: (conductor: 'wire' | 'cross') => void
+  onAlt: () => void
 }
 
-export function Palette({ tool, dir, conductor, onTool, onDir, onConductor }: Props) {
+export function Palette({ tool, dir, alt, onTool, onDir, onAlt }: Props) {
   const tools: { type: CellType; label: string }[] = [
-    { type: conductor, label: conductor === 'wire' ? '导线' : '交叉' },
-    { type: 'charger', label: '充能' },
+    { type: alt ? 'cross' : 'wire', label: alt ? '交叉' : '导线' },
+    { type: alt ? 'repeater' : 'charger', label: alt ? '中继' : '充能' },
     { type: 'not', label: '非门' },
     { type: 'input', label: '输入' },
     { type: 'output', label: '输出' },
@@ -29,12 +30,7 @@ export function Palette({ tool, dir, conductor, onTool, onDir, onConductor }: Pr
 
   return (
     <div className="palette">
-      <button
-        type="button"
-        className="toggle"
-        aria-label="切换导线类型"
-        onClick={() => onConductor(conductor === 'wire' ? 'cross' : 'wire')}
-      >
+      <button type="button" className="toggle" aria-label="切换导线与充能器类型" onClick={onAlt}>
         ⇄
       </button>
 

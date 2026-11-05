@@ -17,7 +17,7 @@ export const isConductor = (cell: Cell | null | undefined): boolean =>
 
 /** 每种元件在渲染/判定时需要方向 */
 export const hasDirection = (type: Cell['type']): boolean =>
-  type === 'charger' || type === 'not'
+  type === 'charger' || type === 'repeater' || type === 'not'
 
 export interface Snapshot {
   /** 每格的通电状态：bit0 = 垂直通道，bit1 = 水平通道 */
@@ -48,6 +48,7 @@ export interface LevelRun {
  * 无延迟元件的求解：
  * - 导线 / 交叉导线在同一 tick 内瞬时形成等电位网络；
  * - 充能器把后方信号写到前方，也无延迟；
+ * - 中继器同样把后方信号写到前方，但晚 1 tick；
  * - 非门采样输入后把输出推迟 1 tick。
  */
 export class Simulation {
@@ -56,6 +57,7 @@ export class Simulation {
 
   private inputs = new Map<string, boolean>()
   private notOn: boolean[]
+  private repeaterOut: boolean[]
   private portNode: Int32Array
   private parent: Int32Array
   private nodeCount = 0
@@ -65,14 +67,20 @@ export class Simulation {
     this.level = level
     const n = level.cells.length
     this.notOn = new Array<boolean>(n).fill(true)
+    this.repeaterOut = new Array<boolean>(n).fill(false)
     const fresh = new Array<boolean>(n).fill(true)
 
-    // 电路改动后重建时，已有非门保持原状态，新放的按当下输入决定
+    // 电路改动后重建时，已有非门/中继器保持原状态，新放的从关开始
     if (previous && previous.level.cells.length === n) {
       for (let i = 0; i < n; i++) {
-        if (level.cells[i]?.type === 'not' && previous.level.cells[i]?.type === 'not') {
+        const now = level.cells[i]?.type
+        const was = previous.level.cells[i]?.type
+        if (now === 'not' && was === 'not') {
           this.notOn[i] = previous.notOn[i]
           fresh[i] = false
+        }
+        if (now === 'repeater' && was === 'repeater') {
+          this.repeaterOut[i] = previous.repeaterOut[i]
         }
       }
     }
@@ -143,20 +151,33 @@ export class Simulation {
   /** 推进 1 tick */
   step(): void {
     const { nodeValue, chargerOut } = this.solve()
+    const { cols, rows, cells } = this.level
     const nextNot = this.notOn.slice()
-    const { cells } = this.level
+    const nextRepeater = this.repeaterOut.slice()
 
     for (let i = 0; i < cells.length; i++) {
-      if (cells[i]?.type !== 'not') continue
-      nextNot[i] = !this.chargerPowered(i, chargerOut)
+      const c = cells[i]
+      if (!c) continue
+      if (c.type === 'not') {
+        nextNot[i] = !this.chargerPowered(i, chargerOut)
+      } else if (c.type === 'repeater') {
+        // 中继器读取后方当下的信号，下一 tick 才输出
+        const x = i % cols
+        const y = (i - x) / cols
+        const d = dirOf(c)
+        const bx = x - DX[d]
+        const by = y - DY[d]
+        nextRepeater[i] = this.backSignal(bx, by, d, chargerOut, nodeValue, cols, rows)
+      }
     }
 
     this.outputValues = this.collectOutputs(nodeValue, chargerOut)
     this.notOn = nextNot
+    this.repeaterOut = nextRepeater
     this.tick++
   }
 
-  /** 非门是否正被相邻、且前方指向它的充能器充能 */
+  /** 非门是否正被相邻、且前方指向它的充能器/中继器充能 */
   private chargerPowered(i: number, chargerOut: boolean[]): boolean {
     const { cols, rows, cells } = this.level
     const x = i % cols
@@ -167,10 +188,34 @@ export class Simulation {
       if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue
       const j = ny * cols + nx
       const cj = cells[j]
-      // 只有"前方指向自己"的充能器才算输入
-      if (cj?.type === 'charger' && dirOf(cj) === opposite(d as Dir) && chargerOut[j]) return true
+      // 只有"前方指向自己"的充能器/中继器才算输入
+      if (!cj) continue
+      if (cj.type !== 'charger' && cj.type !== 'repeater') continue
+      if (dirOf(cj) === opposite(d as Dir) && this.sourceOn(j, chargerOut)) return true
     }
     return false
+  }
+
+  /** 有方向、向前输出的元件当下的输出 */
+  private sourceOn(i: number, chargerOut: boolean[]): boolean {
+    const c = this.level.cells[i]
+    if (c?.type === 'charger') return chargerOut[i]
+    if (c?.type === 'repeater') return this.repeaterOut[i]
+    return false
+  }
+
+  /** 格子 (bx, by) 朝 dir 发出的信号，越界为 false */
+  private backSignal(
+    bx: number,
+    by: number,
+    dir: Dir,
+    chargerOut: boolean[],
+    nodeValue: boolean[],
+    cols: number,
+    rows: number,
+  ): boolean {
+    if (bx < 0 || by < 0 || bx >= cols || by >= rows) return false
+    return this.signalAt(by * cols + bx, dir, chargerOut, nodeValue)
   }
 
   snapshot(): Snapshot {
@@ -195,6 +240,9 @@ export class Simulation {
         }
         case 'charger':
           powers[i] = chargerOut[i] ? 1 : 0
+          break
+        case 'repeater':
+          powers[i] = this.repeaterOut[i] ? 1 : 0
           break
         case 'not':
           powers[i] = this.notOn[i] ? 1 : 0
@@ -297,6 +345,8 @@ export class Simulation {
         return this.notOn[i]
       case 'charger':
         return dirOf(c) === dir ? chargerOut[i] : false
+      case 'repeater':
+        return dirOf(c) === dir ? this.repeaterOut[i] : false
       case 'output':
         return false
     }
