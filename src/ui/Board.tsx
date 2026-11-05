@@ -282,17 +282,30 @@ function drawComponent(
     case 'cross': {
       const vertical = (power & 1) !== 0
       const horizontal = (power & 2) !== 0
-      ctx.lineCap = 'round'
       ctx.lineWidth = lineWidth(cell)
+      ctx.lineCap = 'round'
+
+      // 上下、左右各连到格子边
       ctx.strokeStyle = vertical ? ON : OFF
       ctx.beginPath()
-      ctx.moveTo(cx, cy - cell * 0.42)
-      ctx.lineTo(cx, cy + cell * 0.42)
+      ctx.moveTo(cx, cy - cell * 0.5)
+      ctx.lineTo(cx, cy + cell * 0.5)
       ctx.stroke()
       ctx.strokeStyle = horizontal ? ON : OFF
       ctx.beginPath()
-      ctx.moveTo(cx - cell * 0.42, cy)
-      ctx.lineTo(cx + cell * 0.42, cy)
+      ctx.moveTo(cx - cell * 0.5, cy)
+      ctx.lineTo(cx + cell * 0.5, cy)
+      ctx.stroke()
+
+      // 中心的小菱形：任一通道通电就是红色
+      const r = cell * 0.21
+      ctx.strokeStyle = on ? ON : OFF
+      ctx.beginPath()
+      ctx.moveTo(cx, cy - r)
+      ctx.lineTo(cx + r, cy)
+      ctx.lineTo(cx, cy + r)
+      ctx.lineTo(cx - r, cy)
+      ctx.closePath()
       ctx.stroke()
       break
     }
