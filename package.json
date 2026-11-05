@@ -1,7 +1,16 @@
 {
   "name": "redstone",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "移动端优先的 2D 红石电路解谜游戏",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/axiomofchoice-hjt/redstone.git"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
