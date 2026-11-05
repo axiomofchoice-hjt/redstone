@@ -8,6 +8,9 @@ import './App.css'
 
 const INITIAL_DIR: Dir = 1
 
+/** 编辑器里仿真每 tick 的间隔：4 tick/s */
+const TICK_MS = 250
+
 /** ⇄ 同时切换的两组元件 */
 const ALT_OF: Partial<Record<Tool, Tool>> = {
   wire: 'cross',
@@ -41,7 +44,7 @@ export default function App() {
       sim.step()
       const after = sim.snapshot().powers
       if (after.some((value, index) => value !== before[index])) repaint()
-    }, 500)
+    }, TICK_MS)
     return () => clearInterval(timer)
   }, [sim])
 
