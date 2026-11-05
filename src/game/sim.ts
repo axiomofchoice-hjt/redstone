@@ -61,10 +61,19 @@ export class Simulation {
   private nodeCount = 0
   private outputValues: Record<string, boolean> = {}
 
-  constructor(level: Level) {
+  constructor(level: Level, previous?: Simulation) {
     this.level = level
     const n = level.cells.length
     this.notOn = new Array<boolean>(n).fill(true)
+
+    // 电路改动后重建时，已有非门保持原状态，新放的默认通电
+    if (previous && previous.level.cells.length === n) {
+      for (let i = 0; i < n; i++) {
+        if (level.cells[i]?.type === 'not' && previous.level.cells[i]?.type === 'not') {
+          this.notOn[i] = previous.notOn[i]
+        }
+      }
+    }
 
     const nodeOf = new Int32Array(n).fill(-1)
     let count = 0

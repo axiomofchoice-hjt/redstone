@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { runLevel } from './sim'
+import { runLevel, Simulation } from './sim'
 import type { Cell, Level, TestCase } from './types'
 
 function makeLevel(
@@ -113,4 +113,38 @@ describe('充能器', () => {
     )
     expect(runLevel(level).passed).toBe(true)
   })
+})
+
+it('后接上的回馈线不会让两个非门震荡', () => {
+  const cols = 6
+  const rows = 5
+  const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
+  const put = (list: (Cell | null)[], x: number, y: number, c: Cell) => {
+    list[y * cols + x] = c
+  }
+  put(cells, 1, 1, { type: 'not' })
+  put(cells, 2, 1, { type: 'charger', dir: 1 })
+  put(cells, 3, 1, { type: 'not' })
+
+  const base: Level = { id: 'latch', name: 'latch', cols, rows, cells, tests: [] }
+  const first = new Simulation(base)
+  first.step()
+  first.step()
+  expect(first.snapshot().powers[1 * cols + 1]).toBe(1)
+  expect(first.snapshot().powers[1 * cols + 3]).toBe(0)
+
+  const next = cells.slice()
+  put(next, 3, 2, { type: 'wire' })
+  put(next, 3, 3, { type: 'wire' })
+  put(next, 2, 3, { type: 'wire' })
+  put(next, 1, 3, { type: 'wire' })
+  put(next, 1, 2, { type: 'charger', dir: 0 })
+
+  const second = new Simulation({ ...base, cells: next }, first)
+  for (let t = 0; t < 6; t++) {
+    const powers = second.snapshot().powers
+    expect(powers[1 * cols + 1]).toBe(1)
+    expect(powers[1 * cols + 3]).toBe(0)
+    second.step()
+  }
 })

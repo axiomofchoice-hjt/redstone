@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
-import type { Cell, Dir } from './game/types'
+import type { Dir, Level } from './game/types'
 import { level01 } from './levels/level-01'
 import { Board } from './ui/Board'
 import { Palette, type Tool } from './ui/Palette'
@@ -8,38 +8,44 @@ import './App.css'
 
 const INITIAL_DIR: Dir = 1
 
+interface Editing {
+  level: Level
+  sim: Simulation
+}
+
+const initial = (): Editing => {
+  const level = { ...level01, cells: level01.cells.slice() }
+  return { level, sim: new Simulation(level) }
+}
+
 export default function App() {
-  const [cells, setCells] = useState<(Cell | null)[]>(() => level01.cells.slice())
+  const [{ level, sim }, setEditing] = useState<Editing>(initial)
   const [tool, setTool] = useState<Tool>('wire')
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
-  const [beat, setBeat] = useState(0)
 
-  const level = useMemo(() => ({ ...level01, cells }), [cells])
-  // 编辑时也在跑：每次改动重建模拟，元件放下就按当前信号亮起
-  const sim = useMemo(() => new Simulation(level), [level])
-  void beat
-  const powers = sim.snapshot().powers
-
-  // 输入元件恒为 0，非门 1 tick 的延迟靠这个节拍体现
+  // 编辑时也在跑；重建连线时已有非门保留状态
   useEffect(() => {
     const timer = setInterval(() => {
       sim.step()
-      setBeat((value) => value + 1)
+      setEditing((prev) => ({ ...prev }))
     }, 500)
     return () => clearInterval(timer)
   }, [sim])
 
+  const powers = sim.snapshot().powers
+
   const handleCell = (index: number) => {
-    setCells((prev) => {
-      if (prev[index]?.locked) return prev
-      const next = prev.slice()
+    setEditing((prev) => {
+      const cells = prev.level.cells.slice()
+      if (cells[index]?.locked) return prev
       if (tool === 'erase') {
-        next[index] = null
+        cells[index] = null
       } else {
-        next[index] = { type: tool, dir: hasDirection(tool) ? dir : undefined }
+        cells[index] = { type: tool, dir: hasDirection(tool) ? dir : undefined }
       }
-      return next
+      const level = { ...prev.level, cells }
+      return { level, sim: new Simulation(level, prev.sim) }
     })
     setRun(null)
   }
@@ -64,7 +70,7 @@ export default function App() {
         </button>
       </header>
 
-      <Board level={level} cells={cells} powers={powers} onCell={handleCell} />
+      <Board level={level} cells={level.cells} powers={powers} onCell={handleCell} />
 
       <div className={run?.passed ? 'result ok' : 'result'}>
         <span>
