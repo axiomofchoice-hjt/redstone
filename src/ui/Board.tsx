@@ -410,8 +410,13 @@ function drawConnections(
   ctx.lineWidth = width
   ctx.lineCap = 'round'
 
-  // 没有连接时画一个十字，四面都算连上
-  const strokes: [number, number][] = linked.length > 0 ? linked : DIRS
+  // 没有连接时画一个十字，四面都算连上；只有一侧连接时对端也画出来（贯通整格）
+  const strokes: [number, number][] =
+    linked.length === 0
+      ? DIRS
+      : linked.length === 1
+        ? [linked[0], [-linked[0][0], -linked[0][1]]]
+        : linked
   // 端点收半个线宽，圆头正好停在格子边框上
   const reach = cell * 0.5 - width / 2
 
