@@ -291,8 +291,9 @@ function render(
       drawComponent(
         ctx,
         component,
-        ox + (x + 0.5) * cell,
-        oy + (y + 0.5) * cell,
+        // 网格线画在边界右侧/下方半个像素，元件也跟着挪半个像素，四边才是对称的
+        ox + (x + 0.5) * cell + 0.5,
+        oy + (y + 0.5) * cell + 0.5,
         cell,
         powers[i] ?? 0,
         component.type === 'wire' ? linkedDirs(cells, level, x, y) : null,
