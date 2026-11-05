@@ -65,12 +65,14 @@ export class Simulation {
     this.level = level
     const n = level.cells.length
     this.notOn = new Array<boolean>(n).fill(true)
+    const fresh = new Array<boolean>(n).fill(true)
 
-    // 电路改动后重建时，已有非门保持原状态，新放的默认通电
+    // 电路改动后重建时，已有非门保持原状态，新放的按当下输入决定
     if (previous && previous.level.cells.length === n) {
       for (let i = 0; i < n; i++) {
         if (level.cells[i]?.type === 'not' && previous.level.cells[i]?.type === 'not') {
           this.notOn[i] = previous.notOn[i]
+          fresh[i] = false
         }
       }
     }
@@ -118,6 +120,16 @@ export class Simulation {
         }
       }
     }
+
+    // 新放的非门不摆出一个通电的 tick：当下被充能就直接是关
+    if (fresh.some(Boolean)) {
+      const { chargerOut } = this.solve()
+      for (let i = 0; i < n; i++) {
+        if (fresh[i] && cells[i]?.type === 'not') {
+          this.notOn[i] = !this.chargerPowered(i, chargerOut)
+        }
+      }
+    }
   }
 
   setInputs(values: Record<string, 0 | 1>): void {
@@ -132,31 +144,33 @@ export class Simulation {
   step(): void {
     const { nodeValue, chargerOut } = this.solve()
     const nextNot = this.notOn.slice()
-    const { cols, rows, cells } = this.level
+    const { cells } = this.level
 
     for (let i = 0; i < cells.length; i++) {
-      const c = cells[i]
-      if (!c || c.type !== 'not') continue
-      const x = i % cols
-      const y = (i - x) / cols
-      let powered = false
-      for (let d = 0; d < 4; d++) {
-        const nx = x + DX[d]
-        const ny = y + DY[d]
-        if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue
-        const j = ny * cols + nx
-        const cj = cells[j]
-        // 只有"前方指向自己"的充能器才算输入
-        if (cj?.type === 'charger' && dirOf(cj) === opposite(d as Dir)) {
-          powered = powered || chargerOut[j]
-        }
-      }
-      nextNot[i] = !powered
+      if (cells[i]?.type !== 'not') continue
+      nextNot[i] = !this.chargerPowered(i, chargerOut)
     }
 
     this.outputValues = this.collectOutputs(nodeValue, chargerOut)
     this.notOn = nextNot
     this.tick++
+  }
+
+  /** 非门是否正被相邻、且前方指向它的充能器充能 */
+  private chargerPowered(i: number, chargerOut: boolean[]): boolean {
+    const { cols, rows, cells } = this.level
+    const x = i % cols
+    const y = (i - x) / cols
+    for (let d = 0; d < 4; d++) {
+      const nx = x + DX[d]
+      const ny = y + DY[d]
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue
+      const j = ny * cols + nx
+      const cj = cells[j]
+      // 只有"前方指向自己"的充能器才算输入
+      if (cj?.type === 'charger' && dirOf(cj) === opposite(d as Dir) && chargerOut[j]) return true
+    }
+    return false
   }
 
   snapshot(): Snapshot {

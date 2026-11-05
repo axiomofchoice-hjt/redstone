@@ -148,3 +148,21 @@ it('后接上的回馈线不会让两个非门震荡', () => {
     second.step()
   }
 })
+
+it('新放的非门若当下被充能，直接就是关，不先亮一个 tick', () => {
+  const cols = 5
+  const rows = 3
+  const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
+  cells[1 * cols + 1] = { type: 'not' }
+  cells[1 * cols + 2] = { type: 'charger', dir: 1 }
+
+  const base: Level = { id: 'fresh', name: 'fresh', cols, rows, cells, tests: [] }
+  const first = new Simulation(base)
+  first.step()
+  first.step()
+
+  const next = cells.slice()
+  next[1 * cols + 3] = { type: 'not' }
+  const second = new Simulation({ ...base, cells: next }, first)
+  expect(second.snapshot().powers[1 * cols + 3]).toBe(0)
+})
