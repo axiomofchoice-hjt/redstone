@@ -244,7 +244,7 @@ function drawComponent(
 
   switch (component.type) {
     case 'wire': {
-      drawConnections(ctx, cx, cy, cell, x, y, cells, level, on ? ON : OFF, Math.max(1.5, cell * 0.07))
+      drawConnections(ctx, cx, cy, cell, x, y, cells, level, on ? ON : OFF, Math.max(1.5, cell * 0.085))
       ctx.fillStyle = color
       ctx.beginPath()
       ctx.arc(cx, cy, cell * 0.14, 0, Math.PI * 2)
@@ -255,7 +255,7 @@ function drawComponent(
       const vertical = (power & 1) !== 0
       const horizontal = (power & 2) !== 0
       ctx.lineCap = 'round'
-      ctx.lineWidth = Math.max(1.5, cell * 0.07)
+      ctx.lineWidth = Math.max(1.5, cell * 0.085)
       ctx.strokeStyle = vertical ? ON : OFF
       ctx.beginPath()
       ctx.moveTo(cx, cy - cell * 0.42)
