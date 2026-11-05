@@ -275,7 +275,7 @@ function drawComponent(
       drawConnections(ctx, cx, cy, cell, x, y, cells, level, color, lineWidth(cell))
       ctx.fillStyle = color
       ctx.beginPath()
-      ctx.arc(cx, cy, cell * 0.14, 0, Math.PI * 2)
+      ctx.arc(cx, cy, cell * 0.11, 0, Math.PI * 2)
       ctx.fill()
       break
     }
