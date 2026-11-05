@@ -315,7 +315,7 @@ function drawComponent(
         const side = k * 0.72
         const height = side * (Math.sqrt(3) / 2)
         // 比居中稍微往前一点，提示朝向
-        const shift = k * 0.1
+        const shift = k * 0.05
         const apex = shift + height / 2
         const base = shift - height / 2
         ctx.beginPath()
