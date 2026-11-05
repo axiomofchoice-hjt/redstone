@@ -89,8 +89,7 @@
 
 .toggle,
 .tool,
-.dir,
-.erase {
+.dir {
   flex: 0 0 auto;
   border: 1px solid #232a3b;
   border-radius: 9px;
@@ -103,18 +102,11 @@
 
 .toggle.active,
 .tool.active,
-.dir.active,
-.erase.active {
+.dir.active {
   background: #ff6b4a;
   border-color: #ff6b4a;
   color: #160b07;
   font-weight: 600;
-}
-
-.side {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .dpad {
@@ -147,9 +139,4 @@
   padding: 0;
   font-size: 11px;
   font-weight: 600;
-}
-
-.erase {
-  height: 56px;
-  padding: 0 12px;
 }

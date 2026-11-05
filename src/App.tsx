@@ -52,13 +52,9 @@ export default function App() {
 
   const handleCell = (index: number) => {
     setEditing((prev) => {
+      if (prev.level.cells[index]?.locked) return prev
       const cells = prev.level.cells.slice()
-      if (cells[index]?.locked) return prev
-      if (tool === 'erase') {
-        cells[index] = null
-      } else {
-        cells[index] = { type: tool, dir: hasDirection(tool) ? dir : undefined }
-      }
+      cells[index] = { type: tool, dir: hasDirection(tool) ? dir : undefined }
       const level = { ...prev.level, cells }
       return { level, sim: new Simulation(level, prev.sim) }
     })
