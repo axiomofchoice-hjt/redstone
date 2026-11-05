@@ -11,7 +11,8 @@ interface Props {
 /** 按钮上的元件图标：把元件按缩小尺寸画一遍 */
 export function ToolIcon({ type, dir, active }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
-  const size = 30
+  // 按钮 38px 含 1px 边框，内容区 36px，图标正好铺满、四边都碰到边框
+  const size = 36
 
   useEffect(() => {
     const canvas = ref.current
