@@ -26,6 +26,8 @@ export default function App() {
   const [tool, setTool] = useState<Tool>({ type: 'wire' })
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
+  // 编辑器里手动开关的输入
+  const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   // 仿真在后台推进，只在画面有变化时重绘
   const [, repaint] = useReducer((n: number) => n + 1, 0)
 
@@ -42,6 +44,18 @@ export default function App() {
   const powers = sim.snapshot().powers
 
   const handleCell = (index: number) => {
+    // 交互：点输入元件开关它
+    if (tool === 'interact') {
+      const cell = level.cells[index]
+      if (cell?.type !== 'input' || !cell.id) return
+      const next: Record<string, 0 | 1> = { ...inputs, [cell.id]: inputs[cell.id] ? 0 : 1 }
+      setInputs(next)
+      sim.setInputs(next)
+      setRun(null)
+      repaint()
+      return
+    }
+
     setEditing((prev) => {
       const cells = prev.level.cells.slice()
       if (cells[index]?.locked) return prev
@@ -55,7 +69,10 @@ export default function App() {
         }
       }
       const level = { ...prev.level, cells }
-      return { level, sim: new Simulation(level, prev.sim) }
+      const sim = new Simulation(level, prev.sim)
+      // 重建后把手动开关的输入接着用
+      sim.setInputs(inputs)
+      return { level, sim }
     })
     setRun(null)
   }

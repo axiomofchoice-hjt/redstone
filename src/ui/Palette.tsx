@@ -1,7 +1,7 @@
 import type { CellType, Dir, Level } from '../game/types'
 import { ToolIcon } from './ToolIcon'
 
-export type Tool = { type: CellType; id?: string } | 'erase'
+export type Tool = { type: CellType; id?: string } | 'erase' | 'interact'
 
 const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
   { dir: 0, label: 'W', area: 'up' },
@@ -34,7 +34,7 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
   ]
 
   const active = (type: CellType, id?: string) =>
-    tool !== 'erase' && tool.type === type && tool.id === id
+    typeof tool === 'object' && tool.type === type && tool.id === id
 
   return (
     <div className="palette">
@@ -79,8 +79,11 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
           ))}
         </div>
         <div className="stack">
-          {/* 占位：交互功能待定 */}
-          <button type="button" className="swap">
+          <button
+            type="button"
+            className={tool === 'interact' ? 'swap active' : 'swap'}
+            onClick={() => onTool('interact')}
+          >
             交互
           </button>
           <button
