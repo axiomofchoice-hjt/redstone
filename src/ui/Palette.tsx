@@ -11,7 +11,9 @@ const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
 
 const TOOLS: { type: CellType; label: string }[] = [
   { type: 'wire', label: '导线' },
+  { type: 'cross', label: '交叉' },
   { type: 'charger', label: '充能' },
+  { type: 'repeater', label: '中继' },
   { type: 'not', label: '非门' },
   { type: 'input', label: '输入' },
   { type: 'output', label: '输出' },
