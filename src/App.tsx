@@ -109,10 +109,23 @@ export default function App() {
         <div className="actions">
           <button
             type="button"
-            className={paused ? 'debug active' : 'debug'}
+            className="debug icon"
+            aria-label={paused ? '继续' : '暂停'}
+            title={paused ? '继续' : '暂停'}
             onClick={() => setPaused((value) => !value)}
           >
-            暂停
+            {paused ? (
+              // 继续：朝右三角形
+              <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M4 2 L13 8 L4 14 Z" fill="currentColor" />
+              </svg>
+            ) : (
+              // 暂停：两条竖线
+              <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="3" y="2" width="3.5" height="12" fill="currentColor" />
+                <rect x="9.5" y="2" width="3.5" height="12" fill="currentColor" />
+              </svg>
+            )}
           </button>
           <button type="button" className="debug" onClick={nextTick}>
             下一 tick

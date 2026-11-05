@@ -57,11 +57,11 @@
   padding: 0 10px;
 }
 
-.debug.active {
-  background: #ff6b4a;
-  border-color: #ff6b4a;
-  color: #160b07;
-  font-weight: 600;
+.debug.icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  padding: 0;
 }
 
 .run {
