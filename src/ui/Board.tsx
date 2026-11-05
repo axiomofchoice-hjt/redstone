@@ -294,31 +294,32 @@ function drawComponent(
       break
     }
     case 'repeater': {
-      // 二极管符号：横线 - 三角 - 竖线，朝前
+      // 二极管符号：横线 - 空心正三角 - 竖线（竖线贴在前边框）
       const angle = (dirOf(component) - 1) * (Math.PI / 2)
+      const side = cell * 0.56
+      const half = side / 2
+      const barX = cell * 0.45
+      const baseX = barX - side * (Math.sqrt(3) / 2)
       ctx.save()
       ctx.translate(cx, cy)
       ctx.rotate(angle)
       ctx.strokeStyle = color
-      ctx.fillStyle = color
       ctx.lineWidth = Math.max(1.5, cell * 0.085)
       ctx.lineCap = 'round'
       ctx.lineJoin = 'round'
       ctx.beginPath()
       ctx.moveTo(-cell * 0.46, 0)
-      ctx.lineTo(-cell * 0.06, 0)
+      ctx.lineTo(baseX, 0)
       ctx.stroke()
       ctx.beginPath()
-      ctx.moveTo(-cell * 0.06, -cell * 0.22)
-      ctx.lineTo(-cell * 0.06, cell * 0.22)
-      ctx.lineTo(cell * 0.22, 0)
+      ctx.moveTo(baseX, -half)
+      ctx.lineTo(baseX, half)
+      ctx.lineTo(barX, 0)
       ctx.closePath()
-      ctx.fill()
+      ctx.stroke()
       ctx.beginPath()
-      ctx.moveTo(cell * 0.22, -cell * 0.24)
-      ctx.lineTo(cell * 0.22, cell * 0.24)
-      ctx.moveTo(cell * 0.22, 0)
-      ctx.lineTo(cell * 0.46, 0)
+      ctx.moveTo(barX, -half)
+      ctx.lineTo(barX, half)
       ctx.stroke()
       ctx.restore()
       break
