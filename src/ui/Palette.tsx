@@ -40,7 +40,7 @@ export function Palette({ tool, dir, onTool, onDir }: Props) {
             title={item.label}
             onClick={() => onTool(item.type)}
           >
-            <ToolIcon type={item.type} active={tool === item.type} />
+            <ToolIcon type={item.type} dir={dir} active={tool === item.type} />
           </button>
         ))}
       </div>

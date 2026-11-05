@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'react'
-import type { CellType } from '../game/types'
+import type { CellType, Dir } from '../game/types'
 import { drawComponent } from './glyph'
 
 interface Props {
   type: CellType
+  dir: Dir
   active: boolean
 }
 
 /** 按钮上的元件图标：把元件按缩小尺寸画一遍 */
-export function ToolIcon({ type, active }: Props) {
+export function ToolIcon({ type, dir, active }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
   const size = 30
 
@@ -25,7 +26,7 @@ export function ToolIcon({ type, active }: Props) {
     // 选中时按钮底色是橙色，图标反过来用深色
     drawComponent(
       ctx,
-      { type, dir: 0 },
+      { type, dir },
       size / 2,
       size / 2,
       size,
@@ -33,7 +34,7 @@ export function ToolIcon({ type, active }: Props) {
       type === 'wire' ? [] : null,
       active ? '#160b07' : undefined,
     )
-  }, [type, active])
+  }, [type, dir, active])
 
   return <canvas ref={ref} style={{ width: size, height: size, display: 'block' }} />
 }
