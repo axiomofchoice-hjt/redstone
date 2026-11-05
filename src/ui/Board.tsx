@@ -283,23 +283,26 @@ function drawComponent(
       const vertical = (power & 1) !== 0
       const horizontal = (power & 2) !== 0
       const r = cell * 0.18
-      ctx.lineWidth = lineWidth(cell)
+      const lw = lineWidth(cell)
+      // 圆头会多伸出半个线宽，端点往里收，正好停在格子边框上
+      const reach = cell * 0.5 - lw / 2
+      ctx.lineWidth = lw
       ctx.lineCap = 'round'
 
       // 横线在中间向下绕半个圆，从竖线下穿过去
       ctx.strokeStyle = horizontal ? ON : OFF
       ctx.beginPath()
-      ctx.moveTo(cx - cell * 0.5, cy)
+      ctx.moveTo(cx - reach, cy)
       ctx.lineTo(cx - r, cy)
       ctx.arc(cx, cy, r, Math.PI, 0, true)
-      ctx.lineTo(cx + cell * 0.5, cy)
+      ctx.lineTo(cx + reach, cy)
       ctx.stroke()
 
       // 竖线是一条直线
       ctx.strokeStyle = vertical ? ON : OFF
       ctx.beginPath()
-      ctx.moveTo(cx, cy - cell * 0.5)
-      ctx.lineTo(cx, cy + cell * 0.5)
+      ctx.moveTo(cx, cy - reach)
+      ctx.lineTo(cx, cy + reach)
       ctx.stroke()
       break
     }
@@ -414,11 +417,13 @@ function drawConnections(
   // 只有一侧连接时，对端也画出来（贯通整格）；两侧及以上只画实际连接
   const strokes: [number, number][] =
     linked.length === 1 ? [linked[0], [-linked[0][0], -linked[0][1]]] : linked
+  // 端点收半个线宽，圆头正好停在格子边框上
+  const reach = cell * 0.5 - width / 2
 
   for (const [dx, dy] of strokes) {
     ctx.beginPath()
     ctx.moveTo(cx, cy)
-    ctx.lineTo(cx + dx * cell * 0.5, cy + dy * cell * 0.5)
+    ctx.lineTo(cx + dx * reach, cy + dy * reach)
     ctx.stroke()
   }
 }
