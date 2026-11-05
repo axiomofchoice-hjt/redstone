@@ -282,35 +282,24 @@ function drawComponent(
     case 'cross': {
       const vertical = (power & 1) !== 0
       const horizontal = (power & 2) !== 0
+      const r = cell * 0.18
       ctx.lineWidth = lineWidth(cell)
       ctx.lineCap = 'round'
 
-      // 中心的小菱形：任一通道通电就是红色
-      const r = cell * 0.21
-
-      // 四个方向从菱形顶点连到格子边，不穿过菱形
-      ctx.strokeStyle = vertical ? ON : OFF
-      ctx.beginPath()
-      ctx.moveTo(cx, cy - r)
-      ctx.lineTo(cx, cy - cell * 0.5)
-      ctx.moveTo(cx, cy + r)
-      ctx.lineTo(cx, cy + cell * 0.5)
-      ctx.stroke()
+      // 横线在中间向下绕半个圆，从竖线下穿过去
       ctx.strokeStyle = horizontal ? ON : OFF
       ctx.beginPath()
-      ctx.moveTo(cx - r, cy)
-      ctx.lineTo(cx - cell * 0.5, cy)
-      ctx.moveTo(cx + r, cy)
+      ctx.moveTo(cx - cell * 0.5, cy)
+      ctx.lineTo(cx - r, cy)
+      ctx.arc(cx, cy, r, Math.PI, 0, true)
       ctx.lineTo(cx + cell * 0.5, cy)
       ctx.stroke()
 
-      ctx.strokeStyle = on ? ON : OFF
+      // 竖线是一条直线
+      ctx.strokeStyle = vertical ? ON : OFF
       ctx.beginPath()
-      ctx.moveTo(cx, cy - r)
-      ctx.lineTo(cx + r, cy)
-      ctx.lineTo(cx, cy + r)
-      ctx.lineTo(cx - r, cy)
-      ctx.closePath()
+      ctx.moveTo(cx, cy - cell * 0.5)
+      ctx.lineTo(cx, cy + cell * 0.5)
       ctx.stroke()
       break
     }
