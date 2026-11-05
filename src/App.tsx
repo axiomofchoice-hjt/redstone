@@ -95,9 +95,6 @@ export default function App() {
             <h1>
               第 {level.no ?? 1} 关 · {level.name}
             </h1>
-            <p className="sub">
-              {level.cols} × {level.rows}
-            </p>
           </div>
         </div>
         <button type="button" className="run" onClick={() => setRun(runLevel(level))}>
