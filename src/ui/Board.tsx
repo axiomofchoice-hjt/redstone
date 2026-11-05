@@ -276,15 +276,15 @@ function drawComponent(
       ctx.rotate(angle)
       ctx.strokeStyle = color
       ctx.lineWidth = Math.max(1.5, cell * 0.085)
-      ctx.lineCap = 'round'
+      ctx.lineCap = 'butt'
       ctx.lineJoin = 'round'
       ctx.beginPath()
-      ctx.moveTo(-cell * 0.28, 0)
-      ctx.lineTo(cell * 0.26, 0)
-      ctx.moveTo(cell * 0.26, 0)
-      ctx.lineTo(cell * 0.02, -cell * 0.2)
-      ctx.moveTo(cell * 0.26, 0)
-      ctx.lineTo(cell * 0.02, cell * 0.2)
+      ctx.moveTo(-cell * 0.5, 0)
+      ctx.lineTo(cell * 0.5, 0)
+      ctx.moveTo(cell * 0.5, 0)
+      ctx.lineTo(cell * 0.34, -cell * 0.13)
+      ctx.moveTo(cell * 0.5, 0)
+      ctx.lineTo(cell * 0.34, cell * 0.13)
       ctx.stroke()
       ctx.restore()
       break
