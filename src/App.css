@@ -125,6 +125,22 @@
   gap: 4px;
 }
 
+.dir.up {
+  grid-area: up;
+}
+
+.dir.left {
+  grid-area: left;
+}
+
+.dir.down {
+  grid-area: down;
+}
+
+.dir.right {
+  grid-area: right;
+}
+
 .dir {
   width: 30px;
   height: 26px;

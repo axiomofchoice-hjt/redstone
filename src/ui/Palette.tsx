@@ -20,9 +20,11 @@ interface Props {
 }
 
 export function Palette({ tool, dir, alt, onTool, onDir, onAlt }: Props) {
+  const conductor = alt ? 'cross' : 'wire'
+  const source = alt ? 'repeater' : 'charger'
   const tools: { type: CellType; label: string }[] = [
-    { type: alt ? 'cross' : 'wire', label: alt ? '交叉' : '导线' },
-    { type: alt ? 'repeater' : 'charger', label: alt ? '中继' : '充能' },
+    { type: conductor, label: alt ? '交叉' : '导线' },
+    { type: source, label: alt ? '中继' : '充能' },
     { type: 'not', label: '非门' },
     { type: 'input', label: '输入' },
     { type: 'output', label: '输出' },
@@ -54,7 +56,6 @@ export function Palette({ tool, dir, alt, onTool, onDir, onAlt }: Props) {
               key={item.label}
               type="button"
               className={`dir ${item.area}${dir === item.dir ? ' active' : ''}`}
-              style={{ gridArea: item.area }}
               onClick={() => onDir(item.dir)}
             >
               {item.label}

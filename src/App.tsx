@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
 import type { Dir, Level } from './game/types'
 import { level01 } from './levels/level-01'
@@ -7,6 +7,14 @@ import { Palette, type Tool } from './ui/Palette'
 import './App.css'
 
 const INITIAL_DIR: Dir = 1
+
+/** ⇄ 同时切换的两组元件 */
+const ALT_OF: Partial<Record<Tool, Tool>> = {
+  wire: 'cross',
+  cross: 'wire',
+  charger: 'repeater',
+  repeater: 'charger',
+}
 
 interface Editing {
   level: Level
@@ -24,17 +32,15 @@ export default function App() {
   const [alt, setAlt] = useState(false)
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
+  // 仿真在后台推进，只在画面有变化时重绘
+  const [, repaint] = useReducer((n: number) => n + 1, 0)
 
-  // 编辑时也在跑；重建连线时已有非门保留状态
   useEffect(() => {
     const timer = setInterval(() => {
       const before = sim.snapshot().powers
       sim.step()
       const after = sim.snapshot().powers
-      // 画面没变化就不重绘，避免一直占用渲染线程
-      if (after.some((value, index) => value !== before[index])) {
-        setEditing((prev) => ({ ...prev }))
-      }
+      if (after.some((value, index) => value !== before[index])) repaint()
     }, 500)
     return () => clearInterval(timer)
   }, [sim])
@@ -101,21 +107,8 @@ export default function App() {
         onTool={setTool}
         onDir={setDir}
         onAlt={() => {
-          setAlt(!alt)
-          setTool((current) => {
-            switch (current) {
-              case 'wire':
-                return 'cross'
-              case 'cross':
-                return 'wire'
-              case 'charger':
-                return 'repeater'
-              case 'repeater':
-                return 'charger'
-              default:
-                return current
-            }
-          })
+          setAlt((value) => !value)
+          setTool((current) => ALT_OF[current] ?? current)
         }}
       />
     </div>

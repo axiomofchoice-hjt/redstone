@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { dirOf } from '../game/sim'
+import { dirOf, DX, DY, isSource } from '../game/sim'
 import type { Cell, Level } from '../game/types'
 
 interface Props {
@@ -12,9 +12,13 @@ interface Props {
 
 const BG = '#0e1018'
 const GRID = '#1b2130'
+const MAP_BG = '#101319'
+const CHECKER = '#12151f'
 const ON = '#ff2b2b'
 const OFF = '#ffffff'
-const SOURCE = '#ff2b2b'
+
+const DIRS: [number, number][] = DX.map((dx, d) => [dx, DY[d]])
+const lineWidth = (cell: number) => Math.max(1.5, cell * 0.085)
 
 const EDGE = 12
 const MIN_CELL = 36
@@ -180,7 +184,7 @@ function render(
   geom.mapW = mapW
   geom.mapH = mapH
 
-  ctx.fillStyle = '#101319'
+  ctx.fillStyle = MAP_BG
   ctx.fillRect(ox, oy, mapW, mapH)
 
   const firstX = Math.max(0, Math.floor(-ox / cell))
@@ -191,7 +195,7 @@ function render(
   for (let y = firstY; y <= lastY; y++) {
     for (let x = firstX; x <= lastX; x++) {
       if ((x + y) % 2 === 0) {
-        ctx.fillStyle = '#12151f'
+        ctx.fillStyle = CHECKER
         ctx.fillRect(ox + x * cell, oy + y * cell, cell, cell)
       }
     }
@@ -231,6 +235,26 @@ function render(
   }
 }
 
+function drawDirected(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  cell: number,
+  component: Cell,
+  color: string,
+  draw: (k: number) => void,
+) {
+  ctx.save()
+  ctx.translate(cx, cy)
+  ctx.rotate(((dirOf(component) - 1) * Math.PI) / 2)
+  ctx.strokeStyle = color
+  ctx.lineWidth = lineWidth(cell)
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  draw(cell)
+  ctx.restore()
+}
+
 function drawComponent(
   ctx: CanvasRenderingContext2D,
   component: Cell,
@@ -248,7 +272,7 @@ function drawComponent(
 
   switch (component.type) {
     case 'wire': {
-      drawConnections(ctx, cx, cy, cell, x, y, cells, level, on ? ON : OFF, Math.max(1.5, cell * 0.085))
+      drawConnections(ctx, cx, cy, cell, x, y, cells, level, color, lineWidth(cell))
       ctx.fillStyle = color
       ctx.beginPath()
       ctx.arc(cx, cy, cell * 0.14, 0, Math.PI * 2)
@@ -259,7 +283,7 @@ function drawComponent(
       const vertical = (power & 1) !== 0
       const horizontal = (power & 2) !== 0
       ctx.lineCap = 'round'
-      ctx.lineWidth = Math.max(1.5, cell * 0.085)
+      ctx.lineWidth = lineWidth(cell)
       ctx.strokeStyle = vertical ? ON : OFF
       ctx.beginPath()
       ctx.moveTo(cx, cy - cell * 0.42)
@@ -272,58 +296,42 @@ function drawComponent(
       ctx.stroke()
       break
     }
-    case 'charger': {
+    case 'charger':
       // 箭头：一条主干 + 两条箭羽
-      const angle = (dirOf(component) - 1) * (Math.PI / 2)
-      ctx.save()
-      ctx.translate(cx, cy)
-      ctx.rotate(angle)
-      ctx.strokeStyle = color
-      ctx.lineWidth = Math.max(1.5, cell * 0.085)
-      ctx.lineCap = 'round'
-      ctx.lineJoin = 'round'
-      ctx.beginPath()
-      ctx.moveTo(-cell * 0.46, 0)
-      ctx.lineTo(cell * 0.46, 0)
-      ctx.moveTo(cell * 0.46, 0)
-      ctx.lineTo(cell * 0.28, -cell * 0.18)
-      ctx.moveTo(cell * 0.46, 0)
-      ctx.lineTo(cell * 0.28, cell * 0.18)
-      ctx.stroke()
-      ctx.restore()
+      drawDirected(ctx, cx, cy, cell, component, color, (k) => {
+        ctx.beginPath()
+        ctx.moveTo(-k * 0.46, 0)
+        ctx.lineTo(k * 0.46, 0)
+        ctx.moveTo(k * 0.46, 0)
+        ctx.lineTo(k * 0.28, -k * 0.18)
+        ctx.moveTo(k * 0.46, 0)
+        ctx.lineTo(k * 0.28, k * 0.18)
+        ctx.stroke()
+      })
       break
-    }
-    case 'repeater': {
+    case 'repeater':
       // 二极管符号：横线 - 空心正三角 - 竖线（竖线贴在前边框）
-      const angle = (dirOf(component) - 1) * (Math.PI / 2)
-      const side = cell * 0.56
-      const half = side / 2
-      const barX = cell * 0.45
-      const baseX = barX - side * (Math.sqrt(3) / 2)
-      ctx.save()
-      ctx.translate(cx, cy)
-      ctx.rotate(angle)
-      ctx.strokeStyle = color
-      ctx.lineWidth = Math.max(1.5, cell * 0.085)
-      ctx.lineCap = 'round'
-      ctx.lineJoin = 'round'
-      ctx.beginPath()
-      ctx.moveTo(-cell * 0.46, 0)
-      ctx.lineTo(baseX, 0)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(baseX, -half)
-      ctx.lineTo(baseX, half)
-      ctx.lineTo(barX, 0)
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(barX, -half)
-      ctx.lineTo(barX, half)
-      ctx.stroke()
-      ctx.restore()
+      drawDirected(ctx, cx, cy, cell, component, color, (k) => {
+        const side = k * 0.56
+        const half = side / 2
+        const bar = k * 0.45
+        const base = bar - side * (Math.sqrt(3) / 2)
+        ctx.beginPath()
+        ctx.moveTo(-k * 0.46, 0)
+        ctx.lineTo(base, 0)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(base, -half)
+        ctx.lineTo(base, half)
+        ctx.lineTo(bar, 0)
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(bar, -half)
+        ctx.lineTo(bar, half)
+        ctx.stroke()
+      })
       break
-    }
     case 'not': {
       // 灯泡符号：圆圈 + 叉
       const r = cell * 0.33
@@ -351,7 +359,7 @@ function drawComponent(
       break
     }
     case 'input': {
-      ctx.fillStyle = on ? SOURCE : OFF
+      ctx.fillStyle = color
       roundRect(ctx, cx - cell * 0.26, cy - cell * 0.26, cell * 0.52, cell * 0.52, cell * 0.12)
       ctx.fill()
       drawLabel(ctx, component.id ?? '', cx, cy, cell, '#0e1018')
@@ -369,7 +377,7 @@ function drawComponent(
         ctx.arc(cx, cy, cell * 0.16, 0, Math.PI * 2)
         ctx.fill()
       }
-      drawLabel(ctx, component.id ?? '', cx, cy + cell * 0.36, cell * 0.7, offLabel(on))
+      drawLabel(ctx, component.id ?? '', cx, cy + cell * 0.36, cell * 0.7, on ? BG : OFF)
       break
     }
   }
@@ -387,22 +395,14 @@ function drawConnections(
   color: string,
   width: number,
 ) {
-  const dirs: [number, number][] = [
-    [0, -1],
-    [1, 0],
-    [0, 1],
-    [-1, 0],
-  ]
-  const linked = dirs.filter(([dx, dy], d) => {
+  const linked = DIRS.filter(([dx, dy], d) => {
     const nx = x + dx
     const ny = y + dy
     if (nx < 0 || ny < 0 || nx >= level.cols || ny >= level.rows) return false
     const neighbor = cells[ny * level.cols + nx]
     if (!neighbor) return false
     // 充能器/中继器只有前后能连，侧边不算
-    if (neighbor.type === 'charger' || neighbor.type === 'repeater') {
-      return d % 2 === dirOf(neighbor) % 2
-    }
+    if (isSource(neighbor)) return d % 2 === dirOf(neighbor) % 2
     return true
   })
 
@@ -436,10 +436,6 @@ function drawLabel(
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText(text, cx, cy)
-}
-
-function offLabel(on: boolean) {
-  return on ? '#0e1018' : '#ffffff'
 }
 
 function roundRect(
