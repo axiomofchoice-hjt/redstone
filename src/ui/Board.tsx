@@ -17,6 +17,9 @@ const CHECKER = '#12151f'
 const EDGE = 12
 const MIN_CELL = 36
 const MAX_CELL = 64
+/** 双指缩放的范围（相对自适应大小） */
+const MIN_ZOOM = 1
+const MAX_ZOOM = 3
 
 interface Geom {
   cell: number
@@ -38,6 +41,21 @@ interface Drag {
   camY: number
   moved: boolean
 }
+
+interface Pinch {
+  /** 起始双指间距与中点 */
+  dist: number
+  midX: number
+  midY: number
+  zoom: number
+  camX: number
+  camY: number
+}
+
+const distance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+  Math.hypot(a.x - b.x, a.y - b.y)
+
+const clampZoom = (zoom: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom))
 
 function clampCamera(x: number, y: number, w: number, h: number, mapW: number, mapH: number) {
   return {
@@ -61,7 +79,9 @@ export function Board({ level, cells, powers, onCell }: Props) {
     mapH: 0,
   })
   const drag = useRef<Drag | null>(null)
-  const [cam, setCam] = useState({ x: 0, y: 0 })
+  const pointers = useRef(new Map<number, { x: number; y: number }>())
+  const pinch = useRef<Pinch | null>(null)
+  const [cam, setCam] = useState({ x: 0, y: 0, zoom: 1 })
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -95,6 +115,23 @@ export function Board({ level, cells, powers, onCell }: Props) {
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId)
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+
+    // 两根手指：进入缩放，单指拖动让位
+    if (pointers.current.size >= 2) {
+      const [a, b] = [...pointers.current.values()]
+      pinch.current = {
+        dist: distance(a, b),
+        midX: (a.x + b.x) / 2,
+        midY: (a.y + b.y) / 2,
+        zoom: cam.zoom,
+        camX: geom.current.camX,
+        camY: geom.current.camY,
+      }
+      drag.current = null
+      return
+    }
+
     drag.current = {
       id: event.pointerId,
       x: event.clientX,
@@ -106,6 +143,33 @@ export function Board({ level, cells, powers, onCell }: Props) {
   }
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const known = pointers.current.get(event.pointerId)
+    if (!known) return
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
+
+    const pinchNow = pinch.current
+    if (pinchNow && pointers.current.size >= 2) {
+      const [a, b] = [...pointers.current.values()]
+      const dist = distance(a, b)
+      const midX = (a.x + b.x) / 2
+      const midY = (a.y + b.y) / 2
+      if (pinchNow.dist <= 0 || dist <= 0) return
+      const zoom = clampZoom(pinchNow.zoom * (dist / pinchNow.dist))
+      const ratio = zoom / pinchNow.zoom
+      // 双指中点下面的地图位置保持不动
+      const g = geom.current
+      const next = clampCamera(
+        midX - (pinchNow.midX - pinchNow.camX) * ratio,
+        midY - (pinchNow.midY - pinchNow.camY) * ratio,
+        g.w,
+        g.h,
+        g.mapW * ratio,
+        g.mapH * ratio,
+      )
+      setCam({ x: next.x, y: next.y, zoom })
+      return
+    }
+
     const current = drag.current
     if (!current || current.id !== event.pointerId) return
     const dx = event.clientX - current.x
@@ -113,10 +177,14 @@ export function Board({ level, cells, powers, onCell }: Props) {
     if (!current.moved && Math.hypot(dx, dy) > 6) current.moved = true
     if (!current.moved) return
     const g = geom.current
-    setCam(clampCamera(current.camX + dx, current.camY + dy, g.w, g.h, g.mapW, g.mapH))
+    const next = clampCamera(current.camX + dx, current.camY + dy, g.w, g.h, g.mapW, g.mapH)
+    setCam((prev) => ({ ...prev, x: next.x, y: next.y }))
   }
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    pointers.current.delete(event.pointerId)
+    if (pointers.current.size < 2) pinch.current = null
+
     const current = drag.current
     if (!current || current.id !== event.pointerId) return
     drag.current = null
@@ -138,7 +206,9 @@ export function Board({ level, cells, powers, onCell }: Props) {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={() => {
+        onPointerCancel={(event) => {
+          pointers.current.delete(event.pointerId)
+          if (pointers.current.size < 2) pinch.current = null
           drag.current = null
         }}
       />
@@ -153,7 +223,7 @@ function render(
   level: Level,
   cells: (Cell | null)[],
   powers: number[],
-  cam: { x: number; y: number },
+  cam: { x: number; y: number; zoom: number },
   geom: Geom,
 ) {
   ctx.clearRect(0, 0, w, h)
@@ -161,7 +231,7 @@ function render(
   ctx.fillRect(0, 0, w, h)
 
   const fit = Math.min((w - 24) / level.cols, (h - 24) / level.rows)
-  const cell = Math.min(MAX_CELL, Math.max(MIN_CELL, fit))
+  const cell = Math.min(MAX_CELL, Math.max(MIN_CELL, fit)) * cam.zoom
   const mapW = cell * level.cols
   const mapH = cell * level.rows
   const clamped = clampCamera(cam.x, cam.y, w, h, mapW, mapH)
