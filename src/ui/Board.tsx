@@ -284,43 +284,28 @@ function drawComponent(
       break
     }
     case 'not': {
-      // 灯泡：上方玻璃泡 + 下方灯座
-      const bulbY = cy - cell * 0.08
-      const r = cell * 0.18
+      // 灯泡符号：圆圈 + 叉
+      const r = cell * 0.26
       if (on) {
-        const glow = ctx.createRadialGradient(cx, bulbY, r * 0.4, cx, bulbY, r * 2)
-        glow.addColorStop(0, 'rgba(255, 107, 74, 0.45)')
+        const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 1.9)
+        glow.addColorStop(0, 'rgba(255, 107, 74, 0.4)')
         glow.addColorStop(1, 'rgba(255, 107, 74, 0)')
         ctx.fillStyle = glow
         ctx.beginPath()
-        ctx.arc(cx, bulbY, r * 2, 0, Math.PI * 2)
+        ctx.arc(cx, cy, r * 1.9, 0, Math.PI * 2)
         ctx.fill()
       }
-      ctx.fillStyle = color
+      ctx.strokeStyle = color
+      ctx.lineWidth = Math.max(1.5, cell * 0.075)
       ctx.beginPath()
-      ctx.arc(cx, bulbY, r, 0, Math.PI * 2)
-      ctx.fill()
-      // 灯座
-      ctx.fillStyle = '#6b7385'
-      roundRect(
-        ctx,
-        cx - cell * 0.11,
-        bulbY + r * 0.72,
-        cell * 0.22,
-        cell * 0.13,
-        cell * 0.03,
-      )
-      ctx.fill()
-      ctx.fillStyle = '#3a4152'
-      ctx.fillRect(cx - cell * 0.11, bulbY + r * 0.72 + cell * 0.05, cell * 0.22, cell * 0.02)
-      // 灯丝
-      ctx.strokeStyle = on ? '#ffd9cc' : '#2a2f3d'
-      ctx.lineWidth = Math.max(1, cell * 0.035)
+      ctx.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx.stroke()
+      const d = r * Math.SQRT1_2
       ctx.beginPath()
-      ctx.moveTo(cx - cell * 0.06, bulbY + cell * 0.04)
-      ctx.lineTo(cx - cell * 0.03, bulbY - cell * 0.03)
-      ctx.lineTo(cx + cell * 0.03, bulbY + cell * 0.01)
-      ctx.lineTo(cx + cell * 0.06, bulbY - cell * 0.05)
+      ctx.moveTo(cx - d, cy - d)
+      ctx.lineTo(cx + d, cy + d)
+      ctx.moveTo(cx + d, cy - d)
+      ctx.lineTo(cx - d, cy + d)
       ctx.stroke()
       break
     }
