@@ -358,11 +358,15 @@ function drawConnections(
     [0, 1],
     [-1, 0],
   ]
-  const linked = dirs.filter(([dx, dy]) => {
+  const linked = dirs.filter(([dx, dy], d) => {
     const nx = x + dx
     const ny = y + dy
     if (nx < 0 || ny < 0 || nx >= level.cols || ny >= level.rows) return false
-    return cells[ny * level.cols + nx] !== null
+    const neighbor = cells[ny * level.cols + nx]
+    if (!neighbor) return false
+    // 充能器只有前后能连，侧边不算
+    if (neighbor.type === 'charger') return d % 2 === dirOf(neighbor) % 2
+    return true
   })
 
   ctx.strokeStyle = color
