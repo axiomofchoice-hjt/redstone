@@ -6,7 +6,10 @@ import { drawComponent, linkedDirs } from './glyph'
 interface Props {
   level: Level
   cells: (Cell | null)[]
-  powers: number[]
+  /** 只在这里取看得见的格子的通电状态，不传整张图 */
+  powerAt: (index: number) => number
+  /** 每次画面该刷新时递增 */
+  revision: number
   onCell: (index: number) => void
 }
 
@@ -64,7 +67,7 @@ function clampCamera(x: number, y: number, w: number, h: number, mapW: number, m
   }
 }
 
-export function Board({ level, cells, powers, onCell }: Props) {
+export function Board({ level, cells, powerAt, revision, onCell }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const geom = useRef<Geom>({
@@ -82,6 +85,9 @@ export function Board({ level, cells, powers, onCell }: Props) {
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<Pinch | null>(null)
   const [cam, setCam] = useState({ x: 0, y: 0, zoom: 1 })
+
+  // 绘制函数放进 ref，ResizeObserver 只建一次，不随相机变化反复重建
+  const drawRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -108,14 +114,20 @@ export function Board({ level, cells, powers, onCell }: Props) {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      render(ctx, w, h, level, cells, powers, cam, geom.current)
+      render(ctx, w, h, level, cells, powerAt, cam, geom.current)
     }
 
+    drawRef.current = draw
     draw()
-    const observer = new ResizeObserver(draw)
+  }, [level, cells, powerAt, cam, revision])
+
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (!wrap) return
+    const observer = new ResizeObserver(() => drawRef.current())
     observer.observe(wrap)
     return () => observer.disconnect()
-  }, [level, cells, powers, cam])
+  }, [])
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -226,7 +238,7 @@ function render(
   h: number,
   level: Level,
   cells: (Cell | null)[],
-  powers: number[],
+  powerAt: (index: number) => number,
   cam: { x: number; y: number; zoom: number },
   geom: Geom,
 ) {
@@ -253,8 +265,15 @@ function render(
   geom.mapW = mapW
   geom.mapH = mapH
 
-  ctx.fillStyle = MAP_BG
-  ctx.fillRect(ox, oy, mapW, mapH)
+  // 地图底色也只填画布看得见的那块
+  const vx = Math.max(0, ox)
+  const vy = Math.max(0, oy)
+  const vw = Math.min(w, ox + mapW) - vx
+  const vh = Math.min(h, oy + mapH) - vy
+  if (vw > 0 && vh > 0) {
+    ctx.fillStyle = MAP_BG
+    ctx.fillRect(vx, vy, vw, vh)
+  }
 
   const firstX = Math.max(0, Math.floor(-ox / cell))
   const lastX = Math.min(level.cols - 1, Math.floor((w - ox) / cell))
@@ -295,7 +314,7 @@ function render(
         ox + (x + 0.5) * cell + 0.5,
         oy + (y + 0.5) * cell + 0.5,
         cell,
-        powers[i] ?? 0,
+        powerAt(i),
         component.type === 'wire' ? linkedDirs(cells, level, x, y) : null,
       )
     }

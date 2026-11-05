@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useReducer, useState } from 'react'
 import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
 import type { Dir, Level } from './game/types'
 import { level01 } from './levels/level-01'
@@ -29,7 +29,7 @@ export default function App() {
   // 编辑器里手动开关的输入
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   // 仿真在后台推进，只在画面有变化时重绘
-  const [, repaint] = useReducer((n: number) => n + 1, 0)
+  const [version, repaint] = useReducer((n: number) => n + 1, 0)
   // 调试用：暂停自动 tick
   const [paused, setPaused] = useState(false)
 
@@ -48,7 +48,8 @@ export default function App() {
     repaint()
   }
 
-  const powers = sim.snapshot().powers
+  // 画布只按需取可见格子的状态，不再每帧生成整张 powers
+  const powerAt = useCallback((index: number) => sim.powerAt(index), [sim])
 
   const handleCell = (index: number) => {
     // 交互：点输入元件开关它
@@ -134,7 +135,13 @@ export default function App() {
         </div>
       </header>
 
-      <Board level={level} cells={level.cells} powers={powers} onCell={handleCell} />
+      <Board
+        level={level}
+        cells={level.cells}
+        powerAt={powerAt}
+        revision={version}
+        onCell={handleCell}
+      />
 
       <div className={run?.passed ? 'result ok' : 'result'}>
         <span>

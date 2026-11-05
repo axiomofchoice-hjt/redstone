@@ -221,44 +221,36 @@ export class Simulation {
     return this.dirty || seeds.length > 0
   }
 
+  /** 单个格子的通电状态（画布只取看得见的格子，不用整张图算一遍） */
+  powerAt(i: number): number {
+    const c = this.level.cells[i]
+    if (!c) return 0
+    switch (c.type) {
+      case 'wire':
+        return this.netValue[this.find(this.portNode[i * 4])] ? 3 : 0
+      case 'cross': {
+        const v = this.netValue[this.find(this.portNode[i * 4])] ? 1 : 0
+        const h = this.netValue[this.find(this.portNode[i * 4 + 1])] ? 2 : 0
+        return v | h
+      }
+      case 'charger':
+        return this.chargerOut[i] ? 1 : 0
+      case 'repeater':
+        return this.repeaterOut[i] ? 1 : 0
+      case 'not':
+        return this.notOn[i] ? 1 : 0
+      case 'input':
+        return this.inputs.get(c.id ?? '') ? 1 : 0
+      case 'output':
+        return c.id && this.outputValueAt(i) ? 1 : 0
+    }
+  }
+
   snapshot(): Snapshot {
     const { cells } = this.level
-    const outputs = this.collectOutputs()
-    const powers = new Array<number>(cells.length).fill(0)
-
-    for (let i = 0; i < cells.length; i++) {
-      const c = cells[i]
-      if (!c) continue
-      switch (c.type) {
-        case 'wire': {
-          powers[i] = this.netValue[this.find(this.portNode[i * 4])] ? 3 : 0
-          break
-        }
-        case 'cross': {
-          const v = this.netValue[this.find(this.portNode[i * 4])] ? 1 : 0
-          const h = this.netValue[this.find(this.portNode[i * 4 + 1])] ? 2 : 0
-          powers[i] = v | h
-          break
-        }
-        case 'charger':
-          powers[i] = this.chargerOut[i] ? 1 : 0
-          break
-        case 'repeater':
-          powers[i] = this.repeaterOut[i] ? 1 : 0
-          break
-        case 'not':
-          powers[i] = this.notOn[i] ? 1 : 0
-          break
-        case 'input':
-          powers[i] = c.id && this.inputs.get(c.id) ? 1 : 0
-          break
-        case 'output':
-          powers[i] = c.id && outputs[c.id] ? 1 : 0
-          break
-      }
-    }
-
-    return { powers, outputs }
+    const powers = new Array<number>(cells.length)
+    for (let i = 0; i < cells.length; i++) powers[i] = this.powerAt(i)
+    return { powers, outputs: this.collectOutputs() }
   }
 
   /**
@@ -468,23 +460,28 @@ export class Simulation {
   }
 
   private collectOutputs(): Record<string, boolean> {
-    const { cols, cells } = this.level
+    const { cells } = this.level
     const result: Record<string, boolean> = {}
     for (let i = 0; i < cells.length; i++) {
       const c = cells[i]
       if (!c || c.type !== 'output' || !c.id) continue
-      const x = i % cols
-      const y = (i - x) / cols
-      let value = false
-      for (let d = 0 as Dir; d < 4 && !value; d++) {
-        const nx = x + DX[d]
-        const ny = y + DY[d]
-        if (!this.inside(nx, ny)) continue
-        value = this.emitAt(ny * cols + nx, opposite(d))
-      }
-      result[c.id] = value
+      result[c.id] = this.outputValueAt(i)
     }
     return result
+  }
+
+  /** 输出元件取值：任意相邻元件朝它发出的信号 */
+  private outputValueAt(i: number): boolean {
+    const { cols } = this.level
+    const x = i % cols
+    const y = (i - x) / cols
+    for (let d = 0 as Dir; d < 4; d++) {
+      const nx = x + DX[d]
+      const ny = y + DY[d]
+      if (!this.inside(nx, ny)) continue
+      if (this.emitAt(ny * cols + nx, opposite(d))) return true
+    }
+    return false
   }
 
   private collectOutputsFull(
