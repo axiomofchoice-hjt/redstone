@@ -314,8 +314,8 @@ function drawComponent(
       drawDirected(ctx, cx, cy, cell, component, color, (k) => {
         const side = k * 0.72
         const height = side * (Math.sqrt(3) / 2)
-        const apex = (height * 2) / 3
-        const base = -height / 3
+        const apex = height / 2
+        const base = -height / 2
         ctx.beginPath()
         ctx.moveTo(apex, 0)
         ctx.lineTo(base, -side / 2)
