@@ -90,6 +90,10 @@ export const level01: Level = {
 
 React 19 + TypeScript + Vite，画布用原生 Canvas 2D 绘制（自己处理 devicePixelRatio 和手势），测试用 vitest。
 
+## 更新日志
+
+见 [CHANGELOG.md](CHANGELOG.md)。
+
 ## 协议
 
 [MIT](LICENSE) © 2026 axiomofchoice
