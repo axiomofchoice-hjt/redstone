@@ -75,10 +75,14 @@ export function Board({ level, cells, powers, onCell }: Props) {
       const dpr = window.devicePixelRatio || 1
       const w = Math.max(1, Math.floor(rect.width))
       const h = Math.max(1, Math.floor(rect.height))
-      canvas.width = Math.floor(w * dpr)
-      canvas.height = Math.floor(h * dpr)
-      canvas.style.width = `${w}px`
-      canvas.style.height = `${h}px`
+      const bw = Math.floor(w * dpr)
+      const bh = Math.floor(h * dpr)
+      if (canvas.width !== bw || canvas.height !== bh) {
+        canvas.width = bw
+        canvas.height = bh
+      }
+      if (canvas.style.width !== `${w}px`) canvas.style.width = `${w}px`
+      if (canvas.style.height !== `${h}px`) canvas.style.height = `${h}px`
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)

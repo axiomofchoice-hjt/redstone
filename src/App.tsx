@@ -28,8 +28,13 @@ export default function App() {
   // 编辑时也在跑；重建连线时已有非门保留状态
   useEffect(() => {
     const timer = setInterval(() => {
+      const before = sim.snapshot().powers
       sim.step()
-      setEditing((prev) => ({ ...prev }))
+      const after = sim.snapshot().powers
+      // 画面没变化就不重绘，避免一直占用渲染线程
+      if (after.some((value, index) => value !== before[index])) {
+        setEditing((prev) => ({ ...prev }))
+      }
     }, 500)
     return () => clearInterval(timer)
   }, [sim])
