@@ -1,7 +1,7 @@
-import type { CellType, Dir } from '../game/types'
+import type { CellType, Dir, Level } from '../game/types'
 import { ToolIcon } from './ToolIcon'
 
-export type Tool = CellType | 'erase'
+export type Tool = { type: CellType; id?: string } | 'erase'
 
 const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
   { dir: 0, label: 'W', area: 'up' },
@@ -16,18 +16,26 @@ const TOOLS: { type: CellType; label: string }[] = [
   { type: 'charger', label: '充能' },
   { type: 'repeater', label: '中继' },
   { type: 'not', label: '非门' },
-  { type: 'input', label: '输入' },
-  { type: 'output', label: '输出' },
 ]
 
 interface Props {
+  level: Level
   tool: Tool
   dir: Dir
   onTool: (tool: Tool) => void
   onDir: (dir: Dir) => void
 }
 
-export function Palette({ tool, dir, onTool, onDir }: Props) {
+export function Palette({ level, tool, dir, onTool, onDir }: Props) {
+  // 输入在前、输出在后，字母由关卡数据给出
+  const ports: { type: CellType; id: string; label: string }[] = [
+    ...(level.inputs ?? []).map((id) => ({ type: 'input' as CellType, id, label: `输入 ${id}` })),
+    ...(level.outputs ?? []).map((id) => ({ type: 'output' as CellType, id, label: `输出 ${id}` })),
+  ]
+
+  const active = (type: CellType, id?: string) =>
+    tool !== 'erase' && tool.type === type && tool.id === id
+
   return (
     <div className="palette">
       <div className="tools">
@@ -35,12 +43,24 @@ export function Palette({ tool, dir, onTool, onDir }: Props) {
           <button
             key={item.type}
             type="button"
-            className={tool === item.type ? 'tool active' : 'tool'}
+            className={active(item.type) ? 'tool active' : 'tool'}
             aria-label={item.label}
             title={item.label}
-            onClick={() => onTool(item.type)}
+            onClick={() => onTool({ type: item.type })}
           >
-            <ToolIcon type={item.type} dir={dir} active={tool === item.type} />
+            <ToolIcon type={item.type} dir={dir} active={active(item.type)} />
+          </button>
+        ))}
+        {ports.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={active(item.type, item.id) ? 'tool active' : 'tool'}
+            aria-label={item.label}
+            title={item.label}
+            onClick={() => onTool({ type: item.type, id: item.id })}
+          >
+            <ToolIcon type={item.type} id={item.id} dir={dir} active={active(item.type, item.id)} />
           </button>
         ))}
       </div>

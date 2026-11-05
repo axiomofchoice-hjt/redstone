@@ -142,18 +142,12 @@ export function drawComponent(
       break
     }
     case 'output': {
-      ctx.strokeStyle = color
-      ctx.lineWidth = cell * 0.09
-      ctx.beginPath()
-      ctx.arc(cx, cy, cell * 0.26, 0, Math.PI * 2)
+      // 空心方块 + 字母，和输入的实心方块区分
+      ctx.strokeStyle = override ?? color
+      ctx.lineWidth = cell * 0.075
+      roundRect(ctx, cx - cell * 0.26, cy - cell * 0.26, cell * 0.52, cell * 0.52, cell * 0.12)
       ctx.stroke()
-      if (on) {
-        ctx.fillStyle = ON
-        ctx.beginPath()
-        ctx.arc(cx, cy, cell * 0.16, 0, Math.PI * 2)
-        ctx.fill()
-      }
-      drawLabel(ctx, component.id ?? '', cx, cy + cell * 0.36, cell * 0.7, on ? '#0e1018' : OFF)
+      drawLabel(ctx, component.id ?? '', cx, cy, cell, override ?? color)
       break
     }
   }

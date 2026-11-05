@@ -33,6 +33,10 @@ export interface Level {
   name: string
   cols: number
   rows: number
+  /** 输入元件的字母，按顺序排 */
+  inputs?: string[]
+  /** 输出元件的字母，按顺序排 */
+  outputs?: string[]
   cells: (Cell | null)[]
   tests: TestCase[]
 }

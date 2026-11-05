@@ -23,7 +23,7 @@ const initial = (): Editing => {
 
 export default function App() {
   const [{ level, sim }, setEditing] = useState<Editing>(initial)
-  const [tool, setTool] = useState<Tool>('wire')
+  const [tool, setTool] = useState<Tool>({ type: 'wire' })
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
   // 仿真在后台推进，只在画面有变化时重绘
@@ -48,7 +48,11 @@ export default function App() {
       if (tool === 'erase') {
         cells[index] = null
       } else {
-        cells[index] = { type: tool, dir: hasDirection(tool) ? dir : undefined }
+        cells[index] = {
+          type: tool.type,
+          dir: hasDirection(tool.type) ? dir : undefined,
+          id: tool.id,
+        }
       }
       const level = { ...prev.level, cells }
       return { level, sim: new Simulation(level, prev.sim) }
@@ -94,7 +98,7 @@ export default function App() {
         ))}
       </div>
 
-      <Palette tool={tool} dir={dir} onTool={setTool} onDir={setDir} />
+      <Palette level={level} tool={tool} dir={dir} onTool={setTool} onDir={setDir} />
     </div>
   )
 }
