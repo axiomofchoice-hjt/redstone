@@ -231,12 +231,13 @@ function render(
   ctx.fillRect(0, 0, w, h)
 
   const fit = Math.min((w - 24) / level.cols, (h - 24) / level.rows)
-  const cell = Math.min(MAX_CELL, Math.max(MIN_CELL, fit)) * cam.zoom
+  // 格子大小和地图原点都取整，元件图标才能和网格线对齐
+  const cell = Math.max(MIN_CELL, Math.round(Math.min(MAX_CELL, Math.max(MIN_CELL, fit)) * cam.zoom))
   const mapW = cell * level.cols
   const mapH = cell * level.rows
   const clamped = clampCamera(cam.x, cam.y, w, h, mapW, mapH)
-  const ox = clamped.x
-  const oy = clamped.y
+  const ox = Math.round(clamped.x)
+  const oy = Math.round(clamped.y)
 
   geom.cell = cell
   geom.ox = ox
@@ -269,12 +270,12 @@ function render(
   ctx.lineWidth = 1
   ctx.beginPath()
   for (let x = firstX; x <= lastX + 1; x++) {
-    ctx.moveTo(Math.round(ox + x * cell) + 0.5, oy)
-    ctx.lineTo(Math.round(ox + x * cell) + 0.5, oy + mapH)
+    ctx.moveTo(ox + x * cell + 0.5, oy)
+    ctx.lineTo(ox + x * cell + 0.5, oy + mapH)
   }
   for (let y = firstY; y <= lastY + 1; y++) {
-    ctx.moveTo(ox, Math.round(oy + y * cell) + 0.5)
-    ctx.lineTo(ox + mapW, Math.round(oy + y * cell) + 0.5)
+    ctx.moveTo(ox, oy + y * cell + 0.5)
+    ctx.lineTo(ox + mapW, oy + y * cell + 0.5)
   }
   ctx.stroke()
 
