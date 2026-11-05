@@ -352,23 +352,29 @@ function drawConnections(
   color: string,
   width: number,
 ) {
+  const linked = (dx: number, dy: number) => {
+    const nx = x + dx
+    const ny = y + dy
+    if (nx < 0 || ny < 0 || nx >= level.cols || ny >= level.rows) return false
+    return cells[ny * level.cols + nx] !== null
+  }
+  const horizontal = linked(-1, 0) || linked(1, 0)
+  const vertical = linked(0, -1) || linked(0, 1)
+
   ctx.strokeStyle = color
   ctx.lineWidth = width
   ctx.lineCap = 'round'
-  const dirs = [
-    [0, -1],
-    [1, 0],
-    [0, 1],
-    [-1, 0],
-  ]
-  for (const [dx, dy] of dirs) {
-    const nx = x + dx
-    const ny = y + dy
-    if (nx < 0 || ny < 0 || nx >= level.cols || ny >= level.rows) continue
-    if (!cells[ny * level.cols + nx]) continue
+  // 只要该轴任意一侧有连接，整格就画成贯通的线
+  if (horizontal) {
     ctx.beginPath()
-    ctx.moveTo(cx, cy)
-    ctx.lineTo(cx + dx * cell * 0.5, cy + dy * cell * 0.5)
+    ctx.moveTo(cx - cell * 0.5, cy)
+    ctx.lineTo(cx + cell * 0.5, cy)
+    ctx.stroke()
+  }
+  if (vertical) {
+    ctx.beginPath()
+    ctx.moveTo(cx, cy - cell * 0.5)
+    ctx.lineTo(cx, cy + cell * 0.5)
     ctx.stroke()
   }
 }
