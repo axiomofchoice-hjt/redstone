@@ -269,17 +269,23 @@ function drawComponent(
       break
     }
     case 'charger': {
+      // 箭头：一条主干 + 两条箭羽
       const angle = (dirOf(component) - 1) * (Math.PI / 2)
       ctx.save()
       ctx.translate(cx, cy)
       ctx.rotate(angle)
-      ctx.fillStyle = color
+      ctx.strokeStyle = color
+      ctx.lineWidth = Math.max(1.5, cell * 0.085)
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
       ctx.beginPath()
-      ctx.moveTo(cell * 0.3, 0)
-      ctx.lineTo(-cell * 0.16, -cell * 0.24)
-      ctx.lineTo(-cell * 0.16, cell * 0.24)
-      ctx.closePath()
-      ctx.fill()
+      ctx.moveTo(-cell * 0.28, 0)
+      ctx.lineTo(cell * 0.26, 0)
+      ctx.moveTo(cell * 0.26, 0)
+      ctx.lineTo(cell * 0.02, -cell * 0.2)
+      ctx.moveTo(cell * 0.26, 0)
+      ctx.lineTo(cell * 0.02, cell * 0.2)
+      ctx.stroke()
       ctx.restore()
       break
     }
