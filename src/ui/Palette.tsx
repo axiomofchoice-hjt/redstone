@@ -2,15 +2,6 @@ import type { CellType, Dir } from '../game/types'
 
 export type Tool = CellType | 'erase'
 
-const TOOLS: { type: CellType; label: string }[] = [
-  { type: 'wire', label: '导线' },
-  { type: 'cross', label: '交叉' },
-  { type: 'charger', label: '充能' },
-  { type: 'not', label: '非门' },
-  { type: 'input', label: '输入' },
-  { type: 'output', label: '输出' },
-]
-
 const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
   { dir: 0, label: 'W', area: 'up' },
   { dir: 3, label: 'A', area: 'left' },
@@ -21,15 +12,34 @@ const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
 interface Props {
   tool: Tool
   dir: Dir
+  conductor: 'wire' | 'cross'
   onTool: (tool: Tool) => void
   onDir: (dir: Dir) => void
+  onConductor: (conductor: 'wire' | 'cross') => void
 }
 
-export function Palette({ tool, dir, onTool, onDir }: Props) {
+export function Palette({ tool, dir, conductor, onTool, onDir, onConductor }: Props) {
+  const tools: { type: CellType; label: string }[] = [
+    { type: conductor, label: conductor === 'wire' ? '导线' : '交叉' },
+    { type: 'charger', label: '充能' },
+    { type: 'not', label: '非门' },
+    { type: 'input', label: '输入' },
+    { type: 'output', label: '输出' },
+  ]
+
   return (
     <div className="palette">
+      <button
+        type="button"
+        className="toggle"
+        aria-label="切换导线类型"
+        onClick={() => onConductor(conductor === 'wire' ? 'cross' : 'wire')}
+      >
+        ⇄
+      </button>
+
       <div className="tools">
-        {TOOLS.map((item) => (
+        {tools.map((item) => (
           <button
             key={item.type}
             type="button"

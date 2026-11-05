@@ -21,6 +21,7 @@ const initial = (): Editing => {
 export default function App() {
   const [{ level, sim }, setEditing] = useState<Editing>(initial)
   const [tool, setTool] = useState<Tool>('wire')
+  const [conductor, setConductor] = useState<'wire' | 'cross'>('wire')
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
 
@@ -88,7 +89,17 @@ export default function App() {
         ))}
       </div>
 
-      <Palette tool={tool} dir={dir} onTool={setTool} onDir={setDir} />
+      <Palette
+        tool={tool}
+        dir={dir}
+        conductor={conductor}
+        onTool={setTool}
+        onDir={setDir}
+        onConductor={(next) => {
+          setConductor(next)
+          setTool((current) => (current === 'wire' || current === 'cross' ? next : current))
+        }}
+      />
     </div>
   )
 }

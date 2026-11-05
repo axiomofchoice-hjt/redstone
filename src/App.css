@@ -87,6 +87,7 @@
   display: none;
 }
 
+.toggle,
 .tool,
 .dir,
 .erase {
@@ -100,6 +101,7 @@
   padding: 8px 10px;
 }
 
+.toggle.active,
 .tool.active,
 .dir.active,
 .erase.active {
