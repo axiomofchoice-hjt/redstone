@@ -291,7 +291,7 @@ function drawComponent(
     }
     case 'not': {
       // 灯泡符号：圆圈 + 叉
-      const r = cell * 0.26
+      const r = cell * 0.33
       if (on) {
         const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 1.9)
         glow.addColorStop(0, 'rgba(255, 107, 74, 0.4)')
