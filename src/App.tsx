@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { hasDirection, runLevel, type LevelRun } from './game/sim'
+import { useEffect, useMemo, useState } from 'react'
+import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
 import type { Cell, Dir } from './game/types'
 import { level01 } from './levels/level-01'
 import { Board } from './ui/Board'
@@ -13,8 +13,22 @@ export default function App() {
   const [tool, setTool] = useState<Tool>('wire')
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
+  const [beat, setBeat] = useState(0)
 
   const level = useMemo(() => ({ ...level01, cells }), [cells])
+  // 编辑时也在跑：每次改动重建模拟，元件放下就按当前信号亮起
+  const sim = useMemo(() => new Simulation(level), [level])
+  void beat
+  const powers = sim.snapshot().powers
+
+  // 输入元件恒为 0，非门 1 tick 的延迟靠这个节拍体现
+  useEffect(() => {
+    const timer = setInterval(() => {
+      sim.step()
+      setBeat((value) => value + 1)
+    }, 500)
+    return () => clearInterval(timer)
+  }, [sim])
 
   const handleCell = (index: number) => {
     setCells((prev) => {
@@ -50,7 +64,7 @@ export default function App() {
         </button>
       </header>
 
-      <Board level={level} cells={cells} powers={run?.snapshot.powers ?? []} onCell={handleCell} />
+      <Board level={level} cells={cells} powers={powers} onCell={handleCell} />
 
       <div className={run?.passed ? 'result ok' : 'result'}>
         <span>

@@ -12,9 +12,9 @@ interface Props {
 
 const BG = '#0e1018'
 const GRID = '#1b2130'
-const ON = '#ff6b4a'
-const OFF = '#4a5266'
-const SOURCE = '#ffd166'
+const ON = '#ff2b2b'
+const OFF = '#ffffff'
+const SOURCE = '#ff2b2b'
 
 const EDGE = 12
 const MIN_CELL = 36
@@ -294,8 +294,8 @@ function drawComponent(
       const r = cell * 0.33
       if (on) {
         const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 1.9)
-        glow.addColorStop(0, 'rgba(255, 107, 74, 0.4)')
-        glow.addColorStop(1, 'rgba(255, 107, 74, 0)')
+        glow.addColorStop(0, 'rgba(255, 43, 43, 0.45)')
+        glow.addColorStop(1, 'rgba(255, 43, 43, 0)')
         ctx.fillStyle = glow
         ctx.beginPath()
         ctx.arc(cx, cy, r * 1.9, 0, Math.PI * 2)
@@ -316,7 +316,7 @@ function drawComponent(
       break
     }
     case 'input': {
-      ctx.fillStyle = on ? SOURCE : '#3a4152'
+      ctx.fillStyle = on ? SOURCE : OFF
       roundRect(ctx, cx - cell * 0.26, cy - cell * 0.26, cell * 0.52, cell * 0.52, cell * 0.12)
       ctx.fill()
       drawLabel(ctx, component.id ?? '', cx, cy, cell, '#0e1018')
@@ -398,7 +398,7 @@ function drawLabel(
 }
 
 function offLabel(on: boolean) {
-  return on ? '#0e1018' : '#8b93a7'
+  return on ? '#0e1018' : '#ffffff'
 }
 
 function roundRect(
