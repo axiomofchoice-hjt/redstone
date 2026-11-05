@@ -11,9 +11,6 @@ const INITIAL_DIR: Dir = 1
 /** 编辑器里仿真每 tick 的间隔：4 tick/s */
 const TICK_MS = 250
 
-/** 键盘 WASD 对应的朝向 */
-const KEY_DIR: Record<string, Dir> = { w: 0, a: 3, s: 2, d: 1 }
-
 interface Editing {
   level: Level
   sim: Simulation
@@ -41,20 +38,6 @@ export default function App() {
     }, TICK_MS)
     return () => clearInterval(timer)
   }, [sim])
-
-  // 按 WASD 直接切换朝向
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey || event.metaKey || event.altKey) return
-      const target = event.target as HTMLElement | null
-      if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return
-      const next = KEY_DIR[event.key.toLowerCase()]
-      if (next === undefined) return
-      setDir(next)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
 
   const powers = sim.snapshot().powers
 
