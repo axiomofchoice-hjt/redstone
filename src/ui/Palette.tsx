@@ -62,13 +62,19 @@ export function Palette({ tool, dir, alt, onTool, onDir, onAlt }: Props) {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className={tool === 'erase' ? 'erase active' : 'erase'}
-          onClick={() => onTool('erase')}
-        >
-          删除
-        </button>
+        <div className="stack">
+          {/* 占位：交换功能待定 */}
+          <button type="button" className="swap">
+            交换
+          </button>
+          <button
+            type="button"
+            className={tool === 'erase' ? 'erase active' : 'erase'}
+            onClick={() => onTool('erase')}
+          >
+            删除
+          </button>
+        </div>
       </div>
     </div>
   )

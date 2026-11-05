@@ -149,7 +149,13 @@
   font-weight: 600;
 }
 
-.erase {
-  height: 56px;
-  padding: 0 12px;
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stack button {
+  height: 26px;
+  padding: 0 8px;
 }
