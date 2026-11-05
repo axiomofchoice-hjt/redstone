@@ -273,10 +273,6 @@ function drawComponent(
   switch (component.type) {
     case 'wire': {
       drawConnections(ctx, cx, cy, cell, x, y, cells, level, color, lineWidth(cell))
-      ctx.fillStyle = color
-      ctx.beginPath()
-      ctx.arc(cx, cy, cell * 0.085, 0, Math.PI * 2)
-      ctx.fill()
       break
     }
     case 'cross': {
@@ -414,9 +410,8 @@ function drawConnections(
   ctx.lineWidth = width
   ctx.lineCap = 'round'
 
-  // 只有一侧连接时，对端也画出来（贯通整格）；两侧及以上只画实际连接
-  const strokes: [number, number][] =
-    linked.length === 1 ? [linked[0], [-linked[0][0], -linked[0][1]]] : linked
+  // 没有连接时画一个十字，四面都算连上
+  const strokes: [number, number][] = linked.length > 0 ? linked : DIRS
   // 端点收半个线宽，圆头正好停在格子边框上
   const reach = cell * 0.5 - width / 2
 
