@@ -87,9 +87,9 @@
   display: none;
 }
 
-.toggle,
 .tool,
 .dir,
+.swap,
 .erase {
   flex: 0 0 auto;
   border: 1px solid #232a3b;
@@ -101,9 +101,9 @@
   padding: 8px 10px;
 }
 
-.toggle.active,
 .tool.active,
 .dir.active,
+.swap.active,
 .erase.active {
   background: #ff6b4a;
   border-color: #ff6b4a;

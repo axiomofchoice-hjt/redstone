@@ -9,35 +9,26 @@ const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
   { dir: 1, label: 'D', area: 'right' },
 ]
 
+const TOOLS: { type: CellType; label: string }[] = [
+  { type: 'wire', label: '导线' },
+  { type: 'charger', label: '充能' },
+  { type: 'not', label: '非门' },
+  { type: 'input', label: '输入' },
+  { type: 'output', label: '输出' },
+]
+
 interface Props {
   tool: Tool
   dir: Dir
-  /** false：导线 + 充能器；true：交叉导线 + 中继器 */
-  alt: boolean
   onTool: (tool: Tool) => void
   onDir: (dir: Dir) => void
-  onAlt: () => void
 }
 
-export function Palette({ tool, dir, alt, onTool, onDir, onAlt }: Props) {
-  const conductor = alt ? 'cross' : 'wire'
-  const source = alt ? 'repeater' : 'charger'
-  const tools: { type: CellType; label: string }[] = [
-    { type: conductor, label: alt ? '交叉' : '导线' },
-    { type: source, label: alt ? '中继' : '充能' },
-    { type: 'not', label: '非门' },
-    { type: 'input', label: '输入' },
-    { type: 'output', label: '输出' },
-  ]
-
+export function Palette({ tool, dir, onTool, onDir }: Props) {
   return (
     <div className="palette">
-      <button type="button" className="toggle" aria-label="切换导线与充能器类型" onClick={onAlt}>
-        ⇄
-      </button>
-
       <div className="tools">
-        {tools.map((item) => (
+        {TOOLS.map((item) => (
           <button
             key={item.type}
             type="button"

@@ -11,14 +11,6 @@ const INITIAL_DIR: Dir = 1
 /** 编辑器里仿真每 tick 的间隔：4 tick/s */
 const TICK_MS = 250
 
-/** ⇄ 同时切换的两组元件 */
-const ALT_OF: Partial<Record<Tool, Tool>> = {
-  wire: 'cross',
-  cross: 'wire',
-  charger: 'repeater',
-  repeater: 'charger',
-}
-
 interface Editing {
   level: Level
   sim: Simulation
@@ -32,7 +24,6 @@ const initial = (): Editing => {
 export default function App() {
   const [{ level, sim }, setEditing] = useState<Editing>(initial)
   const [tool, setTool] = useState<Tool>('wire')
-  const [alt, setAlt] = useState(false)
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
   // 仿真在后台推进，只在画面有变化时重绘
@@ -103,17 +94,7 @@ export default function App() {
         ))}
       </div>
 
-      <Palette
-        tool={tool}
-        dir={dir}
-        alt={alt}
-        onTool={setTool}
-        onDir={setDir}
-        onAlt={() => {
-          setAlt((value) => !value)
-          setTool((current) => ALT_OF[current] ?? current)
-        }}
-      />
+      <Palette tool={tool} dir={dir} onTool={setTool} onDir={setDir} />
     </div>
   )
 }
