@@ -101,6 +101,14 @@
   padding: 8px 10px;
 }
 
+.tool {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+}
+
 .tool.active,
 .dir.active,
 .swap.active,

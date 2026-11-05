@@ -1,4 +1,5 @@
 import type { CellType, Dir } from '../game/types'
+import { ToolIcon } from './ToolIcon'
 
 export type Tool = CellType | 'erase'
 
@@ -35,9 +36,11 @@ export function Palette({ tool, dir, onTool, onDir }: Props) {
             key={item.type}
             type="button"
             className={tool === item.type ? 'tool active' : 'tool'}
+            aria-label={item.label}
+            title={item.label}
             onClick={() => onTool(item.type)}
           >
-            {item.label}
+            <ToolIcon type={item.type} active={tool === item.type} />
           </button>
         ))}
       </div>
