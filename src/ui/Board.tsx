@@ -310,25 +310,17 @@ function drawComponent(
       })
       break
     case 'repeater':
-      // 二极管符号：横线 - 空心正三角 - 竖线（竖线贴在前边框）
+      // 空心正三角形，尖朝前
       drawDirected(ctx, cx, cy, cell, component, color, (k) => {
-        const side = k * 0.56
-        const half = side / 2
-        const bar = k * 0.45
-        const base = bar - side * (Math.sqrt(3) / 2)
+        const side = k * 0.72
+        const height = side * (Math.sqrt(3) / 2)
+        const apex = (height * 2) / 3
+        const base = -height / 3
         ctx.beginPath()
-        ctx.moveTo(-k * 0.46, 0)
-        ctx.lineTo(base, 0)
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(base, -half)
-        ctx.lineTo(base, half)
-        ctx.lineTo(bar, 0)
+        ctx.moveTo(apex, 0)
+        ctx.lineTo(base, -side / 2)
+        ctx.lineTo(base, side / 2)
         ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(bar, -half)
-        ctx.lineTo(bar, half)
         ctx.stroke()
       })
       break
