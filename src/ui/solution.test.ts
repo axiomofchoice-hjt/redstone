@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { runLevel, Simulation } from '../game/sim'
 import { LEVELS } from '../levels'
 import { level14 } from '../levels/level-14'
-import { level16 } from '../levels/level-16'
+import { level17 } from '../levels/level-17'
 import { solutionCells, solutionMap } from './solution'
 
 /** 有参考解的关卡，以后新加的关也自动带上 */
@@ -10,8 +10,8 @@ const withSolutions = LEVELS.filter((level) => level.solution)
 
 describe('菜单里的参考答案', () => {
   it('没有参考解的关卡给 null（按钮灰掉）', () => {
-    // 现在每关都有参考解了，这里用一个去掉 solution 的副本来试
-    expect(solutionCells({ ...level16, solution: undefined })).toBeNull()
+    // 第十七关还没录参考解
+    expect(solutionCells(level17)).toBeNull()
   })
 
   it('有参考解的关卡，格数和地图一样', () => {

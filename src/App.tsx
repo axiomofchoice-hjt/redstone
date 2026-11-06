@@ -49,6 +49,27 @@ export default function App() {
     return () => clearInterval(timer)
   }, [sim, paused, menuOpen, screen])
 
+  // 鼠标点完按钮别留下焦点：焦点在按钮上时再按键盘，浏览器会描一圈焦点框
+  useEffect(() => {
+    let pointerType = 'mouse'
+    const onPointerDown = (event: PointerEvent) => {
+      pointerType = event.pointerType
+    }
+    const onMouseDown = (event: MouseEvent) => {
+      // 只有鼠标点击才处理，别影响触摸 / 触控笔
+      if (pointerType !== 'mouse' || event.button !== 0) return
+      // 不让按钮拿到焦点；已经拿到的也放掉，焦点框只留给 Tab 键
+      if (event.target instanceof Element && event.target.closest('button')) event.preventDefault()
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+    }
+    document.addEventListener('pointerdown', onPointerDown, true)
+    document.addEventListener('mousedown', onMouseDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true)
+      document.removeEventListener('mousedown', onMouseDown)
+    }
+  }, [])
+
   const nextTick = () => {
     if (!paused) return
     sim.step()

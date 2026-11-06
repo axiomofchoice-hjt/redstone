@@ -15,8 +15,9 @@ import { level13 } from './level-13'
 import { level14 } from './level-14'
 import { level15 } from './level-15'
 import { level16 } from './level-16'
+import { level17 } from './level-17'
 
-/** 目前这十六关，顺序就是选关列表的顺序 */
+/** 目前这十七关，顺序就是选关列表的顺序 */
 export const LEVELS: Level[] = [
   level01,
   level02,
@@ -34,4 +35,5 @@ export const LEVELS: Level[] = [
   level14,
   level15,
   level16,
+  level17,
 ]
