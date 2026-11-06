@@ -1,10 +1,33 @@
-import type { Level } from '../game/types'
+import type { Simulation } from '../game/sim'
+import type { Cell, Level } from '../game/types'
 
-/** 导出用的文件名：只导当前地图上的元件数组 */
-export const cellsFileName = (level: Level): string => `${level.id}-cells.json`
+/** 导出用的文件名：当前地图和电路状态 */
+export const mapFileName = (level: Level): string => `${level.id}-map.json`
 
-/** 地图上的元件数组，按行铺平，空格是 null，可直接贴进关卡文件 */
-export const cellsJson = (level: Level): string => JSON.stringify(level.cells, null, 2)
+/** 稀疏化：只保留有元件的格子，key 是行优先下标 */
+const sparseCells = (cells: (Cell | null)[]): Record<string, Cell> => {
+  const result: Record<string, Cell> = {}
+  for (let i = 0; i < cells.length; i++) {
+    const cell = cells[i]
+    if (cell) result[i] = cell
+  }
+  return result
+}
+
+/** 当前地图 + 点下按钮那一刻的电路状态；`cells` 只记录非空格子 */
+export const mapJson = (level: Level, sim: Simulation): string => {
+  return JSON.stringify(
+    {
+      id: level.id,
+      cols: level.cols,
+      rows: level.rows,
+      state: sim.circuitState(),
+      cells: sparseCells(level.cells),
+    },
+    null,
+    2,
+  )
+}
 
 /** 把一段文本当文件下载下来 */
 export const download = (name: string, text: string, type = 'application/json'): void => {

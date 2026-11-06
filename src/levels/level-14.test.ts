@@ -54,7 +54,7 @@ describe('第十四关 双边沿感应器', () => {
   })
 
   it('参考解能过', () => {
-    const run = runLevel({ ...level14, cells: level14.solution! })
+    const run = runLevel({ ...level14, cells: level14.solution!.cells })
     expect(run.outcomes.map((o) => [o.name, o.passed])).toEqual(
       level14.tests.map((t) => [t.name, true]),
     )

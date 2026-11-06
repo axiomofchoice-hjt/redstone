@@ -1,4 +1,4 @@
-import type { Cell, Level } from '../game/types'
+import type { Cell, CircuitState, Level } from '../game/types'
 
 const cols = 10
 const rows = 10
@@ -46,6 +46,25 @@ const solution = build([
   [4, 2, { type: 'charger', dir: 0 }],
 ])
 
+/** 取「S 置位后保持 1」第 30 tick（Y=1）的状态，盖上去就能直接看到锁存结果 */
+const solutionState: CircuitState = {
+  tick: 30,
+  inputs: { R: 0, S: 0 },
+  outputs: { Y: 1 },
+  powers: [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 3, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 1, 0, 0, 0, 1, 3, 3, 0,
+    0, 0, 3, 0, 0, 0, 0, 3, 0, 0,
+    0, 0, 3, 3, 3, 3, 3, 3, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ],
+}
+
 /** 每组都先把 S、R 都设一遍，免得接上玩家当前开着的输入 */
 const reset = (values: { S: 0 | 1; R: 0 | 1 }) => ({ tick: 0, values })
 
@@ -62,7 +81,7 @@ export const level15: Level = {
   inputs: ['S', 'R'],
   outputs: ['Y'],
   cells,
-  solution,
+  solution: { cells: solution, state: solutionState },
   tests: [
     {
       name: 'R 复位后保持 0',

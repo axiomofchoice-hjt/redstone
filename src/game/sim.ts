@@ -1,4 +1,4 @@
-import type { Cell, Dir, Level, TestCase } from './types'
+import type { Cell, CircuitState, Dir, Level, TestCase } from './types'
 
 export const DX = [0, 1, 0, -1] as const
 export const DY = [-1, 0, 1, 0] as const
@@ -207,6 +207,13 @@ export class Simulation {
     return this.outputValues[id] ?? false
   }
 
+  /** 当前所有输入元件的取值，按元件在地图里第一次出现的顺序 */
+  inputValues(): Record<string, 0 | 1> {
+    const result: Record<string, 0 | 1> = {}
+    for (const [id, value] of this.inputs) result[id] = value ? 1 : 0
+    return result
+  }
+
   /** 推进 1 tick，返回画面是否发生了变化 */
   step(): boolean {
     const { cells } = this.level
@@ -273,6 +280,50 @@ export class Simulation {
     const powers = new Array<number>(cells.length)
     for (let i = 0; i < cells.length; i++) powers[i] = this.powerAt(i)
     return { powers, outputs: this.collectOutputs() }
+  }
+
+  /** 当前电路状态，可直接导出或存进参考解 */
+  circuitState(): CircuitState {
+    const snapshot = this.snapshot()
+    const outputs: Record<string, 0 | 1> = {}
+    for (const [id, value] of Object.entries(snapshot.outputs)) outputs[id] = value ? 1 : 0
+    return {
+      tick: this.tick,
+      inputs: this.inputValues(),
+      outputs,
+      powers: snapshot.powers,
+    }
+  }
+
+  /**
+   * 把电路恢复到 saved 状态：输入、延迟元件输出、导线电平和 tick 一起还原。
+   * 状态通常来自 `circuitState()`，恢复后继续 step 的结果应与保存时一致。
+   */
+  restore(state: CircuitState): void {
+    for (const id of this.inputs.keys()) this.inputs.set(id, false)
+    for (const [id, value] of Object.entries(state.inputs)) {
+      if (this.inputs.has(id)) this.inputs.set(id, !!value)
+    }
+
+    const { cells } = this.level
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i]
+      if (!cell) continue
+      const power = state.powers[i] ?? 0
+      if (cell.type === 'not') this.notOn[i] = (power & 1) === 1
+      else if (cell.type === 'repeater') this.repeaterOut[i] = (power & 1) === 1
+      else if (cell.type === 'charger') this.chargerOut[i] = (power & 1) === 1
+    }
+
+    // 导线电平完全由输入和延迟元件推导，清空后重新传播一遍
+    this.netValue.fill(0)
+    this.netCount.fill(0)
+    this.emit.fill(0)
+    this.initSignals()
+
+    this.tick = state.tick
+    this.outputValues = this.collectOutputs()
+    this.dirty = true
   }
 
   /**

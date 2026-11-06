@@ -19,8 +19,8 @@ import { level15 } from './levels/level-15'
 import { level16 } from './levels/level-16'
 import { defaultTool } from './ui/tools'
 import { Board } from './ui/Board'
-import { cellsFileName, cellsJson, download } from './ui/export'
-import { solutionCells } from './ui/solution'
+import { download, mapFileName, mapJson } from './ui/export'
+import { solutionMap } from './ui/solution'
 import { Palette, type Tool } from './ui/Palette'
 import './App.css'
 
@@ -127,13 +127,15 @@ export default function App() {
     setRun(null)
   }
 
-  /** 参考答案：直接盖到地图上，玩家当前搭的会被冲掉 */
+  /** 参考答案：把布局和保存时的电路状态一起盖上去，玩家当前搭的会被冲掉 */
   const applySolution = () => {
-    const cells = solutionCells(level)
-    if (!cells) return
-    const next = { ...level, cells }
-    setEditing({ level: next, sim: new Simulation(next) })
-    setInputs({})
+    const solution = solutionMap(level)
+    if (!solution) return
+    const next = { ...level, cells: solution.cells }
+    const sim = new Simulation(next)
+    sim.restore(solution.state)
+    setEditing({ level: next, sim })
+    setInputs(solution.state.inputs)
     setRun(null)
     setMenuOpen(false)
   }
@@ -254,7 +256,7 @@ export default function App() {
             <button
               type="button"
               className="start-btn"
-              onClick={() => download(cellsFileName(level), cellsJson(level))}
+              onClick={() => download(mapFileName(level), mapJson(level, sim))}
             >
               导出地图
             </button>

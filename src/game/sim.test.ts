@@ -53,6 +53,41 @@ describe('从编辑器当前状态接着测', () => {
     expect(runLevel(lv, live).passed).toBe(true)
   })
 })
+describe('恢复电路状态', () => {
+  const lv = makeLevel(
+    5,
+    1,
+    [
+      [0, 0, { type: 'input', id: 'A' }],
+      [1, 0, { type: 'wire' }],
+      [2, 0, { type: 'charger', dir: 1 }],
+      [3, 0, { type: 'not', dir: 1 }],
+      [4, 0, { type: 'output', id: 'L' }],
+    ],
+    [],
+  )
+
+  it('恢复后当前状态和后续 tick 都和原来一致', () => {
+    const sim = new Simulation(cloneLevel(lv))
+    sim.setInputs({ A: 1 })
+    for (let i = 0; i < 4; i++) sim.step()
+
+    const state = sim.circuitState()
+    const restored = new Simulation(cloneLevel(lv))
+    restored.restore(state)
+    expect(restored.circuitState()).toEqual(state)
+
+    for (let i = 0; i < 4; i++) {
+      const value = i < 2 ? 0 : 1
+      sim.setInputs({ A: value })
+      restored.setInputs({ A: value })
+      sim.step()
+      restored.step()
+      expect(restored.circuitState()).toEqual(sim.circuitState())
+    }
+  })
+})
+
 describe('导线', () => {
   const level = makeLevel(
     3,

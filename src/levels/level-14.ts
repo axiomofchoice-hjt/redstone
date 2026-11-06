@@ -1,4 +1,4 @@
-import type { Cell, Level } from '../game/types'
+import type { Cell, CircuitState, Level } from '../game/types'
 
 const cols = 10
 const rows = 10
@@ -55,6 +55,25 @@ const solution = build([
   [7, 9, { type: 'output', id: 'Y' }],
 ])
 
+/** 取「上升沿出脉冲」第 17 tick（Y=1）的状态，盖上去就能直接看到脉冲 */
+const solutionState: CircuitState = {
+  tick: 17,
+  inputs: { A: 1 },
+  outputs: { Y: 1 },
+  powers: [
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    3, 3, 1, 0, 3, 1, 0, 0, 0, 0,
+    3, 3, 1, 1, 3, 0, 0, 0, 0, 0,
+    3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 1, 3, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 3, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+  ],
+}
+
 /**
  * 第十四关：双边沿感应器。A 不管是变高还是变低，之后第 5 tick 出 1 tick 脉冲，其余时候 Y = 0。
  */
@@ -67,7 +86,7 @@ export const level14: Level = {
   inputs: ['A'],
   outputs: ['Y'],
   cells,
-  solution,
+  solution: { cells: solution, state: solutionState },
   tests: [
     {
       name: '上升沿出脉冲',

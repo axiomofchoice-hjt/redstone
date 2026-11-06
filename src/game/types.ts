@@ -48,6 +48,21 @@ export interface TestCase {
   pairs?: PairCheck[]
 }
 
+/** 某一刻的电路状态：和地图一起导出，也可以恢复到仿真里 */
+export interface CircuitState {
+  tick: number
+  inputs: Record<string, 0 | 1>
+  outputs: Record<string, 0 | 1>
+  /** 每格的通电状态：bit0 = 垂直通道，bit1 = 水平通道 */
+  powers: number[]
+}
+
+/** 参考解：元件布局 + 保存时的电路状态 */
+export interface Solution {
+  cells: (Cell | null)[]
+  state: CircuitState
+}
+
 export interface Level {
   id: string
   /** 第几关 */
@@ -61,8 +76,8 @@ export interface Level {
   outputs?: string[]
   /** 这关允许玩家放置的元件类型；不写表示全部可用 */
   tools?: CellType[]
-  /** 参考解：菜单里「参考答案」直接盖到地图上的元件数组；没有就不给盖 */
-  solution?: (Cell | null)[]
+  /** 参考解：菜单里「参考答案」盖到地图上的布局和电路状态；没有就不给盖 */
+  solution?: Solution
   cells: (Cell | null)[]
   tests: TestCase[]
 }

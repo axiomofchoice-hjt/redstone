@@ -48,7 +48,7 @@ describe('第十五关 RS 锁存器', () => {
   })
 
   it('参考解能过', () => {
-    const run = runLevel({ ...level15, cells: level15.solution! })
+    const run = runLevel({ ...level15, cells: level15.solution!.cells })
     expect(run.outcomes.map((o) => [o.name, o.passed])).toEqual(
       level15.tests.map((t) => [t.name, true]),
     )
