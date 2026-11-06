@@ -70,6 +70,9 @@ src/
     level-08.ts   第八关：交叉
     level-09.ts   第九关：时钟
     level-10.ts   第十关：上升沿感应器
+    level-11.ts   第十一关：脉冲延长器
+    level-12.ts   第十二关：脉冲延迟器
+    level-13.ts   第十三关：脉冲过滤器
   App.tsx         关卡状态、工具选择、tick 循环
 ```
 
