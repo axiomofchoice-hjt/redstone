@@ -61,6 +61,7 @@ src/
   levels/
     level-01.ts   第一关：导线
     level-02.ts   第二关：或门
+    level-03.ts   第三关：非门
   App.tsx         关卡状态、工具选择、tick 循环
 ```
 
