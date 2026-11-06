@@ -10,6 +10,7 @@ import { level06 } from './levels/level-06'
 import { level07 } from './levels/level-07'
 import { level08 } from './levels/level-08'
 import { Board } from './ui/Board'
+import { cellsFileName, cellsJson, download } from './ui/export'
 import { Palette, type Tool } from './ui/Palette'
 import './App.css'
 
@@ -200,6 +201,13 @@ export default function App() {
           <div className="start-actions">
             <button type="button" className="start-btn primary" onClick={() => setMenuOpen(false)}>
               继续游戏
+            </button>
+            <button
+              type="button"
+              className="start-btn"
+              onClick={() => download(cellsFileName(level), cellsJson(level))}
+            >
+              导出地图
             </button>
             <button
               type="button"
