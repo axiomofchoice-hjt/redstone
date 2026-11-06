@@ -3,15 +3,16 @@ import { runLevel } from '../game/sim'
 import { level08 } from './level-08'
 
 const last = level08.rows - 1
+const cols = level08.cols
 
 describe('第八关', () => {
-  it('是 10×20 地图，四个角预置端口并锁定', () => {
-    expect(level08.cols).toBe(10)
-    expect(level08.rows).toBe(20)
+  it('是 20×10 地图，四个角预置端口并锁定', () => {
+    expect(level08.cols).toBe(20)
+    expect(level08.rows).toBe(10)
     expect(level08.cells[0]).toEqual({ type: 'input', id: 'A', locked: true })
-    expect(level08.cells[last * 10]).toEqual({ type: 'input', id: 'B', locked: true })
-    expect(level08.cells[9]).toEqual({ type: 'output', id: 'C', locked: true })
-    expect(level08.cells[last * 10 + 9]).toEqual({ type: 'output', id: 'D', locked: true })
+    expect(level08.cells[last * cols]).toEqual({ type: 'input', id: 'B', locked: true })
+    expect(level08.cells[cols - 1]).toEqual({ type: 'output', id: 'C', locked: true })
+    expect(level08.cells[last * cols + cols - 1]).toEqual({ type: 'output', id: 'D', locked: true })
     expect(level08.cells.filter(Boolean)).toHaveLength(4)
   })
 

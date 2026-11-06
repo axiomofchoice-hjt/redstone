@@ -1,7 +1,7 @@
 import type { Cell, Level } from '../game/types'
 
-const cols = 10
-const rows = 20
+const cols = 20
+const rows = 10
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
 const at = (x: number, y: number) => y * cols + x
@@ -13,7 +13,7 @@ cells[at(cols - 1, 0)] = { type: 'output', id: 'C', locked: true }
 cells[at(cols - 1, rows - 1)] = { type: 'output', id: 'D', locked: true }
 
 /**
- * 第八关：交叉。两条信号要交换到对角，只给四种元件，不给交叉。
+ * 第八关：交叉（20 列 × 10 行）。两条信号要交换到对角，只给四种元件，不给交叉。
  * 交叉的逻辑解法：X = A XOR B，C = A XOR X = B，D = B XOR X = A
  */
 export const level08: Level = {
