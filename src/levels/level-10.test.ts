@@ -39,7 +39,7 @@ const solution = build([
   [6, 6, { type: 'output', id: 'Y' }],
 ])
 
-/** 同样的电路但少了 3 个延迟中继器，脉冲落在第 2 tick */
+/** 同样的电路但少了 3 个延迟中继器，脉冲落在边沿后第 2 tick */
 const tooEarly = build([
   [0, 0, { type: 'input', id: 'A' }],
   ...wires([
@@ -87,6 +87,6 @@ describe('第十关 上升沿感应器', () => {
   it('脉冲来得太早通不过', () => {
     const run = runLevel({ ...level10, cells: tooEarly })
     expect(run.passed).toBe(false)
-    expect(run.outcomes[0].failures.some((f) => f.tick === 10)).toBe(true)
+    expect(run.outcomes[0].failures.some((f) => f.tick === 14)).toBe(true)
   })
 })

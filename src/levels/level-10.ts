@@ -20,38 +20,44 @@ export const level10: Level = {
   tests: [
     {
       name: '上升沿 → 1 tick 脉冲',
-      events: [{ tick: 5, values: { A: 1 } }],
+      // 先 A=0 空跑几拍，电路预热好再给上升沿
+      events: [
+        { tick: 0, values: { A: 0 } },
+        { tick: 12, values: { A: 1 } },
+      ],
       checks: [
-        { from: 0, to: 9, outputs: { Y: 0 } },
-        { from: 10, outputs: { Y: 1 } },
-        { from: 11, to: 20, outputs: { Y: 0 } },
+        { from: 8, to: 16, outputs: { Y: 0 } },
+        { from: 17, outputs: { Y: 1 } },
+        { from: 18, to: 26, outputs: { Y: 0 } },
       ],
     },
     {
       name: '下降沿不出脉冲',
       events: [
-        { tick: 0, values: { A: 1 } },
-        { tick: 10, values: { A: 0 } },
+        { tick: 0, values: { A: 0 } },
+        { tick: 12, values: { A: 1 } },
+        { tick: 18, values: { A: 0 } },
       ],
       checks: [
-        { from: 0, to: 4, outputs: { Y: 0 } },
-        { from: 5, outputs: { Y: 1 } },
-        { from: 6, to: 20, outputs: { Y: 0 } },
+        { from: 8, to: 16, outputs: { Y: 0 } },
+        { from: 17, outputs: { Y: 1 } },
+        { from: 18, to: 30, outputs: { Y: 0 } },
       ],
     },
     {
       name: '两个上升沿各出一个脉冲',
       events: [
-        { tick: 5, values: { A: 1 } },
-        { tick: 9, values: { A: 0 } },
-        { tick: 13, values: { A: 1 } },
+        { tick: 0, values: { A: 0 } },
+        { tick: 12, values: { A: 1 } },
+        { tick: 16, values: { A: 0 } },
+        { tick: 20, values: { A: 1 } },
       ],
       checks: [
-        { from: 0, to: 9, outputs: { Y: 0 } },
-        { from: 10, outputs: { Y: 1 } },
-        { from: 11, to: 17, outputs: { Y: 0 } },
-        { from: 18, outputs: { Y: 1 } },
-        { from: 19, to: 25, outputs: { Y: 0 } },
+        { from: 8, to: 16, outputs: { Y: 0 } },
+        { from: 17, outputs: { Y: 1 } },
+        { from: 18, to: 24, outputs: { Y: 0 } },
+        { from: 25, outputs: { Y: 1 } },
+        { from: 26, to: 32, outputs: { Y: 0 } },
       ],
     },
   ],
