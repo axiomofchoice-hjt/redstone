@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { runLevel, Simulation } from './sim'
-import type { Cell, Dir, Level, TestCase } from './types'
+import type { Cell, Dir, Level, OutputCheck, TestCase } from './types'
 
 function makeLevel(
   cols: number,
@@ -14,7 +14,7 @@ function makeLevel(
 }
 
 const onAt = (tick: number, values: Record<string, 0 | 1>): TestCase['events'] => [{ tick, values }]
-const checkAt = (tick: number, outputs: Record<string, 0 | 1>): TestCase['checks'] => [{ from: tick, outputs }]
+const checkAt = (tick: number, outputs: Record<string, 0 | 1>): OutputCheck[] => [{ from: tick, outputs }]
 
 describe('导线', () => {
   const level = makeLevel(
@@ -293,6 +293,60 @@ describe('测试用例', () => {
     // 玩家的地图一格都没变
     expect(level.cells).toEqual(before)
     expect(level.cells[0]).toBe(firstCell)
+  })
+})
+
+describe('成对检查', () => {
+  const wired = () =>
+    makeLevel(
+      3,
+      1,
+      [
+        [0, 0, { type: 'input', id: 'A' }],
+        [1, 0, { type: 'wire' }],
+        [2, 0, { type: 'output', id: 'L' }],
+      ],
+      [],
+    )
+
+  it('命中列举的组合就算过', () => {
+    const level = wired()
+    level.tests = [
+      {
+        name: '一直低',
+        checks: [],
+        pairs: [
+          { output: 'L', ticks: [2, 4], allow: [[0, 0]] },
+          { output: 'L', ticks: [2, 6], allow: [[0, 0]] },
+        ],
+      },
+    ]
+    expect(runLevel(level).passed).toBe(true)
+  })
+
+  it('相位不限：先低后高也可以', () => {
+    const level = wired()
+    level.tests = [
+      {
+        name: '翻起来',
+        events: onAt(3, { A: 1 }),
+        checks: [],
+        pairs: [{ output: 'L', ticks: [2, 4], allow: [[0, 1], [1, 0]] }],
+      },
+    ]
+    expect(runLevel(level).passed).toBe(true)
+  })
+
+  it('不在组合里就失败，失败记录带上两个时刻的实际值', () => {
+    const level = wired()
+    level.tests = [
+      { name: '没翻起来', checks: [], pairs: [{ output: 'L', ticks: [2, 4], allow: [[0, 1], [1, 0]] }] },
+    ]
+    const run = runLevel(level)
+    expect(run.passed).toBe(false)
+    const failure = run.outcomes[0].failures[0]
+    expect(failure.tick).toBe(4)
+    expect(failure.pair).toEqual({ ticks: [2, 4], values: [false, false], allow: [[0, 1], [1, 0]] })
   })
 })
 

@@ -34,6 +34,12 @@ export interface Failure {
   output: string
   expected: boolean
   actual: boolean
+  /** 成对检查失败时，两个时刻实际的取值和允许的组合（expected 只是按已知值推的提示） */
+  pair?: {
+    ticks: [number, number]
+    values: [boolean, boolean]
+    allow: (0 | 1)[][]
+  }
 }
 
 export interface TestOutcome {
@@ -628,11 +634,19 @@ export function runTest(level: Level, test: TestCase): { outcome: TestOutcome; s
   // 每组测试都从地图副本、全新仿真状态开始，组与组之间互不影响
   const sim = new Simulation(cloneLevel(level))
   const events = test.events ?? []
-  const checks = test.checks
+  const checks = test.checks ?? []
+  const pairs = test.pairs ?? []
 
   let maxTick = 0
   for (const e of events) maxTick = Math.max(maxTick, e.tick)
   for (const c of checks) maxTick = Math.max(maxTick, c.to ?? c.from)
+  for (const p of pairs) maxTick = Math.max(maxTick, p.ticks[0], p.ticks[1])
+
+  // 成对检查要回看更早的 tick，按输出分别存下每个 tick 的取值
+  const samples = new Map<string, boolean[]>()
+  for (const p of pairs) {
+    if (!samples.has(p.output)) samples.set(p.output, new Array<boolean>(maxTick + 1))
+  }
 
   const failures: Failure[] = []
   for (let t = 0; t <= maxTick; t++) {
@@ -649,6 +663,26 @@ export function runTest(level: Level, test: TestCase): { outcome: TestOutcome; s
           failures.push({ tick: t, output: id, expected, actual })
         }
       }
+    }
+    for (const [id, values] of samples) values[t] = sim.output(id)
+    for (const p of pairs) {
+      const [a, b] = p.ticks[0] <= p.ticks[1] ? p.ticks : [p.ticks[1], p.ticks[0]]
+      if (b !== t || a === b) continue
+      const values = samples.get(p.output)
+      if (!values) continue
+      const first = values[a]
+      const second = values[b]
+      if (p.allow.some(([x, y]) => !!x === first && !!y === second)) continue
+      // 期望值：已知前一个时刻时，若允许的组合都指向同一个值，就用它
+      const hints = p.allow.filter(([x]) => !!x === first).map(([, y]) => !!y)
+      const expected = hints.length > 0 && hints.every((v) => v === hints[0]) ? hints[0] : second
+      failures.push({
+        tick: b,
+        output: p.output,
+        expected,
+        actual: second,
+        pair: { ticks: [a, b], values: [first, second], allow: p.allow },
+      })
     }
   }
 

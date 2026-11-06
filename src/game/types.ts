@@ -29,10 +29,23 @@ export interface OutputCheck {
   outputs: Record<string, 0 | 1>
 }
 
+/**
+ * 成对检查（2-SAT 式）：同一条输出在两个时刻的取值，只允许是 allow 里列举的组合。
+ * 周期性信号（时钟）用它，不必假定从哪一相位开始。
+ */
+export interface PairCheck {
+  output: string
+  /** 两个采样时刻，通常写成 [t, t + 间隔] */
+  ticks: [number, number]
+  /** 允许的取值组合，每项是 [前一个时刻的值, 后一个时刻的值] */
+  allow: (0 | 1)[][]
+}
+
 export interface TestCase {
   name?: string
   events?: InputEvent[]
-  checks: OutputCheck[]
+  checks?: OutputCheck[]
+  pairs?: PairCheck[]
 }
 
 export interface Level {
