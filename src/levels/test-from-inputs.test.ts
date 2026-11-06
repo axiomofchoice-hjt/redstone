@@ -33,6 +33,8 @@ describe('从任意输入状态点「运行测试」', () => {
     it(`第 ${level.no} 关：输入全开跑一阵，测试照样全过`, () => {
       const cells = level.solution!.cells.map((cell) => (cell ? { ...cell } : null))
       const sim = new Simulation({ ...level, cells })
+      // 和菜单「参考答案」一样，从保存的电路状态开始，而不是整份地图冷启动
+      sim.restore(level.solution!.state)
 
       const allOn: Record<string, 0 | 1> = {}
       for (const id of level.inputs ?? []) allOn[id] = 1

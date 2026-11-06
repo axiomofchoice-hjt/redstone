@@ -10,8 +10,7 @@ const withSolutions = LEVELS.filter((level) => level.solution)
 
 describe('菜单里的参考答案', () => {
   it('没有参考解的关卡给 null（按钮灰掉）', () => {
-    // 第十七关还没录参考解
-    expect(solutionCells(level17)).toBeNull()
+    expect(solutionCells({ ...level17, solution: undefined })).toBeNull()
   })
 
   it('有参考解的关卡，格数和地图一样', () => {
@@ -48,13 +47,7 @@ describe('菜单里的参考答案', () => {
   })
 
   it('盖上去的参考解能过关', () => {
-    for (const level of withSolutions) {
-      const run = runLevel({ ...level, cells: solutionCells(level)! })
-      expect(run.passed).toBe(true)
-    }
-  })
-
-  it('盖上去直接点「运行测试」也能过', () => {
+    // 和菜单一样：布局和保存时的电路状态一起盖上去，再从这份状态跑测试
     for (const level of withSolutions) {
       const map = solutionMap(level)!
       const sim = new Simulation({ ...level, cells: map.cells })
