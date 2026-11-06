@@ -199,11 +199,6 @@
   color: #6ee7a8;
 }
 
-.failure {
-  font-size: 11px;
-  color: #ff9f85;
-}
-
 .palette {
   display: flex;
   align-items: center;

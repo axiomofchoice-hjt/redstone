@@ -93,12 +93,6 @@ export default function App() {
     setRun(null)
   }
 
-  const failures = run
-    ? run.outcomes.flatMap((outcome) =>
-        outcome.failures.map((failure) => ({ ...failure, test: outcome.name })),
-      )
-    : []
-
   const startLevel = (next: Level) => {
     const level = { ...next, cells: next.cells.slice() }
     setEditing({ level, sim: new Simulation(level) })
@@ -232,15 +226,6 @@ export default function App() {
                     ? '全部测试通过'
                     : `${run.outcomes.filter((outcome) => !outcome.passed).length} / ${run.outcomes.length} 个测试未通过`}
               </span>
-              {failures.slice(0, 2).map((failure, index) => (
-                <span
-                  className="failure"
-                  key={`${failure.test}-${failure.tick}-${failure.output}-${index}`}
-                >
-                  {failure.test} @ {failure.tick}t：{failure.output} 期望 {failure.expected ? 1 : 0}，实际{' '}
-                  {failure.actual ? 1 : 0}
-                </span>
-              ))}
             </div>
             <div className="actions">
               <button
