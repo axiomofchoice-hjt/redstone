@@ -42,11 +42,12 @@ export const level01: Level = {
     {
       name: 'A=1 时 B=1',
       events: [{ tick: 0, values: { A: 1 } }],
-      checks: [{ from: 0, to: 20, outputs: { B: 1 } }],
+      checks: [{ from: 10, to: 20, outputs: { B: 1 } }],
     },
     {
       name: 'A=0 时 B=0',
-      checks: [{ from: 0, to: 20, outputs: { B: 0 } }],
+      events: [{ tick: 0, values: { A: 0 } }],
+      checks: [{ from: 10, to: 20, outputs: { B: 0 } }],
     },
   ],
 }

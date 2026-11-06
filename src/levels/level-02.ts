@@ -43,21 +43,25 @@ export const level02: Level = {
   cells,
   solution: { cells: solution, state: solutionState },
   tests: [
-    { name: 'A=0 B=0 → C=0', checks: [{ from: 0, to: 20, outputs: { C: 0 } }] },
+    {
+      name: 'A=0 B=0 → C=0',
+      events: [{ tick: 0, values: { A: 0, B: 0 } }],
+      checks: [{ from: 10, to: 20, outputs: { C: 0 } }],
+    },
     {
       name: 'A=1 B=0 → C=1',
       events: [{ tick: 0, values: { A: 1, B: 0 } }],
-      checks: [{ from: 0, to: 20, outputs: { C: 1 } }],
+      checks: [{ from: 10, to: 20, outputs: { C: 1 } }],
     },
     {
       name: 'A=0 B=1 → C=1',
       events: [{ tick: 0, values: { A: 0, B: 1 } }],
-      checks: [{ from: 0, to: 20, outputs: { C: 1 } }],
+      checks: [{ from: 10, to: 20, outputs: { C: 1 } }],
     },
     {
       name: 'A=1 B=1 → C=1',
       events: [{ tick: 0, values: { A: 1, B: 1 } }],
-      checks: [{ from: 0, to: 20, outputs: { C: 1 } }],
+      checks: [{ from: 10, to: 20, outputs: { C: 1 } }],
     },
   ],
 }

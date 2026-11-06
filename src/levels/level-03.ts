@@ -44,6 +44,7 @@ export const level03: Level = {
   tests: [
     {
       name: 'A=0 → B=1',
+      events: [{ tick: 0, values: { A: 0 } }],
       checks: [{ from: 10, to: 20, outputs: { B: 1 } }],
     },
     {

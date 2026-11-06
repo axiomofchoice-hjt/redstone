@@ -27,4 +27,9 @@ describe('第六关', () => {
       'A=1 B=1 → S=0 C=1',
     ])
   })
+
+  it('参考解能过全部测试', () => {
+    const run = runLevel({ ...level06, cells: level06.solution!.cells })
+    expect(run.passed).toBe(true)
+  })
 })

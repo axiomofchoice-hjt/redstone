@@ -1,22 +1,7 @@
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
 import type { Cell, Dir, Level } from './game/types'
-import { level01 } from './levels/level-01'
-import { level02 } from './levels/level-02'
-import { level03 } from './levels/level-03'
-import { level04 } from './levels/level-04'
-import { level05 } from './levels/level-05'
-import { level06 } from './levels/level-06'
-import { level07 } from './levels/level-07'
-import { level08 } from './levels/level-08'
-import { level09 } from './levels/level-09'
-import { level10 } from './levels/level-10'
-import { level11 } from './levels/level-11'
-import { level12 } from './levels/level-12'
-import { level13 } from './levels/level-13'
-import { level14 } from './levels/level-14'
-import { level15 } from './levels/level-15'
-import { level16 } from './levels/level-16'
+import { LEVELS } from './levels'
 import { defaultTool } from './ui/tools'
 import { Board } from './ui/Board'
 import { download, mapFileName, mapJson } from './ui/export'
@@ -29,26 +14,6 @@ const INITIAL_DIR: Dir = 1
 /** 编辑器里仿真每 tick 的间隔：4 tick/s */
 const TICK_MS = 250
 
-/** 目前这十六关 */
-const LEVELS: Level[] = [
-  level01,
-  level02,
-  level03,
-  level04,
-  level05,
-  level06,
-  level07,
-  level08,
-  level09,
-  level10,
-  level11,
-  level12,
-  level13,
-  level14,
-  level15,
-  level16,
-]
-
 type Screen = 'start' | 'levels' | 'game'
 
 interface Editing {
@@ -57,7 +22,7 @@ interface Editing {
 }
 
 const initial = (): Editing => {
-  const level = { ...level01, cells: level01.cells.slice() }
+  const level = { ...LEVELS[0], cells: LEVELS[0].cells.slice() }
   return { level, sim: new Simulation(level) }
 }
 

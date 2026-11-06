@@ -22,6 +22,7 @@ export const level13: Level = {
     {
       name: '1 tick 脉冲不输出',
       events: [
+        { tick: 0, values: { A: 0 } },
         { tick: 5, values: { A: 1 } },
         { tick: 6, values: { A: 0 } },
       ],
@@ -30,6 +31,7 @@ export const level13: Level = {
     {
       name: '2 tick 脉冲不输出',
       events: [
+        { tick: 0, values: { A: 0 } },
         { tick: 5, values: { A: 1 } },
         { tick: 7, values: { A: 0 } },
       ],
@@ -38,6 +40,7 @@ export const level13: Level = {
     {
       name: '3 tick 脉冲通过',
       events: [
+        { tick: 0, values: { A: 0 } },
         { tick: 5, values: { A: 1 } },
         { tick: 8, values: { A: 0 } },
       ],
@@ -50,6 +53,7 @@ export const level13: Level = {
     {
       name: '5 tick 脉冲宽度不变',
       events: [
+        { tick: 0, values: { A: 0 } },
         { tick: 5, values: { A: 1 } },
         { tick: 10, values: { A: 0 } },
       ],

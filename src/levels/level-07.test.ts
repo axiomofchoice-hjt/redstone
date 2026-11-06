@@ -31,4 +31,9 @@ describe('第七关', () => {
       '1 1 1 → 1',
     ])
   })
+
+  it('参考解能过全部测试', () => {
+    const run = runLevel({ ...level07, cells: level07.solution!.cells })
+    expect(run.passed).toBe(true)
+  })
 })

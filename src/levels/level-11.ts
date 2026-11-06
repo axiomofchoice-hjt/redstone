@@ -21,6 +21,7 @@ export const level11: Level = {
     {
       name: '1 tick 脉冲变 3 tick',
       events: [
+        { tick: 0, values: { A: 0 } },
         { tick: 5, values: { A: 1 } },
         { tick: 6, values: { A: 0 } },
       ],
@@ -33,6 +34,7 @@ export const level11: Level = {
     {
       name: '3 tick 脉冲变 5 tick',
       events: [
+        { tick: 0, values: { A: 0 } },
         { tick: 5, values: { A: 1 } },
         { tick: 8, values: { A: 0 } },
       ],
@@ -45,6 +47,7 @@ export const level11: Level = {
     {
       name: '两个脉冲不会粘成一个',
       events: [
+        { tick: 0, values: { A: 0 } },
         { tick: 5, values: { A: 1 } },
         { tick: 6, values: { A: 0 } },
         { tick: 9, values: { A: 1 } },

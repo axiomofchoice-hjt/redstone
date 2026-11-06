@@ -1,28 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { runLevel } from '../game/sim'
-import type { Cell } from '../game/types'
 import { level08 } from './level-08'
 
 const last = level08.rows - 1
 const cols = level08.cols
-
-/**
- * 一种可行解法（按玩家给的图纸整理）：X = A XOR B 走中间，
- * C = A XOR X = B、D = B XOR X = A，两条线谁都不用真的跨过谁。
- * 一行 20 格，行内是铺平的 cells。
- */
-const solution: (Cell | null)[] = JSON.parse(`[
-{"type":"input","id":"A","locked":true},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{"type":"output","id":"C","locked":true},
-{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,null,{"type":"wire"},
-{"type":"wire"},null,null,null,null,null,null,null,null,null,null,null,{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},
-{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,null,{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,null,null,
-null,null,null,{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},null,null,null,null,null,null,null,null,null,
-{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,null,{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,null,null,
-{"type":"wire"},null,null,null,null,null,null,null,null,null,null,null,{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},
-{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},{"type":"wire"},{"type":"wire"},{"type":"charger","dir":1},{"type":"not","dir":1},null,null,{"type":"wire"},
-{"type":"wire"},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{"type":"wire"},
-{"type":"input","id":"B","locked":true},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,{"type":"output","id":"D","locked":true}
-]`)
 
 describe('第八关', () => {
   it('是 20×10 地图，四个角预置端口并锁定', () => {
@@ -51,8 +32,8 @@ describe('第八关', () => {
     expect(failed).toEqual(['1 0 → 0 1', '0 1 → 1 0', '1 1 → 1 1'])
   })
 
-  it('异或交换的解法能通过全部测试', () => {
-    const result = runLevel({ ...level08, cells: solution })
+  it('异或交换的参考解能通过全部测试', () => {
+    const result = runLevel({ ...level08, cells: level08.solution!.cells })
     expect(result.passed).toBe(true)
   })
 })
