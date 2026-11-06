@@ -64,6 +64,7 @@ src/
     level-03.ts   第三关：非门
     level-04.ts   第四关：与门
     level-05.ts   第五关：异或门
+    level-06.ts   第六关：半加器
   App.tsx         关卡状态、工具选择、tick 循环
 ```
 
