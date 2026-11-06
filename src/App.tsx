@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
-import type { Dir, Level } from './game/types'
+import type { Cell, Dir, Level } from './game/types'
 import { level01 } from './levels/level-01'
 import { level02 } from './levels/level-02'
 import { level03 } from './levels/level-03'
@@ -93,6 +93,22 @@ export default function App() {
   // 画布只按需取可见格子的状态，不再每帧生成整张 powers
   const powerAt = useCallback((index: number) => sim.powerAt(index), [sim])
 
+  /** 改一格元件并重建仿真；锁住的格子不动 */
+  const writeCell = (index: number, next: Cell | null) => {
+    setEditing((prev) => {
+      const cells = prev.level.cells.slice()
+      if (cells[index]?.locked) return prev
+      if (next === null && !cells[index]) return prev
+      cells[index] = next
+      const level = { ...prev.level, cells }
+      const sim = new Simulation(level, prev.sim)
+      // 重建后把手动开关的输入接着用
+      sim.setInputs(inputs)
+      return { level, sim }
+    })
+    setRun(null)
+  }
+
   const handleCell = (index: number) => {
     // 交互：点输入元件开关它
     if (tool === 'interact') {
@@ -106,26 +122,15 @@ export default function App() {
       return
     }
 
-    setEditing((prev) => {
-      const cells = prev.level.cells.slice()
-      if (cells[index]?.locked) return prev
-      if (tool === 'erase') {
-        cells[index] = null
-      } else {
-        cells[index] = {
-          type: tool.type,
-          dir: hasDirection(tool.type) ? dir : undefined,
-          id: tool.id,
-        }
-      }
-      const level = { ...prev.level, cells }
-      const sim = new Simulation(level, prev.sim)
-      // 重建后把手动开关的输入接着用
-      sim.setInputs(inputs)
-      return { level, sim }
-    })
-    setRun(null)
+    const cell: Cell | null =
+      tool === 'erase'
+        ? null
+        : { type: tool.type, dir: hasDirection(tool.type) ? dir : undefined, id: tool.id }
+    writeCell(index, cell)
   }
+
+  /** 右键删除：只删格子，元件栏选中的元件不变 */
+  const handleErase = (index: number) => writeCell(index, null)
 
   /** 参考答案：把布局和保存时的电路状态一起盖上去，玩家当前搭的会被冲掉 */
   const applySolution = () => {
@@ -280,6 +285,7 @@ export default function App() {
             powerAt={powerAt}
             revision={version}
             onCell={handleCell}
+            onErase={handleErase}
           />
 
           <div className="toolbar">

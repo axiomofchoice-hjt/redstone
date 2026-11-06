@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import type { PointerEvent as ReactPointerEvent } from 'react'
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import type { Cell, Level } from '../game/types'
+import { cellIndexAt } from './board-hit'
 import { drawComponent, linkedDirs } from './glyph'
 
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
   /** 每次画面该刷新时递增 */
   revision: number
   onCell: (index: number) => void
+  /** 右键直接删掉一格，不动元件栏当前选的东西 */
+  onErase: (index: number) => void
 }
 
 const BG = '#0e1018'
@@ -69,7 +72,7 @@ function clampCamera(x: number, y: number, w: number, h: number, mapW: number, m
   }
 }
 
-export function Board({ level, cells, powerAt, revision, onCell }: Props) {
+export function Board({ level, cells, powerAt, revision, onCell, onErase }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const geom = useRef<Geom>({
@@ -86,6 +89,8 @@ export function Board({ level, cells, powerAt, revision, onCell }: Props) {
   const drag = useRef<Drag | null>(null)
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<Pinch | null>(null)
+  /** 最近一次按下是不是手指，用来区分右键和触屏长按 */
+  const touched = useRef(false)
   const [cam, setCam] = useState({ x: 0, y: 0, zoom: 1 })
   const camRef = useRef(cam)
 
@@ -179,6 +184,10 @@ export function Board({ level, cells, powerAt, revision, onCell }: Props) {
   }, [])
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    // 触屏长按会先来一次 pointerdown，再触发 contextmenu，记下来别当右键
+    touched.current = event.pointerType === 'touch'
+    // 右键留给删除，不参与拖动和放置
+    if (event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
 
@@ -246,6 +255,25 @@ export function Board({ level, cells, powerAt, revision, onCell }: Props) {
     setCam((prev) => ({ ...prev, x: next.x, y: next.y }))
   }
 
+  /** 右键删除：只删这一格，元件栏选中的元件不变 */
+  const handleContextMenu = (event: ReactMouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault()
+    // 触屏长按也会走到这里；那不是右键，别删，顺手掐掉拖动免得松手又放一格
+    const touch = touched.current
+    drag.current = null
+    if (touch) return
+    const rect = event.currentTarget.getBoundingClientRect()
+    const index = cellIndexAt(
+      geom.current,
+      level.cols,
+      level.rows,
+      event.clientX - rect.left,
+      event.clientY - rect.top,
+    )
+    if (index < 0) return
+    onErase(index)
+  }
+
   const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     pointers.current.delete(event.pointerId)
     if (pointers.current.size < 2) pinch.current = null
@@ -255,13 +283,16 @@ export function Board({ level, cells, powerAt, revision, onCell }: Props) {
     drag.current = null
     if (current.moved) return
 
-    const g = geom.current
-    if (g.cell <= 0) return
     const rect = event.currentTarget.getBoundingClientRect()
-    const x = Math.floor((event.clientX - rect.left - g.ox) / g.cell)
-    const y = Math.floor((event.clientY - rect.top - g.oy) / g.cell)
-    if (x < 0 || y < 0 || x >= level.cols || y >= level.rows) return
-    onCell(y * level.cols + x)
+    const index = cellIndexAt(
+      geom.current,
+      level.cols,
+      level.rows,
+      event.clientX - rect.left,
+      event.clientY - rect.top,
+    )
+    if (index < 0) return
+    onCell(index)
   }
 
   return (
@@ -271,6 +302,7 @@ export function Board({ level, cells, powerAt, revision, onCell }: Props) {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onContextMenu={handleContextMenu}
         onPointerCancel={(event) => {
           pointers.current.delete(event.pointerId)
           if (pointers.current.size < 2) pinch.current = null

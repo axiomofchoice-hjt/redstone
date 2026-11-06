@@ -87,6 +87,7 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
           <button
             type="button"
             className={tool === 'erase' ? 'erase active' : 'erase'}
+            title="右键地图也可以直接删除"
             onClick={() => onTool('erase')}
           >
             删除
