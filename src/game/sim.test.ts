@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { runLevel, Simulation } from './sim'
+import { cloneLevel, runLevel, Simulation } from './sim'
 import type { Cell, Dir, Level, OutputCheck, TestCase } from './types'
 
 function makeLevel(
@@ -16,6 +16,43 @@ function makeLevel(
 const onAt = (tick: number, values: Record<string, 0 | 1>): TestCase['events'] => [{ tick, values }]
 const checkAt = (tick: number, outputs: Record<string, 0 | 1>): OutputCheck[] => [{ from: tick, outputs }]
 
+describe('从编辑器当前状态接着测', () => {
+  const lv = makeLevel(
+    4,
+    1,
+    [
+      [0, 0, { type: 'input', id: 'A' }],
+      [1, 0, { type: 'repeater', dir: 1 }],
+      [2, 0, { type: 'repeater', dir: 1 }],
+      [3, 0, { type: 'output', id: 'L' }],
+    ],
+    [{ name: '接着跑', checks: [{ from: 0, outputs: { L: 1 } }] }],
+  )
+
+  const settled = () => {
+    const live = new Simulation(cloneLevel(lv))
+    live.setInputs({ A: 1 })
+    for (let i = 0; i < 6; i++) live.step()
+    return live
+  }
+
+  it('拿当前状态当第 0 tick，不重置电路', () => {
+    expect(runLevel(lv, settled()).passed).toBe(true)
+    // 冷启动时中继器链还没跑起来，第 0 tick 是 0
+    expect(runLevel(lv).passed).toBe(false)
+  })
+
+  it('测完不动编辑器那份仿真', () => {
+    const live = settled()
+    const tick = live.tick
+    const before = live.output('L')
+    expect(runLevel(lv, live).passed).toBe(true)
+    expect(live.tick).toBe(tick)
+    expect(live.output('L')).toBe(before)
+    // 再测一次结果一样，说明状态没被上一次测试带跑
+    expect(runLevel(lv, live).passed).toBe(true)
+  })
+})
 describe('测试前预热', () => {
   it('预热不影响之后按 tick 设输入', () => {
     const lv = makeLevel(

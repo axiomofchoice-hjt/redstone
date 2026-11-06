@@ -286,7 +286,7 @@ export default function App() {
               <button type="button" className="debug" onClick={nextTick}>
                 下一 tick
               </button>
-              <button type="button" className="run" onClick={() => setRun(runLevel(level))}>
+              <button type="button" className="run" onClick={() => setRun(runLevel(level, sim))}>
                 运行测试
               </button>
             </div>

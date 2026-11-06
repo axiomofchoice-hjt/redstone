@@ -187,6 +187,22 @@ export class Simulation {
     this.settle(queue)
   }
 
+  /** 完整复制一份当前状态，用来跑测试：测试怎么折腾都不会动到编辑器里这一份 */
+  fork(): Simulation {
+    const copy = new Simulation(cloneLevel(this.level))
+    copy.tick = this.tick
+    copy.inputs = new Map(this.inputs)
+    copy.notOn = this.notOn.slice()
+    copy.repeaterOut = this.repeaterOut.slice()
+    copy.chargerOut = this.chargerOut.slice()
+    copy.netValue = this.netValue.slice()
+    copy.netCount = this.netCount.slice()
+    copy.emit = this.emit.slice()
+    copy.outputValues = { ...this.outputValues }
+    copy.dirty = this.dirty
+    return copy
+  }
+
   output(id: string): boolean {
     return this.outputValues[id] ?? false
   }
@@ -633,11 +649,15 @@ export function cloneLevel(level: Level): Level {
 /** 测试前先空转的拍数：非门建好时是「开」的，电路要几拍才稳定 */
 export const WARMUP_TICKS = 16
 
-export function runTest(level: Level, test: TestCase): { outcome: TestOutcome; sim: Simulation } {
-  // 每组测试都从地图副本、全新仿真状态开始，组与组之间互不影响
-  const sim = new Simulation(cloneLevel(level))
-  // 先空转再开始计拍，启动毛刺不会混进第 0 拍
-  for (let i = 0; i < WARMUP_TICKS; i++) sim.step()
+export function runTest(
+  level: Level,
+  test: TestCase,
+  from?: Simulation,
+): { outcome: TestOutcome; sim: Simulation } {
+  // 每组测试都从同一份起始状态开跑，组与组之间互不影响
+  const sim = from ? from.fork() : new Simulation(cloneLevel(level))
+  // 没有起始状态时先空转再计拍，启动毛刺不会混进第 0 拍
+  if (!from) for (let i = 0; i < WARMUP_TICKS; i++) sim.step()
   const events = test.events ?? []
   const checks = test.checks ?? []
   const pairs = test.pairs ?? []
@@ -697,11 +717,15 @@ export function runTest(level: Level, test: TestCase): { outcome: TestOutcome; s
   }
 }
 
-export function runLevel(level: Level): LevelRun {
+/**
+ * 跑整关的测试。`from` 是编辑器里正在跑的仿真：给了就从它当前的状态接着测
+ * （电路已经稳定成什么样，就按什么样测），不给就从冷启动空转 16 tick 再测。
+ */
+export function runLevel(level: Level, from?: Simulation): LevelRun {
   const outcomes: TestOutcome[] = []
   let last: Simulation | null = null
   for (const test of level.tests) {
-    const result = runTest(level, test)
+    const result = runTest(level, test, from)
     outcomes.push(result.outcome)
     last = result.sim
   }
