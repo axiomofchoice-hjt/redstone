@@ -20,6 +20,7 @@ import { level16 } from './levels/level-16'
 import { defaultTool } from './ui/tools'
 import { Board } from './ui/Board'
 import { cellsFileName, cellsJson, download } from './ui/export'
+import { solutionCells } from './ui/solution'
 import { Palette, type Tool } from './ui/Palette'
 import './App.css'
 
@@ -126,6 +127,17 @@ export default function App() {
     setRun(null)
   }
 
+  /** 参考答案：直接盖到地图上，玩家当前搭的会被冲掉 */
+  const applySolution = () => {
+    const cells = solutionCells(level)
+    if (!cells) return
+    const next = { ...level, cells }
+    setEditing({ level: next, sim: new Simulation(next) })
+    setInputs({})
+    setRun(null)
+    setMenuOpen(false)
+  }
+
   const startLevel = (next: Level) => {
     const level = { ...next, cells: next.cells.slice() }
     setEditing({ level, sim: new Simulation(level) })
@@ -230,6 +242,14 @@ export default function App() {
           <div className="start-actions">
             <button type="button" className="start-btn primary" onClick={() => setMenuOpen(false)}>
               继续游戏
+            </button>
+            <button
+              type="button"
+              className="start-btn"
+              disabled={!level.solution}
+              onClick={applySolution}
+            >
+              参考答案
             </button>
             <button
               type="button"

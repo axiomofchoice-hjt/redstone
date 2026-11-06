@@ -61,6 +61,8 @@ export interface Level {
   outputs?: string[]
   /** 这关允许玩家放置的元件类型；不写表示全部可用 */
   tools?: CellType[]
+  /** 参考解：菜单里「参考答案」直接盖到地图上的元件数组；没有就不给盖 */
+  solution?: (Cell | null)[]
   cells: (Cell | null)[]
   tests: TestCase[]
 }

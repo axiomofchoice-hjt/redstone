@@ -5,6 +5,56 @@ const rows = 10
 // 输入 A、输出 Y 都由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
+const build = (entries: [number, number, Cell][]) => {
+  const out: (Cell | null)[] = new Array(cols * rows).fill(null)
+  for (const [x, y, cell] of entries) out[y * cols + x] = cell
+  return out
+}
+
+const wires = (pts: [number, number][]): [number, number, Cell][] =>
+  pts.map(([x, y]) => [x, y, { type: 'wire' }])
+
+/** 参考解：上升沿、下降沿各一套感应，合流后接 Y */
+const solution = build([
+  [0, 0, { type: 'input', id: 'A' }],
+  ...wires([
+    [0, 1],
+    [1, 1],
+    [4, 1],
+    [7, 1],
+    [0, 2],
+    [1, 2],
+    [4, 2],
+    [7, 2],
+    [0, 3],
+    [7, 3],
+    [1, 5],
+    [4, 5],
+    [7, 5],
+    [1, 6],
+    [4, 6],
+    [7, 6],
+  ]),
+  [2, 1, { type: 'charger', dir: 1 }],
+  [3, 1, { type: 'not', dir: 1 }],
+  [2, 2, { type: 'repeater', dir: 1 }],
+  [3, 2, { type: 'repeater', dir: 1 }],
+  [5, 1, { type: 'charger', dir: 1 }],
+  [6, 1, { type: 'not', dir: 1 }],
+  [0, 4, { type: 'charger', dir: 2 }],
+  [0, 5, { type: 'not', dir: 1 }],
+  [2, 5, { type: 'charger', dir: 1 }],
+  [3, 5, { type: 'not', dir: 2 }],
+  [5, 5, { type: 'charger', dir: 1 }],
+  [6, 5, { type: 'not', dir: 2 }],
+  [2, 6, { type: 'repeater', dir: 1 }],
+  [3, 6, { type: 'repeater', dir: 1 }],
+  [7, 4, { type: 'repeater', dir: 2 }],
+  [7, 7, { type: 'repeater', dir: 2 }],
+  [7, 8, { type: 'repeater', dir: 2 }],
+  [7, 9, { type: 'output', id: 'Y' }],
+])
+
 /**
  * 第十四关：双边沿感应器。A 不管是变高还是变低，之后第 5 tick 出 1 tick 脉冲，其余时候 Y = 0。
  */
@@ -17,6 +67,7 @@ export const level14: Level = {
   inputs: ['A'],
   outputs: ['Y'],
   cells,
+  solution,
   tests: [
     {
       name: '上升沿出脉冲',

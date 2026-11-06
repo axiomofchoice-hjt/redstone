@@ -5,6 +5,47 @@ const rows = 10
 // 输入 S / R、输出 Y 都由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
+const build = (entries: [number, number, Cell][]) => {
+  const out: (Cell | null)[] = new Array(cols * rows).fill(null)
+  for (const [x, y, cell] of entries) out[y * cols + x] = cell
+  return out
+}
+
+const wires = (pts: [number, number][]): [number, number, Cell][] =>
+  pts.map(([x, y]) => [x, y, { type: 'wire' }])
+
+/** 参考解：两个 NOR 交叉反馈，Q = ¬(R ∨ Q̄)、Q̄ = ¬(S ∨ Q) */
+const solution = build([
+  [9, 1, { type: 'input', id: 'R' }],
+  [9, 3, { type: 'input', id: 'S' }],
+  ...wires([
+    [4, 1],
+    [5, 1],
+    [6, 1],
+    [7, 1],
+    [8, 1],
+    [2, 2],
+    [2, 4],
+    [2, 5],
+    [3, 5],
+    [4, 5],
+    [5, 5],
+    [6, 5],
+    [7, 5],
+    [7, 4],
+    [7, 3],
+    [8, 3],
+    [4, 3],
+  ]),
+  [3, 1, { type: 'charger', dir: 3 }],
+  [2, 1, { type: 'not', dir: 1 }],
+  [1, 2, { type: 'output', id: 'Y' }],
+  [2, 3, { type: 'charger', dir: 2 }],
+  [6, 3, { type: 'charger', dir: 3 }],
+  [5, 3, { type: 'not', dir: 1 }],
+  [4, 2, { type: 'charger', dir: 0 }],
+])
+
 /** 每组都先把 S、R 都设一遍，免得接上玩家当前开着的输入 */
 const reset = (values: { S: 0 | 1; R: 0 | 1 }) => ({ tick: 0, values })
 
@@ -21,6 +62,7 @@ export const level15: Level = {
   inputs: ['S', 'R'],
   outputs: ['Y'],
   cells,
+  solution,
   tests: [
     {
       name: 'R 复位后保持 0',

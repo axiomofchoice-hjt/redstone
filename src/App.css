@@ -61,6 +61,10 @@
   font-weight: 600;
 }
 
+.start-btn:disabled {
+  opacity: 0.32;
+}
+
 .start-btn.primary {
   border-color: #ff6b4a;
   background: #ff6b4a;
