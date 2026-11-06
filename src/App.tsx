@@ -14,6 +14,7 @@ import { level10 } from './levels/level-10'
 import { level11 } from './levels/level-11'
 import { level12 } from './levels/level-12'
 import { level13 } from './levels/level-13'
+import { level14 } from './levels/level-14'
 import { Board } from './ui/Board'
 import { cellsFileName, cellsJson, download } from './ui/export'
 import { Palette, type Tool } from './ui/Palette'
@@ -24,7 +25,7 @@ const INITIAL_DIR: Dir = 1
 /** 编辑器里仿真每 tick 的间隔：4 tick/s */
 const TICK_MS = 250
 
-/** 目前这十三关 */
+/** 目前这十四关 */
 const LEVELS: Level[] = [
   level01,
   level02,
@@ -39,6 +40,7 @@ const LEVELS: Level[] = [
   level11,
   level12,
   level13,
+  level14,
 ]
 
 type Screen = 'start' | 'levels' | 'game'
