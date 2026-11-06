@@ -714,7 +714,8 @@ export function runTest(
 
 /**
  * 跑整关的测试。`from` 是编辑器里正在跑的仿真：给了就从它当前的状态接着测
- * （电路已经稳定成什么样，就按什么样测），不给就从冷启动空转 16 tick 再测。
+ * （电路已经稳定成什么样，就按什么样测），不给就从冷启动开始、不额外预热——
+ * 需要预热的关卡自己把预热写进测试数据里。
  */
 export function runLevel(level: Level, from?: Simulation): LevelRun {
   const outcomes: TestOutcome[] = []
