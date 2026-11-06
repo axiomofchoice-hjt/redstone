@@ -11,6 +11,11 @@ const INITIAL_DIR: Dir = 1
 /** 编辑器里仿真每 tick 的间隔：4 tick/s */
 const TICK_MS = 250
 
+/** 目前只有这一关 */
+const LEVELS: Level[] = [level01]
+
+type Screen = 'start' | 'levels' | 'game'
+
 interface Editing {
   level: Level
   sim: Simulation
@@ -29,19 +34,20 @@ export default function App() {
   // 编辑器里手动开关的输入
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   const [menuOpen, setMenuOpen] = useState(false)
+  const [screen, setScreen] = useState<Screen>('start')
   // 仿真在后台推进，只在画面有变化时重绘
   const [version, repaint] = useReducer((n: number) => n + 1, 0)
   // 调试用：暂停自动 tick
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {
-    if (paused) return
+    if (paused || screen !== 'game') return
     const timer = setInterval(() => {
       // step() 直接返回画面有没有变化，不用前后各拍一次快照
       if (sim.step()) repaint()
     }, TICK_MS)
     return () => clearInterval(timer)
-  }, [sim, paused])
+  }, [sim, paused, screen])
 
   const nextTick = () => {
     if (!paused) return
@@ -91,6 +97,62 @@ export default function App() {
         outcome.failures.map((failure) => ({ ...failure, test: outcome.name })),
       )
     : []
+
+  const startLevel = (next: Level) => {
+    const level = { ...next, cells: next.cells.slice() }
+    setEditing({ level, sim: new Simulation(level) })
+    setInputs({})
+    setRun(null)
+    setPaused(false)
+    setScreen('game')
+  }
+
+  if (screen === 'start') {
+    return (
+      <div className="app">
+        <div className="screen start">
+          <h1 className="title">红石电路</h1>
+          <div className="start-actions">
+            <button
+              type="button"
+              className="start-btn primary"
+              onClick={() => setScreen('levels')}
+            >
+              选关
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (screen === 'levels') {
+    return (
+      <div className="app">
+        <header className="top">
+          <div className="head">
+            <button type="button" className="text-btn" onClick={() => setScreen('start')}>
+              返回
+            </button>
+            <h1>选关</h1>
+          </div>
+        </header>
+        <div className="level-list">
+          {LEVELS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="level-item"
+              onClick={() => startLevel(item)}
+            >
+              <span className="level-no">第 {item.no ?? 1} 关</span>
+              <span className="level-name">{item.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app">
