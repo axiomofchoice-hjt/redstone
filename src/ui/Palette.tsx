@@ -1,4 +1,5 @@
 import type { CellType, Dir, Level } from '../game/types'
+import { portsFor } from './ports'
 import { ToolIcon } from './ToolIcon'
 
 export type Tool = { type: CellType; id?: string } | 'erase' | 'interact'
@@ -27,11 +28,7 @@ interface Props {
 }
 
 export function Palette({ level, tool, dir, onTool, onDir }: Props) {
-  // 输入在前、输出在后，字母由关卡数据给出
-  const ports: { type: CellType; id: string; label: string }[] = [
-    ...(level.inputs ?? []).map((id) => ({ type: 'input' as CellType, id, label: `输入 ${id}` })),
-    ...(level.outputs ?? []).map((id) => ({ type: 'output' as CellType, id, label: `输出 ${id}` })),
-  ]
+  const ports = portsFor(level)
 
   const active = (type: CellType, id?: string) =>
     typeof tool === 'object' && tool.type === type && tool.id === id
