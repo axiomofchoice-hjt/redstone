@@ -4,6 +4,8 @@ import type { Dir, Level } from './game/types'
 import { level01 } from './levels/level-01'
 import { level02 } from './levels/level-02'
 import { level03 } from './levels/level-03'
+import { level04 } from './levels/level-04'
+import { level05 } from './levels/level-05'
 import { Board } from './ui/Board'
 import { Palette, type Tool } from './ui/Palette'
 import './App.css'
@@ -13,8 +15,8 @@ const INITIAL_DIR: Dir = 1
 /** 编辑器里仿真每 tick 的间隔：4 tick/s */
 const TICK_MS = 250
 
-/** 目前这三关 */
-const LEVELS: Level[] = [level01, level02, level03]
+/** 目前这五关 */
+const LEVELS: Level[] = [level01, level02, level03, level04, level05]
 
 type Screen = 'start' | 'levels' | 'game'
 
