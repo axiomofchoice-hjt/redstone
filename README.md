@@ -69,19 +69,19 @@ src/
 
 ```ts
 export const level01: Level = {
-  id: 'demo-01',
+  id: 'level-01',
   no: 1,
-  name: '示例关',
-  cols: 20,
-  rows: 14,
-  inputs: ['A', 'B'],   // 输入元件的字母
-  outputs: ['C'],       // 输出元件的字母
-  cells,                // (Cell | null)[]，按行优先
+  name: '导线',
+  cols: 7,
+  rows: 7,
+  inputs: ['A'],        // 输入元件的字母
+  outputs: ['B'],       // 输出元件的字母
+  cells,                // (Cell | null)[]，按行优先；A、B 预置并 locked
   tests: [{
     // 第 0 tick 把 A 拉高，之后一直保持（信号不断）
     events: [{ tick: 0, values: { A: 1 } }],
-    // 只要求第 10～20 tick 每 tick 的 C 都是 1，区间外不管
-    checks: [{ from: 10, to: 20, outputs: { C: 1 } }],
+    // 只要求第 0～20 tick 每 tick 的 B 都是 1，区间外不管
+    checks: [{ from: 0, to: 20, outputs: { B: 1 } }],
   }],
 }
 ```
