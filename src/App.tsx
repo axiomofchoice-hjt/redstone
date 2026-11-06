@@ -122,6 +122,35 @@ export default function App() {
             </h1>
           </div>
         </div>
+      </header>
+
+      <Board
+        level={level}
+        cells={level.cells}
+        powerAt={powerAt}
+        revision={version}
+        onCell={handleCell}
+      />
+
+      <div className="toolbar">
+        <div className={run?.passed ? 'result ok' : 'result'}>
+          <span>
+            {run === null
+              ? '未运行'
+              : run.passed
+                ? '全部测试通过'
+                : `${run.outcomes.filter((outcome) => !outcome.passed).length} / ${run.outcomes.length} 个测试未通过`}
+          </span>
+          {failures.slice(0, 2).map((failure, index) => (
+            <span
+              className="failure"
+              key={`${failure.test}-${failure.tick}-${failure.output}-${index}`}
+            >
+              {failure.test} @ {failure.tick}t：{failure.output} 期望 {failure.expected ? 1 : 0}，实际{' '}
+              {failure.actual ? 1 : 0}
+            </span>
+          ))}
+        </div>
         <div className="actions">
           <button
             type="button"
@@ -150,30 +179,6 @@ export default function App() {
             运行测试
           </button>
         </div>
-      </header>
-
-      <Board
-        level={level}
-        cells={level.cells}
-        powerAt={powerAt}
-        revision={version}
-        onCell={handleCell}
-      />
-
-      <div className={run?.passed ? 'result ok' : 'result'}>
-        <span>
-          {run === null
-            ? '未运行'
-            : run.passed
-              ? '全部测试通过'
-              : `${run.outcomes.filter((outcome) => !outcome.passed).length} / ${run.outcomes.length} 个测试未通过`}
-        </span>
-        {failures.slice(0, 2).map((failure, index) => (
-          <span className="failure" key={`${failure.test}-${failure.tick}-${failure.output}-${index}`}>
-            {failure.test} @ {failure.tick}t：{failure.output} 期望 {failure.expected ? 1 : 0}，实际{' '}
-            {failure.actual ? 1 : 0}
-          </span>
-        ))}
       </div>
 
       <Palette level={level} tool={tool} dir={dir} onTool={setTool} onDir={setDir} />
