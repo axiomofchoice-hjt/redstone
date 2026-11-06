@@ -46,4 +46,13 @@ describe('菜单里的参考答案', () => {
       expect(run.passed).toBe(true)
     }
   })
+
+  it('盖上去直接点「运行测试」也能过', () => {
+    for (const level of withSolutions) {
+      const map = solutionMap(level)!
+      const sim = new Simulation({ ...level, cells: map.cells })
+      sim.restore(map.state)
+      expect(runLevel({ ...level, cells: map.cells }, sim).passed, level.id).toBe(true)
+    }
+  })
 })

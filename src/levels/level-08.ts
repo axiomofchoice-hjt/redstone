@@ -63,7 +63,6 @@ const solution = parseGrid(SOLUTION_GRID)
 
 /** 取 A=0、B=1 跑稳之后的状态，盖上去 C=1、D=0；每行一条，key 是行优先下标 */
 const solutionState = stateFrom(
-  cols * rows,
   { tick: 20, inputs: { A: 0, B: 1 }, outputs: { C: 1, D: 0 } },
   {
     19: 1,

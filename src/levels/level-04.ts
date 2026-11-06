@@ -1,8 +1,8 @@
 import type { Cell, Level } from '../game/types'
 import { cellsFrom, stateFrom } from './solution-helpers'
 
-const cols = 15
-const rows = 20
+const cols = 10
+const rows = 10
 // 输入 A、B 和输出 C 由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
@@ -11,25 +11,25 @@ const solution = cellsFrom(cols * rows, {
   0: { type: 'input', id: 'A' },
   1: { type: 'charger', dir: 1 },
   2: { type: 'not', dir: 1 },
-  17: { type: 'wire' },
-  18: { type: 'charger', dir: 1 },
-  19: { type: 'not', dir: 1 },
-  20: { type: 'wire' },
-  21: { type: 'output', id: 'C' },
-  30: { type: 'input', id: 'B' },
-  31: { type: 'charger', dir: 1 },
-  32: { type: 'not', dir: 1 },
+  12: { type: 'wire' },
+  13: { type: 'charger', dir: 1 },
+  14: { type: 'not', dir: 1 },
+  15: { type: 'wire' },
+  16: { type: 'output', id: 'C' },
+  20: { type: 'input', id: 'B' },
+  21: { type: 'charger', dir: 1 },
+  22: { type: 'not', dir: 1 },
 })
 
-const solutionState = stateFrom(cols * rows, {
+const solutionState = stateFrom({
   tick: 65,
   inputs: { A: 0, B: 0 },
   outputs: { C: 0 },
 }, {
   2: 1,
-  17: 3,
-  18: 1,
-  32: 1,
+  12: 3,
+  13: 1,
+  22: 1,
 })
 
 /** 第四关：与门，C = A AND B */

@@ -51,6 +51,6 @@ describe('第十二关 脉冲延迟器', () => {
   it('延迟不够通不过', () => {
     const run = runLevel({ ...level12, cells: wrong })
     expect(run.passed).toBe(false)
-    expect(run.outcomes[0].failures.some((f) => f.tick === 10)).toBe(true)
+    expect(run.outcomes[0].failures.some((f) => f.tick === 20)).toBe(true)
   })
 })

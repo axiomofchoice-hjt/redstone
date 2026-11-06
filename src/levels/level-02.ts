@@ -24,7 +24,7 @@ const solution = cellsFrom(cols * rows, {
   31: { type: 'wire' },
 })
 
-const solutionState = stateFrom(cols * rows, {
+const solutionState = stateFrom({
   tick: 11,
   inputs: { A: 0, B: 0 },
   outputs: { C: 0 },

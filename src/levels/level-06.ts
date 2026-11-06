@@ -1,8 +1,8 @@
 import type { Cell, Level } from '../game/types'
 import { cellsFrom, stateFrom } from './solution-helpers'
 
-const cols = 15
-const rows = 20
+const cols = 10
+const rows = 10
 // 输入 A、B 和输出 S、C 由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
@@ -19,42 +19,41 @@ const solution = cellsFrom(cols * rows, {
   7: { type: 'wire' },
   8: { type: 'wire' },
   // 第 1 行：上下两组往中间汇
-  17: { type: 'wire' },
-  19: { type: 'wire' },
-  23: { type: 'wire' },
+  12: { type: 'wire' },
+  14: { type: 'wire' },
+  18: { type: 'wire' },
   // 第 2 行：汇合后接 C、S
-  32: { type: 'wire' },
-  33: { type: 'charger', dir: 1 },
-  34: { type: 'not', dir: 1 },
-  35: { type: 'wire' },
-  36: { type: 'output', id: 'C' },
-  38: { type: 'output', id: 'S' },
+  22: { type: 'wire' },
+  23: { type: 'charger', dir: 1 },
+  24: { type: 'not', dir: 1 },
+  25: { type: 'wire' },
+  26: { type: 'output', id: 'C' },
+  28: { type: 'output', id: 'S' },
   // 第 3 行
-  47: { type: 'wire' },
-  49: { type: 'wire' },
-  53: { type: 'wire' },
+  32: { type: 'wire' },
+  34: { type: 'wire' },
+  38: { type: 'wire' },
   // 第 4 行：B 的与门支路
-  60: { type: 'input', id: 'B' },
-  61: { type: 'charger', dir: 1 },
-  62: { type: 'not', dir: 1 },
-  63: { type: 'wire' },
-  64: { type: 'wire' },
-  65: { type: 'charger', dir: 1 },
-  66: { type: 'not', dir: 1 },
-  67: { type: 'wire' },
-  68: { type: 'wire' },
+  40: { type: 'input', id: 'B' },
+  41: { type: 'charger', dir: 1 },
+  42: { type: 'not', dir: 1 },
+  43: { type: 'wire' },
+  44: { type: 'wire' },
+  45: { type: 'charger', dir: 1 },
+  46: { type: 'not', dir: 1 },
+  47: { type: 'wire' },
+  48: { type: 'wire' },
 })
 
 /** 导出时的一刻：A、B 都是 0，S、C 都是 0 */
 const solutionState = stateFrom(
-  cols * rows,
   { tick: 18, inputs: { A: 0, B: 0 }, outputs: { C: 0, S: 0 } },
   {
     2: 1, 3: 3, 4: 3, 5: 1,
-    17: 3, 19: 3,
-    32: 3, 33: 1,
-    47: 3, 49: 3,
-    62: 1, 63: 3, 64: 3, 65: 1,
+    12: 3, 14: 3,
+    22: 3, 23: 1,
+    32: 3, 34: 3,
+    42: 1, 43: 3, 44: 3, 45: 1,
   },
 )
 

@@ -282,16 +282,21 @@ export class Simulation {
     return { powers, outputs: this.collectOutputs() }
   }
 
-  /** 当前电路状态，可直接导出或存进参考解 */
+  /** 当前电路状态，可直接导出或存进参考解（通电状态稀疏存放，没电的格子省略） */
   circuitState(): CircuitState {
-    const snapshot = this.snapshot()
+    const { cells } = this.level
     const outputs: Record<string, 0 | 1> = {}
-    for (const [id, value] of Object.entries(snapshot.outputs)) outputs[id] = value ? 1 : 0
+    for (const [id, value] of Object.entries(this.collectOutputs())) outputs[id] = value ? 1 : 0
+    const powers: Record<number, number> = {}
+    for (let i = 0; i < cells.length; i++) {
+      const power = this.powerAt(i)
+      if (power !== 0) powers[i] = power
+    }
     return {
       tick: this.tick,
       inputs: this.inputValues(),
       outputs,
-      powers: snapshot.powers,
+      powers,
     }
   }
 

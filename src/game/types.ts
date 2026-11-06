@@ -53,8 +53,11 @@ export interface CircuitState {
   tick: number
   inputs: Record<string, 0 | 1>
   outputs: Record<string, 0 | 1>
-  /** 每格的通电状态：bit0 = 垂直通道，bit1 = 水平通道 */
-  powers: number[]
+  /**
+   * 每格的通电状态：bit0 = 垂直通道，bit1 = 水平通道。
+   * 和 `cells` 一样稀疏，只记录通电的格子，key 是行优先下标，空格子省略。
+   */
+  powers: Record<number, number>
 }
 
 /** 参考解：元件布局 + 保存时的电路状态 */

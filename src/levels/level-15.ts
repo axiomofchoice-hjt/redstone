@@ -1,4 +1,5 @@
-import type { Cell, CircuitState, Level } from '../game/types'
+import type { Cell, Level } from '../game/types'
+import { stateFrom } from './solution-helpers'
 
 const cols = 10
 const rows = 10
@@ -47,23 +48,16 @@ const solution = build([
 ])
 
 /** 取「S 置位后保持 1」第 30 tick（Y=1）的状态，盖上去就能直接看到锁存结果 */
-const solutionState: CircuitState = {
-  tick: 30,
-  inputs: { R: 0, S: 0 },
-  outputs: { Y: 1 },
-  powers: [
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 3, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 0, 0, 0, 1, 3, 3, 0,
-    0, 0, 3, 0, 0, 0, 0, 3, 0, 0,
-    0, 0, 3, 3, 3, 3, 3, 3, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  ],
-}
+const solutionState = stateFrom(
+  { tick: 30, inputs: { R: 0, S: 0 }, outputs: { Y: 1 } },
+  {
+    12: 1,
+    21: 1, 22: 3,
+    32: 1, 36: 1, 37: 3, 38: 3,
+    42: 3, 47: 3,
+    52: 3, 53: 3, 54: 3, 55: 3, 56: 3, 57: 3,
+  },
+)
 
 /** 每组都先把 S、R 都设一遍，免得接上玩家当前开着的输入 */
 const reset = (values: { S: 0 | 1; R: 0 | 1 }) => ({ tick: 0, values })

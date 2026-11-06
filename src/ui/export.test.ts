@@ -34,10 +34,18 @@ describe('导出地图', () => {
     expect(parsed.state.tick).toBe(1)
     expect(parsed.state.inputs).toEqual({ A: 1 })
     expect(parsed.state.outputs).toEqual({ B: 1 })
-    expect(parsed.state.powers).toHaveLength(cells.length)
     expect(parsed.state.powers[3 * cols + 1]).toBe(1)
     expect(parsed.state.powers[3 * cols + 2]).toBe(3)
     expect(parsed.state.powers[3 * cols + 5]).toBe(1)
+    // 通电状态和 cells 一样稀疏，只记录有电的格子
+    expect(Object.keys(parsed.state.powers).map(Number).sort((a, b) => a - b)).toEqual([
+      3 * cols + 1,
+      3 * cols + 2,
+      3 * cols + 3,
+      3 * cols + 4,
+      3 * cols + 5,
+    ])
+    expect(parsed.state.powers[0]).toBeUndefined()
   })
 
   it('玩家放的元件也会带上', () => {

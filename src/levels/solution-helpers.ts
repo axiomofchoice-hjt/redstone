@@ -7,13 +7,8 @@ export const cellsFrom = (size: number, sparse: Record<number, Cell>): (Cell | n
   return cells
 }
 
-/** 用非零的通电位构造 state.powers，没列出的格子为 0 */
+/** 参考解的状态：通电位和 cells 一样稀疏，没列出的格子就是 0 */
 export const stateFrom = (
-  size: number,
   state: Pick<CircuitState, 'tick' | 'inputs' | 'outputs'>,
   powers: Record<number, number> = {},
-): CircuitState => {
-  const values = new Array<number>(size).fill(0)
-  for (const [index, value] of Object.entries(powers)) values[Number(index)] = value
-  return { ...state, powers: values }
-}
+): CircuitState => ({ ...state, powers: { ...powers } })

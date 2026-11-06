@@ -3,9 +3,9 @@ import { runLevel } from '../game/sim'
 import { level07 } from './level-07'
 
 describe('第七关', () => {
-  it('15×20 地图，没有预置任何元件，端口由玩家放', () => {
-    expect(level07.cols).toBe(15)
-    expect(level07.rows).toBe(20)
+  it('10×10 地图，没有预置任何元件，端口由玩家放', () => {
+    expect(level07.cols).toBe(10)
+    expect(level07.rows).toBe(10)
     expect(level07.cells.every((cell) => cell === null)).toBe(true)
     expect(level07.inputs).toEqual(['A', 'B', 'C'])
     expect(level07.outputs).toEqual(['Y'])

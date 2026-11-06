@@ -19,7 +19,7 @@ const solution = cellsFrom(cols * rows, {
   26: { type: 'output', id: 'B', locked: true },
 })
 
-const solutionState = stateFrom(cols * rows, {
+const solutionState = stateFrom({
   tick: 16,
   inputs: { A: 0 },
   outputs: { B: 1 },

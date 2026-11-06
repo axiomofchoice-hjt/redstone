@@ -1,8 +1,8 @@
 import type { Cell, Level } from '../game/types'
 import { cellsFrom, stateFrom } from './solution-helpers'
 
-const cols = 15
-const rows = 20
+const cols = 10
+const rows = 10
 // 三个输入 A、B、C 和输出 Y 由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
@@ -17,43 +17,42 @@ const solution = cellsFrom(cols * rows, {
   5: { type: 'not', dir: 1 },
   6: { type: 'wire' },
   // 第 1 行
-  17: { type: 'wire' },
-  18: { type: 'charger', dir: 1 },
-  19: { type: 'not', dir: 1 },
-  20: { type: 'charger', dir: 0 },
-  21: { type: 'wire' },
+  12: { type: 'wire' },
+  13: { type: 'charger', dir: 1 },
+  14: { type: 'not', dir: 1 },
+  15: { type: 'charger', dir: 0 },
+  16: { type: 'wire' },
   // 第 2 行：B 的支路与汇合点
-  30: { type: 'input', id: 'B' },
-  31: { type: 'charger', dir: 1 },
-  32: { type: 'not', dir: 1 },
-  34: { type: 'wire' },
-  35: { type: 'cross' },
-  36: { type: 'wire' },
-  37: { type: 'output', id: 'Y' },
+  20: { type: 'input', id: 'B' },
+  21: { type: 'charger', dir: 1 },
+  22: { type: 'not', dir: 1 },
+  24: { type: 'wire' },
+  25: { type: 'cross' },
+  26: { type: 'wire' },
+  27: { type: 'output', id: 'Y' },
   // 第 3 行
-  47: { type: 'wire' },
-  48: { type: 'charger', dir: 1 },
-  49: { type: 'not', dir: 1 },
-  50: { type: 'charger', dir: 0 },
+  32: { type: 'wire' },
+  33: { type: 'charger', dir: 1 },
+  34: { type: 'not', dir: 1 },
+  35: { type: 'charger', dir: 0 },
   // 第 4 行：C 的支路
-  60: { type: 'input', id: 'C' },
-  61: { type: 'charger', dir: 1 },
-  62: { type: 'not', dir: 1 },
-  63: { type: 'wire' },
-  64: { type: 'charger', dir: 1 },
-  65: { type: 'wire' },
+  40: { type: 'input', id: 'C' },
+  41: { type: 'charger', dir: 1 },
+  42: { type: 'not', dir: 1 },
+  43: { type: 'wire' },
+  44: { type: 'charger', dir: 1 },
+  45: { type: 'wire' },
 })
 
 /** 导出时的一刻：A、B、C 都是 0，Y 也是 0 */
 const solutionState = stateFrom(
-  cols * rows,
   { tick: 66, inputs: { A: 0, B: 0, C: 0 }, outputs: { Y: 0 } },
   {
     2: 1, 3: 3, 4: 1,
-    17: 3, 18: 1, 20: 1,
-    32: 1, 35: 1,
-    47: 3, 48: 1, 50: 1,
-    62: 1, 63: 3, 64: 1, 65: 3,
+    12: 3, 13: 1, 15: 1,
+    22: 1, 25: 1,
+    32: 3, 33: 1, 35: 1,
+    42: 1, 43: 3, 44: 1, 45: 3,
   },
 )
 

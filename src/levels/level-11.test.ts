@@ -68,6 +68,6 @@ describe('第十一关 脉冲延长器', () => {
   it('只延迟不延长通不过', () => {
     const run = runLevel({ ...level11, cells: wrong })
     expect(run.passed).toBe(false)
-    expect(run.outcomes[0].failures.some((f) => f.tick === 7)).toBe(true)
+    expect(run.outcomes[0].failures.some((f) => f.tick === 17)).toBe(true)
   })
 })

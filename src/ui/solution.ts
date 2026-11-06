@@ -4,7 +4,7 @@ const cloneState = (state: CircuitState): CircuitState => ({
   ...state,
   inputs: { ...state.inputs },
   outputs: { ...state.outputs },
-  powers: state.powers.slice(),
+  powers: { ...state.powers },
 })
 
 /**

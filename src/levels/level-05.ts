@@ -1,8 +1,8 @@
 import type { Cell, Level } from '../game/types'
 import { cellsFrom, stateFrom } from './solution-helpers'
 
-const cols = 15
-const rows = 20
+const cols = 10
+const rows = 10
 // 输入 A、B 和输出 C 由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
@@ -15,22 +15,22 @@ const solution = cellsFrom(cols * rows, {
   4: { type: 'wire' },
   5: { type: 'charger', dir: 1 },
   6: { type: 'not', dir: 1 },
+  12: { type: 'wire' },
+  13: { type: 'charger', dir: 1 },
+  14: { type: 'not', dir: 1 },
+  16: { type: 'wire' },
   17: { type: 'wire' },
-  18: { type: 'charger', dir: 1 },
-  19: { type: 'not', dir: 1 },
-  21: { type: 'wire' },
-  22: { type: 'wire' },
-  23: { type: 'output', id: 'C' },
-  30: { type: 'input', id: 'B' },
-  31: { type: 'charger', dir: 1 },
-  32: { type: 'not', dir: 1 },
-  33: { type: 'wire' },
-  34: { type: 'wire' },
-  35: { type: 'charger', dir: 1 },
-  36: { type: 'not', dir: 1 },
+  18: { type: 'output', id: 'C' },
+  20: { type: 'input', id: 'B' },
+  21: { type: 'charger', dir: 1 },
+  22: { type: 'not', dir: 1 },
+  23: { type: 'wire' },
+  24: { type: 'wire' },
+  25: { type: 'charger', dir: 1 },
+  26: { type: 'not', dir: 1 },
 })
 
-const solutionState = stateFrom(cols * rows, {
+const solutionState = stateFrom({
   tick: 16,
   inputs: { A: 0, B: 0 },
   outputs: { C: 0 },
@@ -39,12 +39,12 @@ const solutionState = stateFrom(cols * rows, {
   3: 3,
   4: 3,
   5: 1,
-  17: 3,
-  18: 1,
-  32: 1,
-  33: 3,
-  34: 3,
-  35: 1,
+  12: 3,
+  13: 1,
+  22: 1,
+  23: 3,
+  24: 3,
+  25: 1,
 })
 
 /** 第五关：异或门，C = A XOR B */

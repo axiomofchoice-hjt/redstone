@@ -1,4 +1,5 @@
-import type { Cell, CircuitState, Level } from '../game/types'
+import type { Cell, Level } from '../game/types'
+import { stateFrom } from './solution-helpers'
 
 const cols = 10
 const rows = 10
@@ -56,23 +57,20 @@ const solution = build([
 ])
 
 /** 取「上升沿出脉冲」第 17 tick（Y=1）的状态，盖上去就能直接看到脉冲 */
-const solutionState: CircuitState = {
-  tick: 17,
-  inputs: { A: 1 },
-  outputs: { Y: 1 },
-  powers: [
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    3, 3, 1, 0, 3, 1, 0, 0, 0, 0,
-    3, 3, 1, 1, 3, 0, 0, 0, 0, 0,
-    3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 1, 3, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 3, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-  ],
-}
+const solutionState = stateFrom(
+  { tick: 17, inputs: { A: 1 }, outputs: { Y: 1 } },
+  {
+    0: 1,
+    10: 3, 11: 3, 12: 1, 14: 3, 15: 1,
+    20: 3, 21: 3, 22: 1, 23: 1, 24: 3,
+    30: 3,
+    40: 1,
+    53: 1, 54: 3, 55: 1,
+    64: 3,
+    87: 1,
+    97: 1,
+  },
+)
 
 /**
  * 第十四关：双边沿感应器。A 不管是变高还是变低，之后第 5 tick 出 1 tick 脉冲，其余时候 Y = 0。

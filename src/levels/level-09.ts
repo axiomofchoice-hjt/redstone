@@ -1,9 +1,30 @@
 import type { Cell, Level, PairCheck } from '../game/types'
+import { cellsFrom, stateFrom } from './solution-helpers'
 
 const cols = 10
 const rows = 10
 // 一个输出 Y 由玩家自己放，没有输入
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
+
+/**
+ * 参考解：中继器读左边的导线、往右把非门翻一下，非门再往右送 Y，
+ * 同时从下面把结果灌回左边那条导线，绕一圈正好 2 tick，所以导线 2 tick 高、2 tick 低。
+ */
+const solution = cellsFrom(cols * rows, {
+  // 第 0 行：左边导线 → 中继器 → 非门 → 右边导线接 Y
+  0: { type: 'wire' },
+  1: { type: 'repeater', dir: 1 },
+  2: { type: 'not', dir: 1 },
+  3: { type: 'wire' },
+  4: { type: 'output', id: 'Y' },
+  // 第 1 行：导线把非门的输出接回左边那条导线
+  10: { type: 'wire' },
+  11: { type: 'wire' },
+  12: { type: 'wire' },
+})
+
+/** 导出时的一刻：时钟正在低电平，全灭（tick 39） */
+const solutionState = stateFrom({ tick: 39, inputs: {}, outputs: { Y: 0 } })
 
 /**
  * 时钟：同一条输出隔 2 tick 必须相反，隔 4 tick 必须相同。
@@ -45,5 +66,6 @@ export const level09: Level = {
   rows,
   outputs: ['Y'],
   cells,
+  solution: { cells: solution, state: solutionState },
   tests: [{ name: '2 tick 高、2 tick 低，循环', pairs }],
 }
