@@ -1,6 +1,6 @@
 import type { CellType, Dir, Level } from '../game/types'
 import { portsFor } from './ports'
-import { toolEnabled } from './tools'
+import { toolEnabled, TOOLS } from './tools'
 import { ToolIcon } from './ToolIcon'
 
 export type Tool = { type: CellType; id?: string } | 'erase' | 'interact'
@@ -10,14 +10,6 @@ const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
   { dir: 3, label: 'A', area: 'left' },
   { dir: 2, label: 'S', area: 'down' },
   { dir: 1, label: 'D', area: 'right' },
-]
-
-const TOOLS: { type: CellType; label: string }[] = [
-  { type: 'wire', label: '导线' },
-  { type: 'cross', label: '交叉' },
-  { type: 'charger', label: '充能' },
-  { type: 'repeater', label: '中继' },
-  { type: 'not', label: '非门' },
 ]
 
 interface Props {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Cell, Level } from '../game/types'
 import { portsFor } from './ports'
-import { toolEnabled } from './tools'
+import { defaultTool, toolEnabled } from './tools'
 
 function makeLevel(cells: (Cell | null)[]): Level {
   return { id: 't', name: 't', cols: cells.length, rows: 1, cells, inputs: ['A', 'B'], outputs: ['C'], tests: [] }
@@ -28,6 +28,11 @@ describe('元件栏的输入输出按钮', () => {
 describe('这关能用的元件', () => {
   it('关卡没写 tools 时全都可用', () => {
     expect(toolEnabled(makeLevel([null]), 'not')).toBe(true)
+  })
+
+  it('换关默认选这关能用的第一个元件', () => {
+    expect(defaultTool(makeLevel([null]))).toBe('wire')
+    expect(defaultTool({ ...makeLevel([null]), tools: ['not', 'charger'] })).toBe('charger')
   })
 
   it('写了 tools 就只放开列出的元件', () => {

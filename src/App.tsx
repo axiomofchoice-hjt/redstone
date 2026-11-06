@@ -16,6 +16,7 @@ import { level12 } from './levels/level-12'
 import { level13 } from './levels/level-13'
 import { level14 } from './levels/level-14'
 import { level15 } from './levels/level-15'
+import { defaultTool } from './ui/tools'
 import { Board } from './ui/Board'
 import { cellsFileName, cellsJson, download } from './ui/export'
 import { Palette, type Tool } from './ui/Palette'
@@ -126,6 +127,9 @@ export default function App() {
   const startLevel = (next: Level) => {
     const level = { ...next, cells: next.cells.slice() }
     setEditing({ level, sim: new Simulation(level) })
+    // 换关后元件选择也回到这关的默认元件，别把上一关照到哪都带着
+    setTool({ type: defaultTool(level) })
+    setDir(INITIAL_DIR)
     setInputs({})
     setRun(null)
     setPaused(false)
