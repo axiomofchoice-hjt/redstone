@@ -6,7 +6,7 @@ export const OFF = '#ffffff'
 
 const DIRS: [number, number][] = DX.map((dx, d) => [dx, DY[d]])
 
-export const lineWidth = (cell: number) => Math.max(1.5, cell * 0.085)
+export const lineWidth = (cell: number) => Math.max(1.5, cell * 0.06)
 
 export interface Glyph {
   type: CellType
@@ -121,7 +121,7 @@ export function drawComponent(
         ctx.fill()
       }
       ctx.strokeStyle = color
-      ctx.lineWidth = Math.max(1.5, cell * 0.075)
+      ctx.lineWidth = Math.max(1.5, cell * 0.055)
       ctx.beginPath()
       ctx.arc(cx, cy, r, 0, Math.PI * 2)
       ctx.stroke()
@@ -144,7 +144,7 @@ export function drawComponent(
     case 'output': {
       // 空心方块 + 字母，和输入的实心方块区分
       ctx.strokeStyle = override ?? color
-      ctx.lineWidth = cell * 0.075
+      ctx.lineWidth = cell * 0.055
       roundRect(ctx, cx - cell * 0.26, cy - cell * 0.26, cell * 0.52, cell * 0.52, cell * 0.12)
       ctx.stroke()
       drawLabel(ctx, component.id ?? '', cx, cy, cell, override ?? color)
