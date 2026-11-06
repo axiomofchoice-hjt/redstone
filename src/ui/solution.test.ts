@@ -10,7 +10,8 @@ const withSolutions = LEVELS.filter((level) => level.solution)
 
 describe('菜单里的参考答案', () => {
   it('没有参考解的关卡给 null（按钮灰掉）', () => {
-    expect(solutionCells(level16)).toBeNull()
+    // 现在每关都有参考解了，这里用一个去掉 solution 的副本来试
+    expect(solutionCells({ ...level16, solution: undefined })).toBeNull()
   })
 
   it('有参考解的关卡，格数和地图一样', () => {
