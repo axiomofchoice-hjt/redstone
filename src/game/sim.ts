@@ -614,21 +614,34 @@ export class Simulation {
   }
 }
 
+/**
+ * 复制一份关卡：格子对象也逐个复制，测试跑在副本上，不会动到玩家的地图。
+ */
+export function cloneLevel(level: Level): Level {
+  return {
+    ...level,
+    cells: level.cells.map((cell) => (cell ? { ...cell } : null)),
+  }
+}
+
 export function runTest(level: Level, test: TestCase): { outcome: TestOutcome; sim: Simulation } {
-  const sim = new Simulation(level)
+  // 每组测试都从地图副本、全新仿真状态开始，组与组之间互不影响
+  const sim = new Simulation(cloneLevel(level))
   const events = test.events ?? []
   const checks = test.checks
 
   let maxTick = 0
   for (const e of events) maxTick = Math.max(maxTick, e.tick)
-  for (const c of checks) maxTick = Math.max(maxTick, c.tick)
+  for (const c of checks) maxTick = Math.max(maxTick, c.to ?? c.from)
 
   const failures: Failure[] = []
   for (let t = 0; t <= maxTick; t++) {
+    // 输入设置后一直保持，检查区间里信号是持续的
     for (const e of events) if (e.tick === t) sim.setInputs(e.values)
     sim.step()
     for (const c of checks) {
-      if (c.tick !== t) continue
+      const to = c.to ?? c.from
+      if (t < c.from || t > to) continue
       for (const id of Object.keys(c.outputs)) {
         const expected = !!c.outputs[id]
         const actual = sim.output(id)
@@ -653,7 +666,7 @@ export function runLevel(level: Level): LevelRun {
     outcomes.push(result.outcome)
     last = result.sim
   }
-  const sim = last ?? new Simulation(level)
+  const sim = last ?? new Simulation(cloneLevel(level))
   return {
     passed: outcomes.every((o) => o.passed),
     outcomes,

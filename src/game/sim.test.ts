@@ -14,7 +14,7 @@ function makeLevel(
 }
 
 const onAt = (tick: number, values: Record<string, 0 | 1>): TestCase['events'] => [{ tick, values }]
-const checkAt = (tick: number, outputs: Record<string, 0 | 1>): TestCase['checks'] => [{ tick, outputs }]
+const checkAt = (tick: number, outputs: Record<string, 0 | 1>): TestCase['checks'] => [{ from: tick, outputs }]
 
 describe('导线', () => {
   const level = makeLevel(
@@ -53,8 +53,8 @@ describe('非门', () => {
         name: '反相，延迟 1 tick',
         events: onAt(0, { A: 1 }),
         checks: [
-          { tick: 0, outputs: { L: 1 } },
-          { tick: 1, outputs: { L: 0 } },
+          { from: 0, outputs: { L: 1 } },
+          { from: 1, outputs: { L: 0 } },
         ],
       },
     ],
@@ -91,10 +91,10 @@ describe('中继器', () => {
         name: '比充能器晚 1 tick',
         events: [{ tick: 0, values: { A: 1 } }, { tick: 3, values: { A: 0 } }],
         checks: [
-          { tick: 0, outputs: { L: 0 } },
-          { tick: 1, outputs: { L: 1 } },
-          { tick: 3, outputs: { L: 1 } },
-          { tick: 4, outputs: { L: 0 } },
+          { from: 0, outputs: { L: 0 } },
+          { from: 1, outputs: { L: 1 } },
+          { from: 3, outputs: { L: 1 } },
+          { from: 4, outputs: { L: 0 } },
         ],
       },
     ],
@@ -134,9 +134,9 @@ describe('中继器', () => {
           name: '中继器后接非门',
           events: onAt(0, { A: 1 }),
           checks: [
-            { tick: 0, outputs: { L: 1 } },
-            { tick: 1, outputs: { L: 1 } },
-            { tick: 2, outputs: { L: 0 } },
+            { from: 0, outputs: { L: 1 } },
+            { from: 1, outputs: { L: 1 } },
+            { from: 2, outputs: { L: 0 } },
           ],
         },
       ],
@@ -233,6 +233,67 @@ it('新放的非门若当下被充能，直接就是关，不先亮一个 tick',
   next[1 * cols + 3] = { type: 'not' }
   const second = new Simulation({ ...base, cells: next }, first)
   expect(second.snapshot().powers[1 * cols + 3]).toBe(0)
+})
+
+describe('测试用例', () => {
+  const level = makeLevel(
+    3,
+    1,
+    [
+      [0, 0, { type: 'input', id: 'A' }],
+      [1, 0, { type: 'wire' }],
+      [2, 0, { type: 'output', id: 'L' }],
+    ],
+    [],
+  )
+
+  it('只检查设定区间，区间外不关心', () => {
+    const result = runLevel({
+      ...level,
+      tests: [
+        {
+          // 前 3 tick 输出还是 0，但从第 3 tick 起才检查，所以能过
+          events: onAt(2, { A: 1 }),
+          checks: [{ from: 3, to: 6, outputs: { L: 1 } }],
+        },
+      ],
+    })
+    expect(result.passed).toBe(true)
+  })
+
+  it('区间内任一 tick 不符就失败', () => {
+    const result = runLevel({
+      ...level,
+      tests: [{ events: onAt(0, { A: 1 }), checks: [{ from: 2, to: 6, outputs: { L: 0 } }] }],
+    })
+    expect(result.passed).toBe(false)
+    expect(result.outcomes[0].failures.map((f) => f.tick)).toEqual([2, 3, 4, 5, 6])
+  })
+
+  it('不写 to 时只查一个 tick', () => {
+    const result = runLevel({
+      ...level,
+      tests: [{ events: onAt(0, { A: 1 }), checks: [{ from: 5, outputs: { L: 1 } }] }],
+    })
+    expect(result.passed).toBe(true)
+  })
+
+  it('每组都从地图副本开始，不改玩家的地图', () => {
+    const before = level.cells.map((cell) => (cell ? { ...cell } : null))
+    const firstCell = level.cells[0]
+    const result = runLevel({
+      ...level,
+      tests: [
+        { name: '拉高 A', events: onAt(0, { A: 1 }), checks: [{ from: 1, outputs: { L: 1 } }] },
+        // 第二组重新开始，A 回到 0；上一组的输入没有带过来
+        { name: '独立', events: [], checks: [{ from: 0, outputs: { L: 0 } }] },
+      ],
+    })
+    expect(result.passed).toBe(true)
+    // 玩家的地图一格都没变
+    expect(level.cells).toEqual(before)
+    expect(level.cells[0]).toBe(firstCell)
+  })
 })
 
 describe('增量更新', () => {

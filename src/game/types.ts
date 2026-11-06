@@ -17,8 +17,15 @@ export interface InputEvent {
   values: Record<string, 0 | 1>
 }
 
+/**
+ * 输出检查：只要 [from, to] 区间里每个 tick 都符合期望即可，区间外不关心。
+ * 不写 to 就只查 from 这一个 tick。
+ *
+ * 输入事件设置后会一直保持，所以检查区间里信号是持续的。
+ */
 export interface OutputCheck {
-  tick: number
+  from: number
+  to?: number
   outputs: Record<string, 0 | 1>
 }
 
