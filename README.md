@@ -59,7 +59,8 @@ src/
     ToolIcon.tsx  元件栏按钮上的小图标
     glyph.ts      各个元件的绘制函数（画布和按钮共用）
   levels/
-    level-01.ts   关卡数据
+    level-01.ts   第一关：导线
+    level-02.ts   第二关：或门
   App.tsx         关卡状态、工具选择、tick 循环
 ```
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useReducer, useState } from 'react'
 import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
 import type { Dir, Level } from './game/types'
 import { level01 } from './levels/level-01'
+import { level02 } from './levels/level-02'
 import { Board } from './ui/Board'
 import { Palette, type Tool } from './ui/Palette'
 import './App.css'
@@ -11,8 +12,8 @@ const INITIAL_DIR: Dir = 1
 /** 编辑器里仿真每 tick 的间隔：4 tick/s */
 const TICK_MS = 250
 
-/** 目前只有这一关 */
-const LEVELS: Level[] = [level01]
+/** 目前这两关 */
+const LEVELS: Level[] = [level01, level02]
 
 type Screen = 'start' | 'levels' | 'game'
 
