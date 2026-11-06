@@ -21,16 +21,17 @@
   min-width: 0;
 }
 
-.back {
+.menu {
   flex: 0 0 auto;
+  display: grid;
+  place-items: center;
   border: 1px solid #232a3b;
   border-radius: 9px;
   background: #1a1f2e;
   color: #cbd3e4;
-  font-family: inherit;
-  font-size: 12px;
+  width: 30px;
   height: 26px;
-  padding: 0 10px;
+  padding: 0;
 }
 
 .top h1 {

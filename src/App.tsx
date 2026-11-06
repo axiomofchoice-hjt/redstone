@@ -95,9 +95,26 @@ export default function App() {
     <div className="app">
       <header className="top">
         <div className="head">
-          {/* 占位：返回暂时没用 */}
-          <button type="button" className="back">
-            返回
+          {/* 占位：菜单暂时没用 */}
+          <button type="button" className="menu" aria-label="菜单" title="菜单">
+            {/* 三行，每行左边一个点、右边一条横线 */}
+            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+              <g fill="currentColor">
+                <circle cx="3" cy="3.5" r="1.4" />
+                <circle cx="3" cy="8" r="1.4" />
+                <circle cx="3" cy="12.5" r="1.4" />
+              </g>
+              <g
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                fill="none"
+              >
+                <line x1="7" y1="3.5" x2="13" y2="3.5" />
+                <line x1="7" y1="8" x2="13" y2="8" />
+                <line x1="7" y1="12.5" x2="13" y2="12.5" />
+              </g>
+            </svg>
           </button>
           <div>
             <h1>
