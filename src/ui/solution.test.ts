@@ -26,9 +26,15 @@ describe('菜单里的参考答案', () => {
     map.cells[first] = null
     expect(level14.solution!.cells[first]).not.toBeNull()
 
+    const before = level14.solution!.state.inputs.A
     expect(map.state.inputs).not.toBe(level14.solution!.state.inputs)
-    map.state.inputs.A = 0
-    expect(level14.solution!.state.inputs.A).toBe(1)
+    map.state.inputs.A = before === 1 ? 0 : 1
+    expect(level14.solution!.state.inputs.A).toBe(before)
+
+    const powerKey = Number(Object.keys(map.state.powers)[0])
+    expect(map.state.powers).not.toBe(level14.solution!.state.powers)
+    map.state.powers[powerKey] = 9
+    expect(level14.solution!.state.powers[powerKey]).not.toBe(9)
   })
 
   it('恢复参考解保存时的电路状态', () => {

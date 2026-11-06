@@ -1,61 +1,39 @@
 import type { Cell, Level } from '../game/types'
-import { stateFrom } from './solution-helpers'
+import { cellsFrom, stateFrom } from './solution-helpers'
 
 const cols = 10
 const rows = 10
 // 输入 S / R、输出 Y 都由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
-const build = (entries: [number, number, Cell][]) => {
-  const out: (Cell | null)[] = new Array(cols * rows).fill(null)
-  for (const [x, y, cell] of entries) out[y * cols + x] = cell
-  return out
-}
+/**
+ * 参考解：两个非门交叉反馈的 NOR 锁存器。
+ * Y = ¬R ∧ (S ∨ Y)：S 拉一下置 1、R 拉一下清 0，都不拉时保持。
+ */
+const solution = cellsFrom(cols * rows, {
+  // 第 0 行：S 进来，充能器读它、非门往左下反馈
+  0: { type: 'input', id: 'S' },
+  1: { type: 'wire' },
+  2: { type: 'charger', dir: 1 },
+  3: { type: 'not', dir: 3 },
+  // 第 1 行：R 并进这条导线，另一个非门把结果送回 Y 和 S 那条线
+  11: { type: 'not', dir: 3 },
+  12: { type: 'charger', dir: 3 },
+  13: { type: 'wire' },
+  14: { type: 'input', id: 'R' },
+  // 第 2 行
+  21: { type: 'output', id: 'Y' },
+})
 
-const wires = (pts: [number, number][]): [number, number, Cell][] =>
-  pts.map(([x, y]) => [x, y, { type: 'wire' }])
-
-/** 参考解：两个 NOR 交叉反馈，Q = ¬(R ∨ Q̄)、Q̄ = ¬(S ∨ Q) */
-const solution = build([
-  [9, 1, { type: 'input', id: 'R' }],
-  [9, 3, { type: 'input', id: 'S' }],
-  ...wires([
-    [4, 1],
-    [5, 1],
-    [6, 1],
-    [7, 1],
-    [8, 1],
-    [2, 2],
-    [2, 4],
-    [2, 5],
-    [3, 5],
-    [4, 5],
-    [5, 5],
-    [6, 5],
-    [7, 5],
-    [7, 4],
-    [7, 3],
-    [8, 3],
-    [4, 3],
-  ]),
-  [3, 1, { type: 'charger', dir: 3 }],
-  [2, 1, { type: 'not', dir: 1 }],
-  [1, 2, { type: 'output', id: 'Y' }],
-  [2, 3, { type: 'charger', dir: 2 }],
-  [6, 3, { type: 'charger', dir: 3 }],
-  [5, 3, { type: 'not', dir: 1 }],
-  [4, 2, { type: 'charger', dir: 0 }],
-])
-
-/** 取「S 置位后保持 1」第 30 tick（Y=1）的状态，盖上去就能直接看到锁存结果 */
+/** 导出时的一刻：S=1、R=0，Y=1（tick 46） */
 const solutionState = stateFrom(
-  { tick: 30, inputs: { R: 0, S: 0 }, outputs: { Y: 1 } },
+  { tick: 46, inputs: { S: 1, R: 0 }, outputs: { Y: 1 } },
   {
-    12: 1,
-    21: 1, 22: 3,
-    32: 1, 36: 1, 37: 3, 38: 3,
-    42: 3, 47: 3,
-    52: 3, 53: 3, 54: 3, 55: 3, 56: 3, 57: 3,
+    0: 1,
+    1: 3,
+    2: 1,
+    11: 1,
+    21: 1,
   },
 )
 
@@ -79,58 +57,67 @@ export const level15: Level = {
   tests: [
     {
       name: 'R 复位后保持 0',
+      // 每次输入变化后都等 10 tick 再查，慢一点的锁存器也不会被误判
       events: [
         reset({ S: 0, R: 1 }),
-        { tick: 8, values: { R: 0 } },
+        { tick: 20, values: { R: 0 } },
       ],
       checks: [
-        { from: 10, to: 18, outputs: { Y: 0 } },
-        { from: 24, to: 34, outputs: { Y: 0 } },
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 30, to: 50, outputs: { Y: 0 } },
       ],
     },
     {
       name: 'S 置位后保持 1',
       events: [
         reset({ S: 0, R: 1 }),
-        { tick: 8, values: { R: 0 } },
-        { tick: 16, values: { S: 1 } },
-        { tick: 24, values: { S: 0 } },
+        { tick: 20, values: { R: 0 } },
+        { tick: 40, values: { S: 1 } },
+        { tick: 60, values: { S: 0 } },
       ],
       checks: [
-        { from: 10, to: 16, outputs: { Y: 0 } },
-        { from: 30, to: 42, outputs: { Y: 1 } },
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 30, to: 39, outputs: { Y: 0 } },
+        { from: 50, to: 59, outputs: { Y: 1 } },
+        { from: 70, to: 90, outputs: { Y: 1 } },
       ],
     },
     {
       name: 'R 再清 0 后保持',
       events: [
         reset({ S: 1, R: 0 }),
-        { tick: 8, values: { S: 0 } },
-        { tick: 16, values: { R: 1 } },
-        { tick: 24, values: { R: 0 } },
+        { tick: 20, values: { S: 0 } },
+        { tick: 40, values: { R: 1 } },
+        { tick: 60, values: { R: 0 } },
       ],
       checks: [
-        { from: 10, to: 16, outputs: { Y: 1 } },
-        { from: 30, to: 42, outputs: { Y: 0 } },
+        { from: 10, to: 19, outputs: { Y: 1 } },
+        { from: 30, to: 39, outputs: { Y: 1 } },
+        { from: 50, to: 59, outputs: { Y: 0 } },
+        { from: 70, to: 90, outputs: { Y: 0 } },
       ],
     },
     {
       name: '来回翻，各认一次',
       events: [
         reset({ S: 0, R: 1 }),
-        { tick: 6, values: { R: 0 } },
-        { tick: 10, values: { S: 1 } },
-        { tick: 14, values: { S: 0 } },
-        { tick: 20, values: { R: 1 } },
-        { tick: 24, values: { R: 0 } },
-        { tick: 30, values: { S: 1 } },
-        { tick: 34, values: { S: 0 } },
+        { tick: 20, values: { R: 0 } },
+        { tick: 40, values: { S: 1 } },
+        { tick: 60, values: { S: 0 } },
+        { tick: 80, values: { R: 1 } },
+        { tick: 100, values: { R: 0 } },
+        { tick: 120, values: { S: 1 } },
+        { tick: 140, values: { S: 0 } },
       ],
       checks: [
-        { from: 8, to: 10, outputs: { Y: 0 } },
-        { from: 18, to: 20, outputs: { Y: 1 } },
-        { from: 28, to: 30, outputs: { Y: 0 } },
-        { from: 38, to: 46, outputs: { Y: 1 } },
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 30, to: 39, outputs: { Y: 0 } },
+        { from: 50, to: 59, outputs: { Y: 1 } },
+        { from: 70, to: 79, outputs: { Y: 1 } },
+        { from: 90, to: 99, outputs: { Y: 0 } },
+        { from: 110, to: 119, outputs: { Y: 0 } },
+        { from: 130, to: 139, outputs: { Y: 1 } },
+        { from: 150, to: 160, outputs: { Y: 1 } },
       ],
     },
   ],
