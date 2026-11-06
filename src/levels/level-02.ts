@@ -1,4 +1,5 @@
 import type { Cell, Level } from '../game/types'
+import { cellsFrom, stateFrom } from './solution-helpers'
 
 const cols = 7
 const rows = 7
@@ -9,6 +10,25 @@ const at = (x: number, y: number) => y * cols + x
 cells[at(1, 2)] = { type: 'input', id: 'A', locked: true }
 cells[at(1, 4)] = { type: 'input', id: 'B', locked: true }
 cells[at(5, 3)] = { type: 'output', id: 'C', locked: true }
+
+// 参考解：A、B 两路并到 C
+const solution = cellsFrom(cols * rows, {
+  15: { type: 'input', id: 'A', locked: true },
+  16: { type: 'wire' },
+  17: { type: 'wire' },
+  24: { type: 'wire' },
+  25: { type: 'wire' },
+  26: { type: 'output', id: 'C', locked: true },
+  29: { type: 'input', id: 'B', locked: true },
+  30: { type: 'wire' },
+  31: { type: 'wire' },
+})
+
+const solutionState = stateFrom(cols * rows, {
+  tick: 11,
+  inputs: { A: 0, B: 0 },
+  outputs: { C: 0 },
+})
 
 /** 第二关：或门，C = A OR B，只能用导线 */
 export const level02: Level = {
@@ -21,6 +41,7 @@ export const level02: Level = {
   outputs: ['C'],
   tools: ['wire'],
   cells,
+  solution: { cells: solution, state: solutionState },
   tests: [
     { name: 'A=0 B=0 → C=0', checks: [{ from: 0, to: 20, outputs: { C: 0 } }] },
     {
