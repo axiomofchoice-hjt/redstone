@@ -630,9 +630,14 @@ export function cloneLevel(level: Level): Level {
   }
 }
 
+/** 测试前先空转的拍数：非门建好时是「开」的，电路要几拍才稳定 */
+export const WARMUP_TICKS = 16
+
 export function runTest(level: Level, test: TestCase): { outcome: TestOutcome; sim: Simulation } {
   // 每组测试都从地图副本、全新仿真状态开始，组与组之间互不影响
   const sim = new Simulation(cloneLevel(level))
+  // 先空转再开始计拍，启动毛刺不会混进第 0 拍
+  for (let i = 0; i < WARMUP_TICKS; i++) sim.step()
   const events = test.events ?? []
   const checks = test.checks ?? []
   const pairs = test.pairs ?? []

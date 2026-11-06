@@ -16,6 +16,31 @@ function makeLevel(
 const onAt = (tick: number, values: Record<string, 0 | 1>): TestCase['events'] => [{ tick, values }]
 const checkAt = (tick: number, outputs: Record<string, 0 | 1>): OutputCheck[] => [{ from: tick, outputs }]
 
+describe('测试前预热', () => {
+  it('预热不影响之后按 tick 设输入', () => {
+    const lv = makeLevel(
+      3,
+      1,
+      [
+        [0, 0, { type: 'input', id: 'A' }],
+        [1, 0, { type: 'repeater', dir: 1 }],
+        [2, 0, { type: 'output', id: 'L' }],
+      ],
+      [
+        {
+          name: '1 tick',
+          events: onAt(2, { A: 1 }),
+          checks: [
+            { from: 0, to: 2, outputs: { L: 0 } },
+            { from: 3, outputs: { L: 1 } },
+          ],
+        },
+      ],
+    )
+    expect(runLevel(lv).passed).toBe(true)
+  })
+})
+
 describe('导线', () => {
   const level = makeLevel(
     3,
