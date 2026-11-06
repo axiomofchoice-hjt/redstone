@@ -1,5 +1,6 @@
 import type { CellType, Dir, Level } from '../game/types'
 import { portsFor } from './ports'
+import { toolEnabled } from './tools'
 import { ToolIcon } from './ToolIcon'
 
 export type Tool = { type: CellType; id?: string } | 'erase' | 'interact'
@@ -36,18 +37,23 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
   return (
     <div className="palette">
       <div className="tools">
-        {TOOLS.map((item) => (
-          <button
-            key={item.type}
-            type="button"
-            className={active(item.type) ? 'tool active' : 'tool'}
-            aria-label={item.label}
-            title={item.label}
-            onClick={() => onTool({ type: item.type })}
-          >
-            <ToolIcon type={item.type} dir={dir} active={active(item.type)} />
-          </button>
-        ))}
+        {TOOLS.map((item) => {
+          // 这关不让用的元件变暗、点不了
+          const disabled = !toolEnabled(level, item.type)
+          return (
+            <button
+              key={item.type}
+              type="button"
+              className={active(item.type) ? 'tool active' : 'tool'}
+              disabled={disabled}
+              aria-label={item.label}
+              title={item.label}
+              onClick={() => onTool({ type: item.type })}
+            >
+              <ToolIcon type={item.type} dir={dir} active={active(item.type)} />
+            </button>
+          )
+        })}
         {ports.map((item) => (
           <button
             key={item.id}

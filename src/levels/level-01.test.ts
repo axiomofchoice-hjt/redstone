@@ -14,6 +14,8 @@ describe('第一关', () => {
     expect(level01.rows).toBe(7)
     expect(level01.cells[3 * 7 + 1]).toEqual({ type: 'input', id: 'A', locked: true })
     expect(level01.cells[3 * 7 + 5]).toEqual({ type: 'output', id: 'B', locked: true })
+    // 这一关只放开导线
+    expect(level01.tools).toEqual(['wire'])
   })
 
   it('不接线时测试不通过', () => {

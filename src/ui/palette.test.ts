@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Cell, Level } from '../game/types'
 import { portsFor } from './ports'
+import { toolEnabled } from './tools'
 
 function makeLevel(cells: (Cell | null)[]): Level {
   return { id: 't', name: 't', cols: cells.length, rows: 1, cells, inputs: ['A', 'B'], outputs: ['C'], tests: [] }
@@ -21,5 +22,18 @@ describe('元件栏的输入输出按钮', () => {
   it('没锁的预置元件不隐藏按钮', () => {
     const ports = portsFor(makeLevel([{ type: 'input', id: 'A' }]))
     expect(ports.map((p) => p.id)).toEqual(['A', 'B', 'C'])
+  })
+})
+
+describe('这关能用的元件', () => {
+  it('关卡没写 tools 时全都可用', () => {
+    expect(toolEnabled(makeLevel([null]), 'not')).toBe(true)
+  })
+
+  it('写了 tools 就只放开列出的元件', () => {
+    const level = { ...makeLevel([null]), tools: ['wire' as const] }
+    expect(toolEnabled(level, 'wire')).toBe(true)
+    expect(toolEnabled(level, 'not')).toBe(false)
+    expect(toolEnabled(level, 'cross')).toBe(false)
   })
 })

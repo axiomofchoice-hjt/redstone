@@ -46,6 +46,8 @@ export interface Level {
   inputs?: string[]
   /** 输出元件的字母，按顺序排 */
   outputs?: string[]
+  /** 这关允许玩家放置的元件类型；不写表示全部可用 */
+  tools?: CellType[]
   cells: (Cell | null)[]
   tests: TestCase[]
 }

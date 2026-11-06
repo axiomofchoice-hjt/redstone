@@ -18,6 +18,8 @@ export const level01: Level = {
   rows,
   inputs: ['A'],
   outputs: ['B'],
+  // 这一关只让用导线
+  tools: ['wire'],
   cells,
   tests: [
     {

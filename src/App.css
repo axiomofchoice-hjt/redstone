@@ -247,6 +247,16 @@
   padding: 0;
 }
 
+/* 这关不让用的元件：变暗、点不了 */
+.tool:disabled {
+  opacity: 0.32;
+}
+
+.tool:disabled:active {
+  background: #1a1f2e;
+  border-color: #232a3b;
+}
+
 .tool.active,
 .dir.active,
 .swap.active,

@@ -76,6 +76,7 @@ export const level01: Level = {
   rows: 7,
   inputs: ['A'],        // 输入元件的字母
   outputs: ['B'],       // 输出元件的字母
+  tools: ['wire'],      // 这关让玩家用的元件，不写表示全部
   cells,                // (Cell | null)[]，按行优先；A、B 预置并 locked
   tests: [{
     // 第 0 tick 把 A 拉高，之后一直保持（信号不断）
@@ -87,6 +88,8 @@ export const level01: Level = {
 ```
 
 `cells` 里每个元件是 `{ type, dir?, id?, locked? }`，`dir` 为 `0..3`（上 / 右 / 下 / 左）。`locked: true` 的输入 / 输出是关卡预置的端口，玩家不能覆盖或删除，也不会出现在元件栏里。
+
+`tools` 限定这关可用哪些元件，没列出的在元件栏里变暗、点不了；不写这个字段就是全部可用（例如第一关只放开导线）。
 
 测试是若干组，每组单独跑：每组的仿真都从玩家地图的副本开始（格子对象也逐个复制），组与组之间、以及测试与玩家的编辑状态互不影响。`events` 在设定的 tick 设置输入，设置后一直保持到下一次设置；`checks` 的 `[from, to]` 区间内每个 tick 都要符合期望，`to` 省略时只查 `from` 这一个 tick。
 
