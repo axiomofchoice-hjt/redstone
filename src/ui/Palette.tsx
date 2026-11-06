@@ -1,4 +1,6 @@
+import { useMemo } from 'react'
 import type { CellType, Dir, Level } from '../game/types'
+import { usePaletteKeys } from './keyboard'
 import { portsFor } from './ports'
 import { toolEnabled, TOOLS } from './tools'
 import { ToolIcon } from './ToolIcon'
@@ -21,7 +23,8 @@ interface Props {
 }
 
 export function Palette({ level, tool, dir, onTool, onDir }: Props) {
-  const ports = portsFor(level)
+  const ports = useMemo(() => portsFor(level), [level])
+  usePaletteKeys(level, ports, onDir, onTool)
 
   const active = (type: CellType, id?: string) =>
     typeof tool === 'object' && tool.type === type && tool.id === id
@@ -29,7 +32,7 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
   return (
     <div className="palette">
       <div className="tools">
-        {TOOLS.map((item) => {
+        {TOOLS.map((item, index) => {
           // 这关不让用的元件变暗、点不了
           const disabled = !toolEnabled(level, item.type)
           return (
@@ -39,20 +42,20 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
               className={active(item.type) ? 'tool active' : 'tool'}
               disabled={disabled}
               aria-label={item.label}
-              title={item.label}
+              title={`${index + 1} · ${item.label}`}
               onClick={() => onTool({ type: item.type })}
             >
               <ToolIcon type={item.type} dir={dir} active={active(item.type)} />
             </button>
           )
         })}
-        {ports.map((item) => (
+        {ports.map((item, index) => (
           <button
             key={item.id}
             type="button"
             className={active(item.type, item.id) ? 'tool active' : 'tool'}
             aria-label={item.label}
-            title={item.label}
+            title={`${TOOLS.length + index + 1} · ${item.label}`}
             onClick={() => onTool({ type: item.type, id: item.id })}
           >
             <ToolIcon type={item.type} id={item.id} dir={dir} active={active(item.type, item.id)} />

@@ -20,9 +20,11 @@ const CHECKER = '#12151f'
 const EDGE = 12
 const MIN_CELL = 36
 const MAX_CELL = 64
-/** 双指缩放的范围（相对自适应大小） */
+/** 缩放范围（相对自适应大小） */
 const MIN_ZOOM = 1
 const MAX_ZOOM = 3
+/** 滚轮每像素的缩放速度 */
+const WHEEL_ZOOM = 0.0015
 
 interface Geom {
   cell: number
@@ -85,6 +87,11 @@ export function Board({ level, cells, powerAt, revision, onCell }: Props) {
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<Pinch | null>(null)
   const [cam, setCam] = useState({ x: 0, y: 0, zoom: 1 })
+  const camRef = useRef(cam)
+
+  useEffect(() => {
+    camRef.current = cam
+  }, [cam])
 
   // 绘制函数放进 ref，ResizeObserver 只建一次，不随相机变化反复重建
   const drawRef = useRef<() => void>(() => {})
@@ -127,6 +134,48 @@ export function Board({ level, cells, powerAt, revision, onCell }: Props) {
     const observer = new ResizeObserver(() => drawRef.current())
     observer.observe(wrap)
     return () => observer.disconnect()
+  }, [])
+
+  // 滚轮缩放：React 的 wheel 监听是 passive 的，preventDefault 不生效，所以直接挂原生事件
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const onWheel = (event: WheelEvent) => {
+      // Ctrl / Cmd + 滚轮留给浏览器缩放
+      if (event.ctrlKey || event.metaKey) return
+      const g = geom.current
+      if (g.cell <= 0) return
+
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? g.h : 1
+      const delta = event.deltaY * unit
+      if (delta === 0) return
+
+      event.preventDefault()
+      const current = camRef.current
+      const zoom = clampZoom(current.zoom * Math.exp(-delta * WHEEL_ZOOM))
+      if (zoom === current.zoom) return
+
+      const ratio = zoom / current.zoom
+      const rect = canvas.getBoundingClientRect()
+      const px = event.clientX - rect.left
+      const py = event.clientY - rect.top
+      // 鼠标下面的地图位置保持不动
+      const next = clampCamera(
+        px - (px - g.camX) * ratio,
+        py - (py - g.camY) * ratio,
+        g.w,
+        g.h,
+        g.mapW * ratio,
+        g.mapH * ratio,
+      )
+      const nextCam = { x: next.x, y: next.y, zoom }
+      camRef.current = nextCam
+      setCam(nextCam)
+    }
+
+    canvas.addEventListener('wheel', onWheel, { passive: false })
+    return () => canvas.removeEventListener('wheel', onWheel)
   }, [])
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
