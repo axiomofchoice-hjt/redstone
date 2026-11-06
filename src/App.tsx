@@ -28,6 +28,7 @@ export default function App() {
   const [run, setRun] = useState<LevelRun | null>(null)
   // 编辑器里手动开关的输入
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
+  const [menuOpen, setMenuOpen] = useState(false)
   // 仿真在后台推进，只在画面有变化时重绘
   const [version, repaint] = useReducer((n: number) => n + 1, 0)
   // 调试用：暂停自动 tick
@@ -95,27 +96,52 @@ export default function App() {
     <div className="app">
       <header className="top">
         <div className="head">
-          {/* 占位：菜单暂时没用 */}
-          <button type="button" className="menu" aria-label="菜单" title="菜单">
-            {/* 三行，每行左边一个点、右边一条横线 */}
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-              <g fill="currentColor">
-                <circle cx="3" cy="3.5" r="1.4" />
-                <circle cx="3" cy="8" r="1.4" />
-                <circle cx="3" cy="12.5" r="1.4" />
-              </g>
-              <g
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                fill="none"
-              >
-                <line x1="7" y1="3.5" x2="13" y2="3.5" />
-                <line x1="7" y1="8" x2="13" y2="8" />
-                <line x1="7" y1="12.5" x2="13" y2="12.5" />
-              </g>
-            </svg>
-          </button>
+          <div className="menu-wrap">
+            <button
+              type="button"
+              className="menu"
+              aria-label="菜单"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              title="菜单"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {/* 三行，每行左边一个点、右边一条横线 */}
+              <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+                <g fill="currentColor">
+                  <circle cx="3" cy="3.5" r="1.4" />
+                  <circle cx="3" cy="8" r="1.4" />
+                  <circle cx="3" cy="12.5" r="1.4" />
+                </g>
+                <g
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  fill="none"
+                >
+                  <line x1="7" y1="3.5" x2="13" y2="3.5" />
+                  <line x1="7" y1="8" x2="13" y2="8" />
+                  <line x1="7" y1="12.5" x2="13" y2="12.5" />
+                </g>
+              </svg>
+            </button>
+            {menuOpen && (
+              <>
+                {/* 点菜单外面关掉 */}
+                <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+                <div className="menu-panel" role="menu">
+                  <button
+                    type="button"
+                    className="menu-item"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    继续游戏
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
           <div>
             <h1>
               第 {level.no ?? 1} 关 · {level.name}
