@@ -69,6 +69,7 @@ src/
     level-07.ts   第七关：三人投票器
     level-08.ts   第八关：交叉
     level-09.ts   第九关：时钟
+    level-10.ts   第十关：上升沿感应器
   App.tsx         关卡状态、工具选择、tick 循环
 ```
 
