@@ -257,10 +257,10 @@ export default function App() {
               className="start-btn"
               onClick={() => {
                 setMenuOpen(false)
-                setScreen('start')
+                setScreen('levels')
               }}
             >
-              返回开始界面
+              返回选关界面
             </button>
           </div>
         </div>
