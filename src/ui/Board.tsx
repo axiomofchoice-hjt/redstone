@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
-import type { Cell, Level } from '../game/types'
+import type { Cell, Dir, Level } from '../game/types'
 import { cellIndexAt } from './board-hit'
 import { drawComponent, linkedDirs } from './glyph'
+import type { Tool } from './Palette'
 
 interface Props {
   level: Level
@@ -16,6 +17,10 @@ interface Props {
   onCell: (index: number) => void
   /** 右键直接删掉一格，不动元件栏当前选的东西 */
   onErase: (index: number) => void
+  /** 当前工具：鼠标悬停时画半透明的放置预览 / 删除提示 */
+  preview?: Tool | null
+  /** 有方向元件的预览朝向 */
+  previewDir?: Dir
 }
 
 const BG = '#0e1018'
@@ -24,7 +29,8 @@ const MAP_BG = '#101319'
 const CHECKER = '#12151f'
 const EDGE = 12
 const MIN_CELL = 36
-const MAX_CELL = 64
+/** 桌面端画布很大，格子允许放得更大，7×7 的图不会缩在中间一小块 */
+const MAX_CELL = 120
 /** 缩放范围（相对自适应大小）；20×20 这种大图要能缩到整张都在屏幕上 */
 const MIN_ZOOM = 0.5
 const MAX_ZOOM = 3
@@ -74,7 +80,17 @@ function clampCamera(x: number, y: number, w: number, h: number, mapW: number, m
   }
 }
 
-export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onErase }: Props) {
+export function Board({
+  level,
+  cells,
+  powerAt,
+  lockedAt,
+  revision,
+  onCell,
+  onErase,
+  preview = null,
+  previewDir,
+}: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const geom = useRef<Geom>({
@@ -95,6 +111,8 @@ export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onEra
   const touched = useRef(false)
   const [cam, setCam] = useState({ x: 0, y: 0, zoom: 1 })
   const camRef = useRef(cam)
+  /** 鼠标悬停的格子：画半透明预览 */
+  const [hover, setHover] = useState(-1)
 
   useEffect(() => {
     camRef.current = cam
@@ -128,12 +146,12 @@ export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onEra
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      render(ctx, w, h, level, cells, powerAt, lockedAt, cam, geom.current)
+      render(ctx, w, h, level, cells, powerAt, lockedAt, cam, geom.current, hover, preview, previewDir)
     }
 
     drawRef.current = draw
     draw()
-  }, [level, cells, powerAt, lockedAt, cam, revision])
+  }, [level, cells, powerAt, lockedAt, cam, revision, hover, preview, previewDir])
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -185,9 +203,28 @@ export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onEra
     return () => canvas.removeEventListener('wheel', onWheel)
   }, [])
 
+  /** 指针位置落在哪个格子上；不在图上返回 -1 */
+  const cellIndexAtPointer = (
+    event: { clientX: number; clientY: number },
+    element: HTMLElement,
+  ): number => {
+    const rect = element.getBoundingClientRect()
+    return cellIndexAt(
+      geom.current,
+      level.cols,
+      level.rows,
+      event.clientX - rect.left,
+      event.clientY - rect.top,
+    )
+  }
+
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     // 触屏长按会先来一次 pointerdown，再触发 contextmenu，记下来别当右键
     touched.current = event.pointerType === 'touch'
+    // 鼠标悬停的预览跟着指针走
+    if (event.pointerType === 'mouse') {
+      setHover(cellIndexAtPointer(event, event.currentTarget))
+    }
     // 右键留给删除，不参与拖动和放置
     if (event.button !== 0) return
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -219,6 +256,11 @@ export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onEra
   }
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    // 鼠标即使没按下也要更新悬停格，预览是跟着光标走的
+    if (event.pointerType === 'mouse') {
+      setHover(cellIndexAtPointer(event, event.currentTarget))
+    }
+
     const known = pointers.current.get(event.pointerId)
     if (!known) return
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
@@ -264,14 +306,7 @@ export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onEra
     const touch = touched.current
     drag.current = null
     if (touch) return
-    const rect = event.currentTarget.getBoundingClientRect()
-    const index = cellIndexAt(
-      geom.current,
-      level.cols,
-      level.rows,
-      event.clientX - rect.left,
-      event.clientY - rect.top,
-    )
+    const index = cellIndexAtPointer(event, event.currentTarget)
     if (index < 0) return
     onErase(index)
   }
@@ -285,14 +320,7 @@ export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onEra
     drag.current = null
     if (current.moved) return
 
-    const rect = event.currentTarget.getBoundingClientRect()
-    const index = cellIndexAt(
-      geom.current,
-      level.cols,
-      level.rows,
-      event.clientX - rect.left,
-      event.clientY - rect.top,
-    )
+    const index = cellIndexAtPointer(event, event.currentTarget)
     if (index < 0) return
     onCell(index)
   }
@@ -304,11 +332,13 @@ export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onEra
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerLeave={() => setHover(-1)}
         onContextMenu={handleContextMenu}
         onPointerCancel={(event) => {
           pointers.current.delete(event.pointerId)
           if (pointers.current.size < 2) pinch.current = null
           drag.current = null
+          setHover(-1)
         }}
       />
     </div>
@@ -325,14 +355,19 @@ function render(
   lockedAt: ((index: number) => boolean) | undefined,
   cam: { x: number; y: number; zoom: number },
   geom: Geom,
+  hover: number,
+  preview: Tool | null,
+  previewDir: Dir | undefined,
 ) {
   ctx.clearRect(0, 0, w, h)
   ctx.fillStyle = BG
   ctx.fillRect(0, 0, w, h)
 
   const fit = Math.min((w - 24) / level.cols, (h - 24) / level.rows)
-  // 格子大小和地图原点都取整，元件图标才能和网格线对齐
-  const cell = Math.max(MIN_CELL, Math.round(Math.min(MAX_CELL, Math.max(MIN_CELL, fit)) * cam.zoom))
+  // 格子大小取整，元件图标才能和网格线对齐；自适应大小先限制在可读范围，
+  // 手动缩小可以继续往下走，让大图整张躺进屏幕
+  const base = Math.round(Math.min(MAX_CELL, Math.max(MIN_CELL, fit)))
+  const cell = Math.max(12, Math.round(base * cam.zoom))
   const mapW = cell * level.cols
   const mapH = cell * level.rows
   const clamped = clampCamera(cam.x, cam.y, w, h, mapW, mapH)
@@ -403,6 +438,67 @@ function render(
         undefined,
         lockedAt?.(i) === true,
       )
+    }
+  }
+
+  // 鼠标悬停：锁住的格子画红虚线，删除模式画红色叉，其它工具画半透明预览
+  if (hover >= 0 && hover < cells.length) {
+    const hx = hover % level.cols
+    const hy = (hover - hx) / level.cols
+    const left = ox + hx * cell
+    const top = oy + hy * cell
+    if (left + cell > 0 && top + cell > 0 && left < w && top < h) {
+      const cellData = cells[hover]
+      const locked = cellData?.locked === true
+      const cx = left + cell / 2 + 0.5
+      const cy = top + cell / 2 + 0.5
+      ctx.save()
+
+      if (locked) {
+        ctx.strokeStyle = 'rgba(255, 104, 96, 0.9)'
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([4, 3])
+        ctx.strokeRect(left + 2.5, top + 2.5, cell - 5, cell - 5)
+      } else if (preview === 'erase') {
+        ctx.fillStyle = 'rgba(255, 78, 78, 0.1)'
+        ctx.fillRect(left, top, cell, cell)
+        const pad = cell * 0.34
+        ctx.strokeStyle = 'rgba(255, 96, 88, 0.75)'
+        ctx.lineWidth = Math.max(1.5, cell * 0.045)
+        ctx.lineCap = 'round'
+        ctx.beginPath()
+        ctx.moveTo(left + pad, top + pad)
+        ctx.lineTo(left + cell - pad, top + cell - pad)
+        ctx.moveTo(left + cell - pad, top + pad)
+        ctx.lineTo(left + pad, top + cell - pad)
+        ctx.stroke()
+      } else if (preview === 'interact') {
+        if (cellData?.type === 'input') {
+          ctx.strokeStyle = 'rgba(255, 107, 74, 0.95)'
+          ctx.lineWidth = 2
+          ctx.strokeRect(left + 2, top + 2, cell - 4, cell - 4)
+        }
+      } else if (preview) {
+        ctx.globalAlpha = cellData ? 0.32 : 0.5
+        drawComponent(
+          ctx,
+          { ...preview, dir: previewDir },
+          cx,
+          cy,
+          cell,
+          0,
+          preview.type === 'wire' ? linkedDirs(cells, level, hx, hy) : null,
+        )
+        ctx.globalAlpha = 1
+      }
+
+      if (!locked) {
+        ctx.strokeStyle = 'rgba(255, 107, 74, 0.55)'
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([])
+        ctx.strokeRect(left + 1.5, top + 1.5, cell - 3, cell - 3)
+      }
+      ctx.restore()
     }
   }
 }

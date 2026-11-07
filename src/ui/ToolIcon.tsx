@@ -8,13 +8,13 @@ interface Props {
   id?: string
   dir: Dir
   active: boolean
+  /** 图标边长；手机元件栏是 30，电脑端面板可以给大一点 */
+  size?: number
 }
 
 /** 按钮上的元件图标：把元件按缩小尺寸画一遍 */
-export function ToolIcon({ type, id, dir, active }: Props) {
+export function ToolIcon({ type, id, dir, active, size = 30 }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
-  // 按钮 32px 含 1px 边框，内容区 30px，图标正好铺满、四边都碰到边框
-  const size = 30
 
   useEffect(() => {
     const canvas = ref.current
@@ -38,7 +38,7 @@ export function ToolIcon({ type, id, dir, active }: Props) {
       type === 'wire' ? [] : null,
       dark ? '#160b07' : undefined,
     )
-  }, [type, id, dir, active])
+  }, [type, id, dir, active, size])
 
   return <canvas ref={ref} style={{ width: size, height: size, display: 'block' }} />
 }

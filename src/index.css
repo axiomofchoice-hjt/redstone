@@ -1,3 +1,20 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0d14;
+  --panel: #0d1017;
+  --panel-2: #151a27;
+  --line: #232a3b;
+  --line-soft: #1b2130;
+  --text: #e6e9f2;
+  --muted: #9aa3b8;
+  --accent: #ff6b4a;
+  --accent-ink: #1a0d08;
+  --ok: #6ee7a8;
+  --redstone: #ff2b2b;
+  --mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
 html,
 body,
 #root {
@@ -10,15 +27,26 @@ body,
 
 body {
   margin: 0;
-  background: #0b0d14;
-  color: #e6e9f2;
+  background: var(--bg);
+  color: var(--text);
   font-family:
     system-ui,
     -apple-system,
     'PingFang SC',
     'Noto Sans CJK SC',
+    'Microsoft YaHei',
     sans-serif;
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
+  text-rendering: optimizeLegibility;
   user-select: none;
+}
+
+button {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(255, 107, 74, 0.32);
 }

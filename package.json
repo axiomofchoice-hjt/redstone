@@ -2,7 +2,7 @@
   "name": "redstone",
   "private": true,
   "version": "0.1.0",
-  "description": "移动端优先的 2D 红石电路解谜游戏",
+  "description": "2D 红石电路解谜游戏，电脑端与手机端各有一套布局",
   "license": "MIT",
   "repository": {
     "type": "git",
