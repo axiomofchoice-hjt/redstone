@@ -154,6 +154,11 @@
   padding: 0 10px;
 }
 
+/* 没暂停时「下一刻」点不了：变暗 */
+.debug:disabled {
+  opacity: 0.32;
+}
+
 .debug.icon {
   display: grid;
   place-items: center;

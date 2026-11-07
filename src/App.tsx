@@ -305,8 +305,8 @@ export default function App() {
                   </svg>
                 )}
               </button>
-              <button type="button" className="debug" onClick={nextTick}>
-                下一 tick
+              <button type="button" className="debug" onClick={nextTick} disabled={!paused}>
+                下一刻
               </button>
               <button type="button" className="run" onClick={() => setRun(runLevel(level, sim))}>
                 运行测试
