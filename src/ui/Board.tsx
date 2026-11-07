@@ -9,6 +9,8 @@ interface Props {
   cells: (Cell | null)[]
   /** 只在这里取看得见的格子的通电状态，不传整张图 */
   powerAt: (index: number) => number
+  /** 中继器这一刻是不是被侧面锁着（输出保持） */
+  lockedAt?: (index: number) => boolean
   /** 每次画面该刷新时递增 */
   revision: number
   onCell: (index: number) => void
@@ -72,7 +74,7 @@ function clampCamera(x: number, y: number, w: number, h: number, mapW: number, m
   }
 }
 
-export function Board({ level, cells, powerAt, revision, onCell, onErase }: Props) {
+export function Board({ level, cells, powerAt, lockedAt, revision, onCell, onErase }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const geom = useRef<Geom>({
@@ -126,12 +128,12 @@ export function Board({ level, cells, powerAt, revision, onCell, onErase }: Prop
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      render(ctx, w, h, level, cells, powerAt, cam, geom.current)
+      render(ctx, w, h, level, cells, powerAt, lockedAt, cam, geom.current)
     }
 
     drawRef.current = draw
     draw()
-  }, [level, cells, powerAt, cam, revision])
+  }, [level, cells, powerAt, lockedAt, cam, revision])
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -320,6 +322,7 @@ function render(
   level: Level,
   cells: (Cell | null)[],
   powerAt: (index: number) => number,
+  lockedAt: ((index: number) => boolean) | undefined,
   cam: { x: number; y: number; zoom: number },
   geom: Geom,
 ) {
@@ -397,6 +400,8 @@ function render(
         cell,
         powerAt(i),
         component.type === 'wire' ? linkedDirs(cells, level, x, y) : null,
+        undefined,
+        lockedAt?.(i) === true,
       )
     }
   }

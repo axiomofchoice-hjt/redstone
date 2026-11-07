@@ -228,6 +228,8 @@ export class Simulation {
         nextNot[i] = value
         if (value !== this.notOn[i]) seeds.push(i)
       } else if (type === 'repeater') {
+        // 侧面被锁住时不采样，输出保持不变
+        if (this.isLocked(i)) continue
         // 中继器读取后方当下的信号，下一 tick 才输出
         const value = this.readBack(i)
         nextRepeater[i] = value
@@ -514,6 +516,36 @@ export class Simulation {
       const j = ny * cols + nx
       if (!isSource(cells[j])) continue
       if (dirOf(cells[j] as Cell) !== opposite(d)) continue
+      if (this.emitAt(j, opposite(d))) return true
+    }
+    return false
+  }
+
+  /**
+   * 中继器是否被旁边指向它的充能器 / 中继器从侧面锁住。
+   *
+   * 锁住期间中继器不采样后方，输出原地保持；侧面的驱动一撤，它才把后方信号
+   * 采样进来（还是延迟 1 tick）。前后方向是它自己读信号 / 输出的通路，不算侧面。
+   *
+   * 所以「中继器后面接 D、侧面接一个由 E 驱动的充能器」就是一个 D 锁存器：
+   * E=1 期间锁住保持，E=0 时 Y 跟着 D 走。
+   */
+  isLocked(i: number): boolean {
+    const c = this.level.cells[i]
+    if (!c || c.type !== 'repeater') return false
+    const front = dirOf(c)
+    const { cols } = this.level
+    const x = i % cols
+    const y = (i - x) / cols
+    for (let d = 0 as Dir; d < 4; d++) {
+      if (d % 2 === front % 2) continue
+      const nx = x + DX[d]
+      const ny = y + DY[d]
+      if (!this.inside(nx, ny)) continue
+      const j = ny * cols + nx
+      const cj = this.level.cells[j]
+      if (!isSource(cj)) continue
+      if (dirOf(cj as Cell) !== opposite(d)) continue
       if (this.emitAt(j, opposite(d))) return true
     }
     return false

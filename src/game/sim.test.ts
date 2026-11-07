@@ -466,3 +466,87 @@ describe('增量更新', () => {
     }
   })
 })
+
+describe('中继器侧面锁存', () => {
+  /** D → 导线 → 中继器 → Y；侧面一个由 E 驱动的充能器把中继器按住 */
+  const latch = () =>
+    makeLevel(
+      4,
+      3,
+      [
+        [0, 0, { type: 'input', id: 'D' }],
+        [1, 0, { type: 'wire' }],
+        [2, 0, { type: 'repeater', dir: 1 }],
+        [3, 0, { type: 'output', id: 'Y' }],
+        [2, 1, { type: 'charger', dir: 0 }],
+        [2, 2, { type: 'input', id: 'E' }],
+      ],
+      [],
+    )
+
+  const settleWith = (sim: Simulation, values: Record<string, 0 | 1>) => {
+    sim.setInputs(values)
+    for (let i = 0; i < 4; i++) sim.step()
+  }
+
+  it('E 高时锁住，D 的 1 进不来', () => {
+    const sim = new Simulation(cloneLevel(latch()))
+    settleWith(sim, { D: 0, E: 0 })
+    expect(sim.output('Y')).toBe(false)
+    settleWith(sim, { D: 1, E: 1 })
+    expect(sim.isLocked(2)).toBe(true)
+    expect(sim.output('Y')).toBe(false)
+  })
+
+  it('锁着的时候 D 掉下去不影响，解锁后才采样', () => {
+    const sim = new Simulation(cloneLevel(latch()))
+    settleWith(sim, { D: 1, E: 0 })
+    expect(sim.output('Y')).toBe(true)
+    settleWith(sim, { D: 0, E: 1 })
+    expect(sim.output('Y')).toBe(true)
+    settleWith(sim, { E: 0 })
+    expect(sim.isLocked(2)).toBe(false)
+    expect(sim.output('Y')).toBe(false)
+  })
+
+  it('只认侧面：从后方灌信号不算锁', () => {
+    const level = makeLevel(
+      4,
+      1,
+      [
+        [0, 0, { type: 'input', id: 'A' }],
+        [1, 0, { type: 'charger', dir: 1 }],
+        [2, 0, { type: 'repeater', dir: 1 }],
+        [3, 0, { type: 'output', id: 'Y' }],
+      ],
+      [],
+    )
+    const sim = new Simulation(cloneLevel(level))
+    sim.setInputs({ A: 1 })
+    for (let i = 0; i < 4; i++) sim.step()
+    expect(sim.isLocked(2)).toBe(false)
+    expect(sim.output('Y')).toBe(true)
+  })
+
+  it('中继器指进侧面也能锁住它', () => {
+    const level = makeLevel(
+      3,
+      1,
+      [
+        [0, 0, { type: 'input', id: 'A' }],
+        // 左边这个朝东，正顶在右边那个的侧面（右边那个朝北）
+        [1, 0, { type: 'repeater', dir: 1 }],
+        [2, 0, { type: 'repeater', dir: 0 }],
+      ],
+      [],
+    )
+    const sim = new Simulation(cloneLevel(level))
+    sim.setInputs({ A: 1 })
+    for (let i = 0; i < 4; i++) sim.step()
+    expect(sim.isLocked(2)).toBe(true)
+    sim.setInputs({ A: 0 })
+    for (let i = 0; i < 4; i++) sim.step()
+    expect(sim.isLocked(2)).toBe(false)
+  })
+})
+

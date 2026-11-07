@@ -78,6 +78,7 @@ export default function App() {
 
   // 画布只按需取可见格子的状态，不再每帧生成整张 powers
   const powerAt = useCallback((index: number) => sim.powerAt(index), [sim])
+  const lockedAt = useCallback((index: number) => sim.isLocked(index), [sim])
 
   /** 改一格元件并重建仿真；锁住的格子不动 */
   const writeCell = (index: number, next: Cell | null) => {
@@ -269,6 +270,7 @@ export default function App() {
             level={level}
             cells={level.cells}
             powerAt={powerAt}
+            lockedAt={lockedAt}
             revision={version}
             onCell={handleCell}
             onErase={handleErase}
