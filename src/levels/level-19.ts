@@ -1,7 +1,7 @@
 import type { Cell, InputEvent, Level } from '../game/types'
 
-const cols = 12
-const rows = 12
+const cols = 20
+const rows = 20
 // 输入 P、输出 1～4 都由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 

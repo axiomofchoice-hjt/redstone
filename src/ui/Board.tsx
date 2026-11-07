@@ -23,8 +23,8 @@ const CHECKER = '#12151f'
 const EDGE = 12
 const MIN_CELL = 36
 const MAX_CELL = 64
-/** 缩放范围（相对自适应大小） */
-const MIN_ZOOM = 1
+/** 缩放范围（相对自适应大小）；20×20 这种大图要能缩到整张都在屏幕上 */
+const MIN_ZOOM = 0.5
 const MAX_ZOOM = 3
 /** 滚轮每像素的缩放速度 */
 const WHEEL_ZOOM = 0.0015

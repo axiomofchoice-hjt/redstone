@@ -3,7 +3,7 @@ import { runLevel } from '../game/sim'
 import type { Cell } from '../game/types'
 import { level19 } from './level-19'
 
-const size = 12
+const size = 20
 
 const build = (entries: [number, number, Cell][]): (Cell | null)[] => {
   const cells: (Cell | null)[] = new Array(size * size).fill(null)
@@ -21,9 +21,9 @@ const follower = build([
 ])
 
 describe('第十九关 脉冲长度感应器', () => {
-  it('12×12，端口玩家自己放', () => {
-    expect(level19.cols).toBe(12)
-    expect(level19.rows).toBe(12)
+  it('20×20，端口玩家自己放', () => {
+    expect(level19.cols).toBe(20)
+    expect(level19.rows).toBe(20)
     expect(level19.inputs).toEqual(['P'])
     expect(level19.outputs).toEqual(['1', '2', '3', '4'])
     expect(level19.cells.filter(Boolean)).toHaveLength(0)
