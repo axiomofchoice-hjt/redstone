@@ -7,6 +7,7 @@ import { Board } from './ui/Board'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
 import { Palette, type Tool } from './ui/Palette'
+import { FlyEditor } from './fly/FlyEditor'
 import './App.css'
 
 const INITIAL_DIR: Dir = 1
@@ -14,7 +15,7 @@ const INITIAL_DIR: Dir = 1
 /** 编辑器里仿真每 tick 的间隔：4 tick/s */
 const TICK_MS = 250
 
-type Screen = 'start' | 'levels' | 'game'
+type Screen = 'start' | 'levels' | 'game' | 'fly'
 
 interface Editing {
   level: Level
@@ -156,10 +157,17 @@ export default function App() {
             >
               选关
             </button>
+            <button type="button" className="start-btn" onClick={() => setScreen('fly')}>
+              飞行器
+            </button>
           </div>
         </div>
       </div>
     )
+  }
+
+  if (screen === 'fly') {
+    return <FlyEditor onBack={() => setScreen('start')} />
   }
 
   if (screen === 'levels') {

@@ -319,3 +319,44 @@
   height: 26px;
   padding: 0 8px;
 }
+
+/* 飞行器：运行条 */
+.run-bar {
+  gap: 8px;
+  padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
+}
+
+/* 底下还有一排时不用留安全区 */
+.palette:not(:last-child) {
+  padding-bottom: 8px;
+}
+
+.run-btn {
+  flex: 1;
+  height: 38px;
+  border: 1px solid #232a3b;
+  border-radius: 9px;
+  background: #1a1f2e;
+  color: #cbd3e4;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.run-btn.active {
+  background: #ff6b4a;
+  border-color: #ff6b4a;
+  color: #160b07;
+}
+
+.run-btn.go {
+  flex: 0 0 auto;
+  padding: 0 18px;
+  background: #1f3a2c;
+  border-color: #2f6b4c;
+  color: #6ee7a8;
+}
+
+.run-btn:active {
+  opacity: 0.75;
+}
