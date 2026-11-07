@@ -3,8 +3,6 @@ import type { Cell, CellType, Level } from '../game/types'
 
 export const ON = '#ff2b2b'
 export const OFF = '#ffffff'
-/** 中继器被侧面锁住时压上去的锁条颜色 */
-export const LOCK = '#ffc247'
 
 const DIRS: [number, number][] = DX.map((dx, d) => [dx, DY[d]])
 
@@ -44,7 +42,7 @@ export function drawComponent(
   links: boolean[] | null,
   /** 指定颜色（按钮图标用），否则按通电状态取红/白 */
   override?: string,
-  /** 中继器被侧面锁住：画一条锁条，表示输出被按住不动 */
+  /** 中继器被侧面锁住：三角形填实，表示输出被按住不动 */
   locked = false,
 ) {
   const on = power !== 0
@@ -110,20 +108,12 @@ export function drawComponent(
         ctx.lineTo(base, side / 2)
         ctx.closePath()
         ctx.stroke()
+        // 被侧面锁住时填实三角形：空心是照常采样，实心是按住不动
+        if (locked) {
+          ctx.fillStyle = color
+          ctx.fill()
+        }
       })
-      if (locked) {
-        // 锁存：横贯整格的锁条，压过三角形，和通电与否都能区分开
-        ctx.fillStyle = LOCK
-        roundRect(
-          ctx,
-          cx - cell * 0.4,
-          cy - cell * 0.055,
-          cell * 0.8,
-          cell * 0.11,
-          cell * 0.055,
-        )
-        ctx.fill()
-      }
       break
     case 'not': {
       // 灯泡符号：圆圈 + 叉
