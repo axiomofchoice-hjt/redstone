@@ -6,6 +6,8 @@ import { usePaletteKeys } from './keyboard'
 import { portsFor } from './ports'
 import { TOOLS, toolEnabled } from './tools'
 import { ToolIcon } from './ToolIcon'
+import { Waveform } from './Waveform'
+import type { WaveSample } from './waveform'
 import { ArrowUp } from './icons'
 import type { Tool } from './Palette'
 
@@ -15,6 +17,10 @@ interface Props {
   dir: Dir
   zoom: number
   inputs: Record<string, 0 | 1>
+  /** 最近一段时间的输入 / 输出采样，波形图用 */
+  history: WaveSample[]
+  /** 当前 tick，波形窗口的右端 */
+  tick: number
   outputAt: (id: string) => boolean
   run: LevelRun | null
   onTool: (tool: Tool) => void
@@ -37,6 +43,8 @@ export function Inspector({
   dir,
   zoom,
   inputs,
+  history,
+  tick,
   outputAt,
   run,
   onTool,
@@ -167,53 +175,16 @@ export function Inspector({
       </div>
 
       {inputIds.length > 0 || outputIds.length > 0 ? (
-        <div className="signals">
-          {inputIds.length > 0 ? (
-            <div className="signal-row">
-              <span className="signal-label">输入</span>
-              {inputIds.map((id) => {
-                const on = (inputs[id] ?? 0) === 1
-                const present = placed.has(id)
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    className={`signal-chip${on ? ' on' : ''}${present ? '' : ' missing'}`}
-                    disabled={!present}
-                    aria-pressed={on}
-                    title={present ? `切换输入 ${id}` : `输入 ${id} 还没放到地图上`}
-                    onClick={() => onToggleInput(id)}
-                  >
-                    <span className="signal-letter">{id}</span>
-                    <span className="signal-value">{present ? (on ? '1' : '0') : '—'}</span>
-                  </button>
-                )
-              })}
-            </div>
-          ) : null}
-
-          {outputIds.length > 0 ? (
-            <div className="signal-row">
-              <span className="signal-label">输出</span>
-              {outputIds.map((id) => {
-                const on = outputAt(id)
-                const present = placed.has(id)
-                return (
-                  <div
-                    key={id}
-                    className={`signal-chip output${on ? ' on' : ''}${present ? '' : ' missing'}`}
-                    role="img"
-                    aria-label={`输出 ${id}：${present ? (on ? '1' : '0') : '未放置'}`}
-                    title={present ? `输出 ${id} = ${on ? 1 : 0}` : `输出 ${id} 还没放到地图上`}
-                  >
-                    <span className="signal-letter">{id}</span>
-                    <span className="signal-lamp" aria-hidden="true" />
-                  </div>
-                )
-              })}
-            </div>
-          ) : null}
-        </div>
+        <Waveform
+          history={history}
+          tick={tick}
+          inputIds={inputIds}
+          outputIds={outputIds}
+          placed={placed}
+          inputs={inputs}
+          outputAt={outputAt}
+          onToggleInput={onToggleInput}
+        />
       ) : null}
 
       <div className={`test-line${testState}`} role="status">

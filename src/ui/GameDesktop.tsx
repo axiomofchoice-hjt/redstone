@@ -7,6 +7,7 @@ import { clampZoom, zoomAround, type Camera, type Viewport } from './camera'
 import { Inspector } from './Inspector'
 import { Logo, MenuIcon, PauseIcon, PlayIcon, StepIcon } from './icons'
 import type { Tool } from './Palette'
+import type { WaveSample } from './waveform'
 import { padNo } from './levels-meta'
 
 interface Props {
@@ -14,6 +15,8 @@ interface Props {
   tool: Tool
   dir: Dir
   inputs: Record<string, 0 | 1>
+  history: WaveSample[]
+  tick: number
   run: LevelRun | null
   paused: boolean
   revision: number
@@ -41,6 +44,8 @@ export function GameDesktop({
   tool,
   dir,
   inputs,
+  history,
+  tick,
   run,
   paused,
   revision,
@@ -191,6 +196,8 @@ export function GameDesktop({
           dir={dir}
           zoom={camera.zoom}
           inputs={inputs}
+          history={history}
+          tick={tick}
           outputAt={outputAt}
           run={run}
           onTool={onTool}

@@ -672,92 +672,132 @@ button:focus-visible,
   outline-offset: 4px;
 }
 
-.signals {
+/* 输入 / 输出波形：横轴是最近 32 个 tick，右端是现在 */
+
+.wave {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
-.signal-row {
+.wave-group {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 7px;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.signal-label {
-  flex: 0 0 30px;
-  width: 30px;
-  color: #8b95a7;
-  font-size: 11px;
+.wave-group-title {
+  margin: 0 0 1px;
+  color: #97a0b1;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
 }
 
-.signal-chip {
+.wave-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  min-width: 56px;
-  padding: 0 9px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--panel-2);
-  color: var(--muted);
-  font-family: inherit;
-  cursor: default;
+  height: 20px;
 }
 
-button.signal-chip {
+.wave-tag {
+  display: grid;
+  flex: 0 0 22px;
+  place-items: center;
+  width: 22px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+button.wave-tag {
   cursor: pointer;
 }
 
-button.signal-chip:hover:not(:disabled) {
+button.wave-tag:hover:not(:disabled) {
   border-color: var(--line-strong);
+  color: var(--text);
 }
 
-.signal-chip.output {
-  min-width: 46px;
+button.wave-tag:disabled {
+  cursor: default;
 }
 
-.signal-letter {
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.signal-value {
-  margin-left: auto;
-  color: #7a8497;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.signal-chip.on {
+.wave-tag.on {
   border-color: rgba(237, 43, 43, 0.45);
   background: rgba(237, 43, 43, 0.07);
-  color: #c02a24;
-}
-
-.signal-chip.on .signal-value {
   color: #b9221d;
 }
 
-.signal-chip.missing {
+.wave-row.missing .wave-tag {
   border-style: dashed;
-  opacity: 0.4;
+  opacity: 0.55;
 }
 
-.signal-lamp {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #d3dae6;
+.wave-lane {
+  flex: 1;
+  min-width: 0;
+  height: 20px;
 }
 
-.signal-chip.output.on .signal-lamp {
-  background: var(--redstone);
-  box-shadow: 0 0 8px rgba(237, 43, 43, 0.45);
+.wave-grid {
+  stroke: rgba(27, 34, 48, 0.08);
+  stroke-width: 1;
+}
+
+.wave-fill {
+  fill: rgba(237, 43, 43, 0.18);
+}
+
+.wave-line {
+  fill: none;
+  stroke: #39445c;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.wave-line.missing {
+  stroke: #c4cddd;
+  stroke-dasharray: 2 2;
+}
+
+.wave-now {
+  flex: 0 0 12px;
+  color: #7a8497;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.wave-now.on {
+  color: #b9221d;
+}
+
+.wave-axis {
+  position: relative;
+  height: 12px;
+  margin: 2px 18px 0 28px;
+  color: #97a0b1;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+}
+
+/* 刻度按百分比定位，和波形里的竖线一一对齐 */
+.wave-axis span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
 }
 
 .test-line {

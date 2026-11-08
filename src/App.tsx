@@ -6,6 +6,7 @@ import { defaultTool } from './ui/tools'
 import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
+import { pushSample, waveSample, type WaveSample } from './ui/waveform'
 import type { Tool } from './ui/Palette'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
 import { StartScreen } from './ui/StartScreen'
@@ -36,6 +37,8 @@ export default function App() {
   const [tool, setTool] = useState<Tool>({ type: 'wire' })
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
+  // 检查器波形图用的采样，只保留最近一段 tick；刚进界面先放当前这一帧
+  const [history, setHistory] = useState<WaveSample[]>(() => [waveSample(level, sim)])
   // 编辑器里手动开关的输入
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   const [menuOpen, setMenuOpen] = useState(false)
@@ -48,14 +51,22 @@ export default function App() {
   // 手机菜单只在手机布局里算数；拖到桌面宽度时不应该把仿真停住
   const mobileMenuOpen = menuOpen && !isDesktop
 
+  /** 给波形图补一帧当前 tick 的采样；手机端不画波形，不用记 */
+  const record = useCallback(() => {
+    if (!isDesktop) return
+    setHistory((prev) => pushSample(prev, waveSample(level, sim)))
+  }, [isDesktop, level, sim])
+
   useEffect(() => {
     if (paused || mobileMenuOpen || screen !== 'game') return
     const timer = setInterval(() => {
       // step() 直接返回画面有没有变化，不用前后各拍一次快照
-      if (sim.step()) repaint()
+      const changed = sim.step()
+      record()
+      if (changed) repaint()
     }, TICK_MS)
     return () => clearInterval(timer)
-  }, [sim, paused, mobileMenuOpen, screen])
+  }, [sim, paused, mobileMenuOpen, screen, record])
 
   // 鼠标点完按钮别留下焦点：焦点在按钮上时再按键盘，浏览器会描一圈焦点框
   useEffect(() => {
@@ -81,6 +92,7 @@ export default function App() {
   const nextTick = () => {
     if (!paused) return
     sim.step()
+    record()
     repaint()
   }
 
@@ -111,6 +123,7 @@ export default function App() {
     setInputs(next)
     sim.setInputs(next)
     setRun(null)
+    record()
     repaint()
   }
 
@@ -144,11 +157,15 @@ export default function App() {
     setInputs(solution.state.inputs)
     setRun(null)
     setMenuOpen(false)
+    // 参考解把 tick 拨回去了，旧波形接不上，从这个 tick 重新记
+    setHistory([waveSample(next, sim)])
   }
 
   const startLevel = (next: Level) => {
     const level = { ...next, cells: next.cells.slice() }
-    setEditing({ level, sim: new Simulation(level) })
+    const sim = new Simulation(level)
+    setEditing({ level, sim })
+    setHistory([waveSample(level, sim)])
     // 换关后元件选择也回到这关的默认元件，别把上一关照到哪都带着
     setTool({ type: defaultTool(level) })
     setDir(INITIAL_DIR)
@@ -194,6 +211,8 @@ export default function App() {
         tool={tool}
         dir={dir}
         inputs={inputs}
+        history={history}
+        tick={sim.tick}
         run={run}
         paused={paused}
         revision={version}
