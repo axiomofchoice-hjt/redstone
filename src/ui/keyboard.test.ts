@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CellType, Level } from '../game/types'
-import { dirForKey, toolForKey, type PalettePort } from './keyboard'
+import { dirForKey, rotateDir, toolForKey, type PalettePort } from './keyboard'
 
 const level: Level = {
   id: 't',
@@ -30,6 +30,22 @@ describe('WASD 选方向', () => {
     expect(dirForKey('W')).toBe(0)
     expect(dirForKey('ArrowUp')).toBeNull()
     expect(dirForKey('q')).toBeNull()
+  })
+})
+
+describe('滚轮换朝向', () => {
+  it('顺时针一格：上 → 右 → 下 → 左', () => {
+    expect(rotateDir(0, 1)).toBe(1)
+    expect(rotateDir(1, 1)).toBe(2)
+    expect(rotateDir(2, 1)).toBe(3)
+    expect(rotateDir(3, 1)).toBe(0)
+  })
+
+  it('逆时针一格反着走，来回转能回到原方向', () => {
+    expect(rotateDir(0, -1)).toBe(3)
+    expect(rotateDir(3, -1)).toBe(2)
+    // 转过去再转回来，方向不变
+    expect(rotateDir(rotateDir(0, -1), 1)).toBe(0)
   })
 })
 

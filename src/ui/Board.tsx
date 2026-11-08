@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import type { Cell, Dir, Level } from '../game/types'
-import { cellIndexAt } from './board-hit'
+import { baseCell } from './board-layout'
+import { cellIndexAt, gridLine } from './board-hit'
+import { clampCamera, clampZoom, type Camera, type Viewport } from './camera'
 import { drawComponent, linkedDirs } from './glyph'
+import { isTypingTarget } from './keyboard'
 import type { Tool } from './Palette'
 
 interface Props {
@@ -21,32 +24,49 @@ interface Props {
   preview?: Tool | null
   /** 有方向元件的预览朝向 */
   previewDir?: Dir
+  /**
+   * 电脑端工作台：相机由外面持有（右侧滑轨缩放），滚轮换朝向，
+   * 左键按下就放、拖过去连续放；手机上不传，保留拖动平移 / 双指缩放。
+   */
+  workbench?: {
+    camera: Camera
+    onCamera: (camera: Camera) => void
+    onRotate: (step: 1 | -1) => void
+  }
+  /** 每帧把视口写回来，右侧滑轨缩放时拿视口中心当锚点 */
+  viewportRef?: { current: Viewport | null }
 }
 
 const BG = '#0e1018'
 const GRID = '#1b2130'
 const MAP_BG = '#101319'
 const CHECKER = '#12151f'
-const EDGE = 12
-const MIN_CELL = 36
-/** 桌面端画布很大，格子允许放得更大，7×7 的图不会缩在中间一小块 */
-const MAX_CELL = 120
-/** 缩放范围（相对自适应大小）；20×20 这种大图要能缩到整张都在屏幕上 */
-const MIN_ZOOM = 0.5
-const MAX_ZOOM = 3
-/** 滚轮每像素的缩放速度 */
+/** 滚轮每像素的缩放速度（手机 / 平板接鼠标时用） */
 const WHEEL_ZOOM = 0.0015
+/** 电脑端滚轮要攒到这个量才转一格，触控板的小幅滚动不会一滑转好几圈 */
+const WHEEL_STEP = 50
+/** 手机 / 平板拖动地图前，指针要挪出这个距离才算拖动而不是点按 */
+const DRAG_SLOP = 6
+/** 电脑端键盘平移：一次走半格，格子特别大或特别小时夹一下 */
+const PAN_MIN = 24
+const PAN_MAX = 72
 
-interface Geom {
+/** 电脑端键盘平移地图：WASD 和方向键，键名统一转小写 */
+const PAN_KEYS: Record<string, readonly [number, number]> = {
+  w: [0, -1],
+  a: [-1, 0],
+  s: [0, 1],
+  d: [1, 0],
+  arrowup: [0, -1],
+  arrowleft: [-1, 0],
+  arrowdown: [0, 1],
+  arrowright: [1, 0],
+}
+
+interface Geom extends Viewport {
   cell: number
   ox: number
   oy: number
-  camX: number
-  camY: number
-  w: number
-  h: number
-  mapW: number
-  mapH: number
 }
 
 interface Drag {
@@ -56,6 +76,13 @@ interface Drag {
   camX: number
   camY: number
   moved: boolean
+}
+
+/** 电脑端拖动连续编辑：左键放置、右键删除，记住上一次落在哪一格，好把中间跳过的补齐 */
+interface Stroke {
+  id: number
+  last: number
+  erase: boolean
 }
 
 interface Pinch {
@@ -71,15 +98,6 @@ interface Pinch {
 const distance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
   Math.hypot(a.x - b.x, a.y - b.y)
 
-const clampZoom = (zoom: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom))
-
-function clampCamera(x: number, y: number, w: number, h: number, mapW: number, mapH: number) {
-  return {
-    x: mapW <= w ? (w - mapW) / 2 : Math.min(EDGE, Math.max(w - mapW - EDGE, x)),
-    y: mapH <= h ? (h - mapH) / 2 : Math.min(EDGE, Math.max(h - mapH - EDGE, y)),
-  }
-}
-
 export function Board({
   level,
   cells,
@@ -90,6 +108,8 @@ export function Board({
   onErase,
   preview = null,
   previewDir,
+  workbench,
+  viewportRef,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -107,16 +127,33 @@ export function Board({
   const drag = useRef<Drag | null>(null)
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<Pinch | null>(null)
+  const stroke = useRef<Stroke | null>(null)
   /** 最近一次按下是不是手指，用来区分右键和触屏长按 */
   const touched = useRef(false)
-  const [cam, setCam] = useState({ x: 0, y: 0, zoom: 1 })
+  /** 电脑端滚轮累积量，攒够 WHEEL_STEP 才转一格 */
+  const wheelAcc = useRef(0)
+  /** 手机 / 平板自己管相机；电脑端由外面上面的工作台持有，右侧滑轨缩放 */
+  const [ownCam, setOwnCam] = useState<Camera>({ x: 0, y: 0, zoom: 1 })
+  const cam = workbench ? workbench.camera : ownCam
   const camRef = useRef(cam)
-  /** 鼠标悬停的格子：画半透明预览 */
+  // wheel / keydown 是原生监听，只挂一次，相机和模式都从这里取最新值
+  const workbenchRef = useRef(workbench)
   const [hover, setHover] = useState(-1)
 
   useEffect(() => {
     camRef.current = cam
   }, [cam])
+
+  useEffect(() => {
+    workbenchRef.current = workbench
+  }, [workbench])
+
+  const updateCamera = useCallback((next: Camera) => {
+    camRef.current = next
+    const current = workbenchRef.current
+    if (current) current.onCamera(next)
+    else setOwnCam(next)
+  }, [])
 
   // 绘制函数放进 ref，ResizeObserver 只建一次，不随相机变化反复重建
   const drawRef = useRef<() => void>(() => {})
@@ -146,12 +183,41 @@ export function Board({
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      render(ctx, w, h, level, cells, powerAt, lockedAt, cam, geom.current, hover, preview, previewDir)
+      // 右键拖动删除时，悬停预览也画成红叉，别显示成要放置的元件
+      const hoverPreview = stroke.current?.erase ? 'erase' : preview
+      render(
+        ctx,
+        w,
+        h,
+        level,
+        cells,
+        powerAt,
+        lockedAt,
+        cam,
+        geom.current,
+        hover,
+        hoverPreview,
+        previewDir,
+        workbench != null,
+      )
+      if (viewportRef) viewportRef.current = geom.current
     }
 
     drawRef.current = draw
     draw()
-  }, [level, cells, powerAt, lockedAt, cam, revision, hover, preview, previewDir])
+  }, [
+    level,
+    cells,
+    powerAt,
+    lockedAt,
+    cam,
+    revision,
+    hover,
+    preview,
+    previewDir,
+    workbench,
+    viewportRef,
+  ])
 
   useEffect(() => {
     const wrap = wrapRef.current
@@ -161,7 +227,8 @@ export function Board({
     return () => observer.disconnect()
   }, [])
 
-  // 滚轮缩放：React 的 wheel 监听是 passive 的，preventDefault 不生效，所以直接挂原生事件
+  // 滚轮换朝向（电脑端）/ 缩放（手机和平板）：React 的 wheel 监听是 passive 的，
+  // preventDefault 不生效，所以直接挂原生事件
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -175,6 +242,25 @@ export function Board({
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? g.h : 1
       const delta = event.deltaY * unit
       if (delta === 0) return
+
+      const desktop = workbenchRef.current
+      if (desktop) {
+        // 电脑端：滚轮转 90°，缩放交给右侧滑轨
+        event.preventDefault()
+        // 行模式是离散的（Firefox 的鼠标滚轮），一次事件就是一格，不用攒
+        if (event.deltaMode === 1) {
+          desktop.onRotate(event.deltaY > 0 ? 1 : -1)
+          return
+        }
+        const acc = wheelAcc.current + delta
+        if (Math.abs(acc) < WHEEL_STEP) {
+          wheelAcc.current = acc
+          return
+        }
+        wheelAcc.current = 0
+        desktop.onRotate(delta > 0 ? 1 : -1)
+        return
+      }
 
       event.preventDefault()
       const current = camRef.current
@@ -194,14 +280,42 @@ export function Board({
         g.mapW * ratio,
         g.mapH * ratio,
       )
-      const nextCam = { x: next.x, y: next.y, zoom }
-      camRef.current = nextCam
-      setCam(nextCam)
+      updateCamera({ x: next.x, y: next.y, zoom })
     }
 
     canvas.addEventListener('wheel', onWheel, { passive: false })
     return () => canvas.removeEventListener('wheel', onWheel)
-  }, [])
+  }, [updateCamera])
+
+  // 电脑端 WASD / 方向键平移地图；手机端的 WASD 仍然是换朝向（在元件栏里处理）
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const desktop = workbenchRef.current
+      if (!desktop) return
+      if (event.ctrlKey || event.metaKey || event.altKey) return
+      if (isTypingTarget(event.target)) return
+
+      const step = PAN_KEYS[event.key.toLowerCase()]
+      if (!step) return
+      const g = geom.current
+      if (g.cell <= 0) return
+
+      event.preventDefault()
+      const current = camRef.current
+      const stepPx = Math.min(PAN_MAX, Math.max(PAN_MIN, Math.round(g.cell * 0.5)))
+      const next = clampCamera(
+        current.x + step[0] * stepPx,
+        current.y + step[1] * stepPx,
+        g.w,
+        g.h,
+        g.mapW,
+        g.mapH,
+      )
+      updateCamera({ x: next.x, y: next.y, zoom: current.zoom })
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [updateCamera])
 
   /** 指针位置落在哪个格子上；不在图上返回 -1 */
   const cellIndexAtPointer = (
@@ -225,8 +339,32 @@ export function Board({
     if (event.pointerType === 'mouse') {
       setHover(cellIndexAtPointer(event, event.currentTarget))
     }
+    // 电脑端：右键按下就删一格，按住拖过去一路删
+    if (workbench && event.pointerType === 'mouse' && event.button === 2) {
+      const index = cellIndexAtPointer(event, event.currentTarget)
+      if (index < 0) return
+      event.preventDefault()
+      event.currentTarget.setPointerCapture(event.pointerId)
+      onErase(index)
+      stroke.current = { id: event.pointerId, last: index, erase: true }
+      return
+    }
+
     // 右键留给删除，不参与拖动和放置
     if (event.button !== 0) return
+
+    // 电脑端：左键按下就放一格，按住拖过去一路放
+    if (workbench && event.pointerType === 'mouse') {
+      const index = cellIndexAtPointer(event, event.currentTarget)
+      if (index < 0) return
+      event.currentTarget.setPointerCapture(event.pointerId)
+      onCell(index)
+      // 交互是开关，拖过去会反复切，不跟着拖动走
+      stroke.current =
+        preview === 'interact' ? null : { id: event.pointerId, last: index, erase: false }
+      return
+    }
+
     event.currentTarget.setPointerCapture(event.pointerId)
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
 
@@ -261,6 +399,28 @@ export function Board({
       setHover(cellIndexAtPointer(event, event.currentTarget))
     }
 
+    // 电脑端拖动连续编辑：两次事件之间跳过的格子按直线补齐
+    const active = stroke.current
+    if (active && active.id === event.pointerId) {
+      const index = cellIndexAtPointer(event, event.currentTarget)
+      if (index >= 0 && index !== active.last) {
+        const cols = level.cols
+        const fromX = active.last % cols
+        const fromY = (active.last - fromX) / cols
+        const toX = index % cols
+        const toY = (index - toX) / cols
+        const line = gridLine(fromX, fromY, toX, toY)
+        // 起点上一次已经处理过了，从第二格开始补
+        for (let i = 1; i < line.length; i++) {
+          const cell = line[i][1] * cols + line[i][0]
+          if (active.erase) onErase(cell)
+          else onCell(cell)
+        }
+        active.last = index
+      }
+      return
+    }
+
     const known = pointers.current.get(event.pointerId)
     if (!known) return
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
@@ -284,7 +444,7 @@ export function Board({
         g.mapW * ratio,
         g.mapH * ratio,
       )
-      setCam({ x: next.x, y: next.y, zoom })
+      updateCamera({ x: next.x, y: next.y, zoom })
       return
     }
 
@@ -292,19 +452,22 @@ export function Board({
     if (!current || current.id !== event.pointerId) return
     const dx = event.clientX - current.x
     const dy = event.clientY - current.y
-    if (!current.moved && Math.hypot(dx, dy) > 6) current.moved = true
+    if (!current.moved && Math.hypot(dx, dy) > DRAG_SLOP) current.moved = true
     if (!current.moved) return
     const g = geom.current
     const next = clampCamera(current.camX + dx, current.camY + dy, g.w, g.h, g.mapW, g.mapH)
-    setCam((prev) => ({ ...prev, x: next.x, y: next.y }))
+    updateCamera({ ...camRef.current, x: next.x, y: next.y })
   }
 
-  /** 右键删除：只删这一格，元件栏选中的元件不变 */
+  /** 右键删除：电脑端在按下 / 拖动时已经删了，这里只挡掉浏览器菜单 */
   const handleContextMenu = (event: ReactMouseEvent<HTMLCanvasElement>) => {
     event.preventDefault()
+    // 电脑端鼠标右键已经由 pointerdown 处理，拖动删除也还在这条路上，别在这里再删一次
+    if (workbench && !touched.current) return
     // 触屏长按也会走到这里；那不是右键，别删，顺手掐掉拖动免得松手又放一格
     const touch = touched.current
     drag.current = null
+    stroke.current = null
     if (touch) return
     const index = cellIndexAtPointer(event, event.currentTarget)
     if (index < 0) return
@@ -314,6 +477,12 @@ export function Board({
   const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     pointers.current.delete(event.pointerId)
     if (pointers.current.size < 2) pinch.current = null
+
+    // 电脑端按下时已经放 / 删过了，松手不用再来一次
+    if (stroke.current?.id === event.pointerId) {
+      stroke.current = null
+      return
+    }
 
     const current = drag.current
     if (!current || current.id !== event.pointerId) return
@@ -338,6 +507,7 @@ export function Board({
           pointers.current.delete(event.pointerId)
           if (pointers.current.size < 2) pinch.current = null
           drag.current = null
+          stroke.current = null
           setHover(-1)
         }}
       />
@@ -358,15 +528,15 @@ function render(
   hover: number,
   preview: Tool | null,
   previewDir: Dir | undefined,
+  fixedCell: boolean,
 ) {
   ctx.clearRect(0, 0, w, h)
   ctx.fillStyle = BG
   ctx.fillRect(0, 0, w, h)
 
-  const fit = Math.min((w - 24) / level.cols, (h - 24) / level.rows)
-  // 格子大小取整，元件图标才能和网格线对齐；自适应大小先限制在可读范围，
-  // 手动缩小可以继续往下走，让大图整张躺进屏幕
-  const base = Math.round(Math.min(MAX_CELL, Math.max(MIN_CELL, fit)))
+  // 格子大小取整，元件图标才能和网格线对齐。
+  // 电脑端 100% 时一格固定 36px、所有关卡一样大；手机端按屏幕自适应
+  const base = baseCell(fixedCell, w, h, level.cols, level.rows)
   const cell = Math.max(12, Math.round(base * cam.zoom))
   const mapW = cell * level.cols
   const mapH = cell * level.rows

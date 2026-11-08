@@ -3,6 +3,7 @@ import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
 import type { Cell, Dir, Level } from './game/types'
 import { LEVELS } from './levels'
 import { defaultTool } from './ui/tools'
+import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
 import type { Tool } from './ui/Palette'
@@ -188,6 +189,7 @@ export default function App() {
   if (isDesktop) {
     return (
       <GameDesktop
+        key={level.id}
         levels={LEVELS}
         level={level}
         tool={tool}
@@ -209,6 +211,7 @@ export default function App() {
         onRun={() => setRun(runLevel(level, sim))}
         onPause={() => setPaused((value) => !value)}
         onNextTick={nextTick}
+        onRotate={(step) => setDir((value) => rotateDir(value, step))}
         onHome={goHome}
         onSelectLevel={startLevel}
       />

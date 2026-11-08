@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
+import { MAX_ZOOM, MIN_ZOOM } from './camera'
 import { usePaletteKeys } from './keyboard'
 import { portsFor } from './ports'
 import { TOOLS, toolEnabled } from './tools'
@@ -12,19 +13,21 @@ interface Props {
   level: Level
   tool: Tool
   dir: Dir
+  zoom: number
   inputs: Record<string, 0 | 1>
   outputAt: (id: string) => boolean
   run: LevelRun | null
   onTool: (tool: Tool) => void
   onDir: (dir: Dir) => void
+  onZoom: (zoom: number) => void
   onToggleInput: (id: string) => void
 }
 
-const DIR_BUTTONS: { dir: Dir; label: string; key: string; area: string }[] = [
-  { dir: 0, label: '上', key: 'W', area: 'up' },
-  { dir: 3, label: '左', key: 'A', area: 'left' },
-  { dir: 2, label: '下', key: 'S', area: 'down' },
-  { dir: 1, label: '右', key: 'D', area: 'right' },
+const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
+  { dir: 0, label: '上', area: 'up' },
+  { dir: 3, label: '左', area: 'left' },
+  { dir: 2, label: '下', area: 'down' },
+  { dir: 1, label: '右', area: 'right' },
 ]
 
 /** 电脑端右侧面板：只保留元件、朝向、信号和测试结果，能省的字都省掉 */
@@ -32,15 +35,18 @@ export function Inspector({
   level,
   tool,
   dir,
+  zoom,
   inputs,
   outputAt,
   run,
   onTool,
   onDir,
+  onZoom,
   onToggleInput,
 }: Props) {
   const ports = useMemo(() => portsFor(level), [level])
-  usePaletteKeys(level, ports, onDir, onTool)
+  // WASD / 方向键在电脑端留给画布平移，这里只认数字键
+  usePaletteKeys(level, ports, null, onTool)
 
   const tools = useMemo(
     () => [
@@ -107,12 +113,12 @@ export function Inspector({
         <div className="dir-pad" role="group" aria-label="朝向">
           {DIR_BUTTONS.map((item) => (
             <button
-              key={item.key}
+              key={item.label}
               type="button"
               className={dir === item.dir ? 'dir-btn active' : 'dir-btn'}
               style={{ gridArea: item.area }}
               aria-label={`朝${item.label}`}
-              title={`朝${item.label} (${item.key})`}
+              title={`朝${item.label}`}
               onClick={() => onDir(item.dir)}
             >
               <span
@@ -139,12 +145,31 @@ export function Inspector({
             type="button"
             className={tool === 'erase' ? 'mode-btn active' : 'mode-btn'}
             aria-pressed={tool === 'erase'}
-            title="删除：点击格子清除，右键也能删"
+            title="删除：点击或拖动清除，右键也能拖着删"
             onClick={() => onTool('erase')}
           >
             删除
           </button>
         </div>
+      </div>
+
+      <div className="zoom-row">
+        <span className="zoom-label">缩放</span>
+        <input
+          className="zoom-slider"
+          type="range"
+          min={MIN_ZOOM}
+          max={MAX_ZOOM}
+          step={0.05}
+          value={zoom}
+          aria-label="地图缩放"
+          onChange={(event) => onZoom(Number(event.target.value))}
+          // 鼠标松开后放掉焦点，WASD / 方向键才能直接接着平移地图
+          onPointerUp={(event) => {
+            if (event.pointerType === 'mouse') event.currentTarget.blur()
+          }}
+        />
+        <span className="zoom-value">{Math.round(zoom * 100)}%</span>
       </div>
 
       {inputIds.length > 0 || outputIds.length > 0 ? (
@@ -204,7 +229,10 @@ export function Inspector({
         </span>
       </div>
 
-      <p className="inspector-hint">1–9 选元件 · WASD 朝向</p>
+      <div className="inspector-hints">
+        <p className="inspector-hint">滚轮换朝向 · WASD / 方向键移图</p>
+        <p className="inspector-hint">左键拖动连续放置 · 右键拖动连续删除</p>
+      </div>
     </aside>
   )
 }

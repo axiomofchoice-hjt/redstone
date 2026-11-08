@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cellIndexAt } from './board-hit'
+import { cellIndexAt, gridLine } from './board-hit'
 
 const geom = { cell: 20, ox: 10, oy: 30 }
 
@@ -27,5 +27,32 @@ describe('画布坐标找格子', () => {
   it('宽高等参数不同也按传入的列数算', () => {
     // 4 列地图，第 1 行第 3 列
     expect(cellIndexAt(geom, 4, 3, 10 + 3 * 20, 30 + 20)).toBe(7)
+  })
+})
+
+describe('拖动时补齐中间的格子', () => {
+  it('水平 / 垂直都从起点走到终点', () => {
+    expect(gridLine(1, 2, 4, 2)).toEqual([
+      [1, 2],
+      [2, 2],
+      [3, 2],
+      [4, 2],
+    ])
+    expect(gridLine(3, 0, 3, 2)).toEqual([
+      [3, 0],
+      [3, 1],
+      [3, 2],
+    ])
+  })
+
+  it('斜着拖也是连续的，每步只挪一格', () => {
+    const line = gridLine(0, 0, 2, 2)
+    expect(line[0]).toEqual([0, 0])
+    expect(line.at(-1)).toEqual([2, 2])
+    expect(line).toHaveLength(3)
+  })
+
+  it('原地不动只返回一格', () => {
+    expect(gridLine(5, 5, 5, 5)).toEqual([[5, 5]])
   })
 })
