@@ -45,7 +45,7 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
               title={`${index + 1} · ${item.label}`}
               onClick={() => onTool({ type: item.type })}
             >
-              <ToolIcon type={item.type} dir={dir} active={active(item.type)} />
+              <ToolIcon type={item.type} dir={dir} invert={active(item.type)} />
             </button>
           )
         })}
@@ -58,7 +58,7 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
             title={`${TOOLS.length + index + 1 <= 9 ? `${TOOLS.length + index + 1} · ` : ''}${item.label}`}
             onClick={() => onTool({ type: item.type, id: item.id })}
           >
-            <ToolIcon type={item.type} id={item.id} dir={dir} active={active(item.type, item.id)} />
+            <ToolIcon type={item.type} id={item.id} dir={dir} invert={active(item.type, item.id)} />
           </button>
         ))}
       </div>

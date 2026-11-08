@@ -30,7 +30,7 @@ const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
   { dir: 1, label: '右', area: 'right' },
 ]
 
-/** 电脑端右侧面板：只保留元件、朝向、信号和测试结果，能省的字都省掉 */
+/** 电脑端左侧面板：只保留元件、朝向、信号和测试结果，能省的字都省掉 */
 export function Inspector({
   level,
   tool,
@@ -89,20 +89,14 @@ export function Inspector({
             <button
               key={`${item.type}-${item.id ?? ''}`}
               type="button"
-              className={
-                active
-                  ? item.type === 'input' || item.type === 'output'
-                    ? 'tool-tile port active'
-                    : 'tool-tile active'
-                  : 'tool-tile'
-              }
+              className={active ? 'tool-tile active' : 'tool-tile'}
               disabled={item.disabled}
               title={item.label}
               onClick={() =>
                 onTool(item.id ? { type: item.type, id: item.id } : { type: item.type })
               }
             >
-              <ToolIcon type={item.type} id={item.id} dir={dir} active={active} size={34} />
+              <ToolIcon type={item.type} id={item.id} dir={dir} size={34} />
               <span className="tool-label">{item.label}</span>
             </button>
           )

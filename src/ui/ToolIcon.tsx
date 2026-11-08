@@ -7,13 +7,14 @@ interface Props {
   /** 输入/输出的字母 */
   id?: string
   dir: Dir
-  active: boolean
+  /** 按钮用橙色实心高亮时把图标反过来画成深色（只有手机元件栏这样） */
+  invert?: boolean
   /** 图标边长；手机元件栏是 30，电脑端面板可以给大一点 */
   size?: number
 }
 
 /** 按钮上的元件图标：把元件按缩小尺寸画一遍 */
-export function ToolIcon({ type, id, dir, active, size = 30 }: Props) {
+export function ToolIcon({ type, id, dir, invert = false, size = 30 }: Props) {
   const ref = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -26,8 +27,8 @@ export function ToolIcon({ type, id, dir, active, size = 30 }: Props) {
     if (!ctx) return
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, size, size)
-    // 选中时按钮底色是橙色，图标反过来用深色；输入/输出里的字母要保持深色，所以不换
-    const dark = active && type !== 'input' && type !== 'output'
+    // 橙色实心底上图标反过来用深色；输入/输出里的字母要保持深色，所以不换
+    const dark = invert && type !== 'input' && type !== 'output'
     drawComponent(
       ctx,
       { type, dir, id },
@@ -38,7 +39,7 @@ export function ToolIcon({ type, id, dir, active, size = 30 }: Props) {
       type === 'wire' ? [] : null,
       dark ? '#160b07' : undefined,
     )
-  }, [type, id, dir, active, size])
+  }, [type, id, dir, invert, size])
 
   return <canvas ref={ref} style={{ width: size, height: size, display: 'block' }} />
 }

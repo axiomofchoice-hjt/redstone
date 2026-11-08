@@ -373,130 +373,66 @@ button:focus-visible,
 }
 
 .appbar-actions {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
   margin-left: auto;
 }
 
-.game-grid {
-  display: grid;
-  grid-template-columns: 216px minmax(0, 1fr) 300px;
-  min-height: 0;
-}
-
-/* 左侧关卡 */
-
-.rail {
+/* 右上角的菜单：一个菜单键，展开成一条竖着的操作列表 */
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  border-right: 1px solid var(--line-soft);
-  background: #0b0e15;
+  gap: 2px;
+  width: 168px;
+  padding: 6px;
+  border: 1px solid #232a3b;
+  border-radius: 10px;
+  background: #11161f;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
 }
 
-.rail-scroll {
-  flex: 1;
-  min-height: 0;
-  padding: 14px 8px 10px;
-  overflow-y: auto;
-  scrollbar-color: #283044 transparent;
-  scrollbar-width: thin;
-}
-
-.rail-group + .rail-group {
-  margin-top: 8px;
-}
-
-.rail-group-title {
-  padding: 10px 8px 4px;
-  color: #414b63;
-  font-family: var(--mono);
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.rail-item {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 6px 8px;
+.menu-item {
+  height: 30px;
+  padding: 0 10px;
   border: 0;
   border-radius: 6px;
   background: none;
-  color: #8d97ad;
+  color: #cbd3e4;
   font-family: inherit;
   font-size: 12.5px;
   text-align: left;
   cursor: pointer;
-  transition:
-    background 0.14s ease,
-    color 0.14s ease;
 }
 
-.rail-item:hover {
-  background: #141927;
-  color: var(--text);
-}
-
-.rail-item.active {
-  background: rgba(255, 107, 74, 0.1);
-  box-shadow: inset 2px 0 var(--accent);
+.menu-item:hover:not(:disabled) {
+  background: #1a2130;
   color: #fff;
 }
 
-.rail-no {
-  color: #4c566e;
-  font-family: var(--mono);
-  font-size: 9.5px;
-  font-weight: 600;
-}
-
-.rail-item.active .rail-no {
-  color: var(--accent);
-}
-
-.rail-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rail-foot {
-  display: flex;
-  gap: 4px;
-  padding: 8px;
-  border-top: 1px solid var(--line-soft);
-}
-
-.rail-action {
-  flex: 1;
-  height: 28px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: none;
-  color: #5e6880;
-  font-family: inherit;
-  font-size: 10.5px;
-  cursor: pointer;
-}
-
-.rail-action:hover:not(:disabled) {
-  background: #151a27;
-  color: var(--text);
-}
-
-.rail-action:disabled {
+.menu-item:disabled {
   opacity: 0.32;
   cursor: default;
 }
 
-/* 中间画布 */
+.menu-sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--line-soft);
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* 画布 */
 
 .stage {
   display: flex;
@@ -521,7 +457,7 @@ button:focus-visible,
   cursor: crosshair;
 }
 
-/* 右侧检查器 */
+/* 左侧检查器 */
 
 .inspector {
   display: flex;
@@ -530,7 +466,7 @@ button:focus-visible,
   min-height: 0;
   padding: 14px 12px 12px;
   overflow-y: auto;
-  border-left: 1px solid var(--line-soft);
+  border-right: 1px solid var(--line-soft);
   background: #0b0e15;
   scrollbar-color: #283044 transparent;
   scrollbar-width: thin;
@@ -562,20 +498,15 @@ button:focus-visible,
     color 0.14s ease;
 }
 
-.tool-tile:hover:not(:disabled) {
+.tool-tile:hover:not(:disabled):not(.active) {
   border-color: #39445d;
   background: #171d2b;
   color: var(--text);
 }
 
+/* 选中的元件统一用描边高亮：图标保持浅色，输入 / 输出的字母和灯都好认 */
 .tool-tile.active {
   border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-/* 输入 / 输出按钮用描边高亮：图标保持浅色，字母和灯才好认 */
-.tool-tile.port.active {
   background: rgba(255, 107, 74, 0.14);
   color: var(--text);
 }
@@ -1127,21 +1058,18 @@ button.signal-chip:hover:not(:disabled) {
   font-size: 14px;
 }
 
-.rail-scroll::-webkit-scrollbar,
 .inspector::-webkit-scrollbar,
 .level-page::-webkit-scrollbar,
 .landing::-webkit-scrollbar {
   width: 8px;
 }
 
-.rail-scroll::-webkit-scrollbar-track,
 .inspector::-webkit-scrollbar-track,
 .level-page::-webkit-scrollbar-track,
 .landing::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.rail-scroll::-webkit-scrollbar-thumb,
 .inspector::-webkit-scrollbar-thumb,
 .level-page::-webkit-scrollbar-thumb,
 .landing::-webkit-scrollbar-thumb {
@@ -1161,7 +1089,7 @@ button.signal-chip:hover:not(:disabled) {
 
 @media (max-width: 1180px) {
   .game-grid {
-    grid-template-columns: 196px minmax(0, 1fr) 276px;
+    grid-template-columns: 276px minmax(0, 1fr);
   }
 }
 
@@ -1233,7 +1161,6 @@ button.signal-chip:hover:not(:disabled) {
 
   .level-card,
   .btn,
-  .rail-item,
   .tool-tile,
   .dir-arrow {
     transition: none;

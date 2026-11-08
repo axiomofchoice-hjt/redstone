@@ -105,7 +105,7 @@ export default function App() {
     setRun(null)
   }
 
-  /** 切换一个输入元件的 0 / 1；桌面端右侧面板和「交互」工具都走这里 */
+  /** 切换一个输入元件的 0 / 1；桌面端左侧面板和「交互」工具都走这里 */
   const toggleInput = (id: string) => {
     const next: Record<string, 0 | 1> = { ...inputs, [id]: inputs[id] ? 0 : 1 }
     setInputs(next)
@@ -190,7 +190,6 @@ export default function App() {
     return (
       <GameDesktop
         key={level.id}
-        levels={LEVELS}
         level={level}
         tool={tool}
         dir={dir}
@@ -213,7 +212,7 @@ export default function App() {
         onNextTick={nextTick}
         onRotate={(step) => setDir((value) => rotateDir(value, step))}
         onHome={goHome}
-        onSelectLevel={startLevel}
+        onLevels={goLevels}
       />
     )
   }

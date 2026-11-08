@@ -73,3 +73,21 @@ export function StepIcon({ size = 14 }: IconProps) {
     </svg>
   )
 }
+
+/** 菜单箭头：左边三个点、右边三条横线，和手机端顶栏的菜单键一致 */
+export function MenuIcon({ size = 16 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+      <g fill="currentColor">
+        <circle cx="3" cy="3.5" r="1.4" />
+        <circle cx="3" cy="8" r="1.4" />
+        <circle cx="3" cy="12.5" r="1.4" />
+      </g>
+      <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none">
+        <line x1="7" y1="3.5" x2="13" y2="3.5" />
+        <line x1="7" y1="8" x2="13" y2="8" />
+        <line x1="7" y1="12.5" x2="13" y2="12.5" />
+      </g>
+    </svg>
+  )
+}
