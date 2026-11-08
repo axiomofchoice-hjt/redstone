@@ -37,10 +37,10 @@ interface Props {
   viewportRef?: { current: Viewport | null }
 }
 
-const BG = '#0e1018'
-const GRID = '#1b2130'
-const MAP_BG = '#101319'
-const CHECKER = '#12151f'
+const BG = '#e8eef7'
+const GRID = '#dfe6f2'
+const MAP_BG = '#ffffff'
+const CHECKER = '#f1f5fc'
 /** 滚轮每像素的缩放速度（手机 / 平板接鼠标时用） */
 const WHEEL_ZOOM = 0.0015
 /** 电脑端滚轮要攒到这个量才转一格，触控板的小幅滚动不会一滑转好几圈 */
@@ -644,7 +644,7 @@ function render(
         ctx.stroke()
       } else if (preview === 'interact') {
         if (cellData?.type === 'input') {
-          ctx.strokeStyle = 'rgba(255, 107, 74, 0.95)'
+          ctx.strokeStyle = 'rgba(240, 86, 46, 0.95)'
           ctx.lineWidth = 2
           ctx.strokeRect(left + 2, top + 2, cell - 4, cell - 4)
         }
@@ -663,7 +663,7 @@ function render(
       }
 
       if (!locked) {
-        ctx.strokeStyle = 'rgba(255, 107, 74, 0.55)'
+        ctx.strokeStyle = 'rgba(240, 86, 46, 0.85)'
         ctx.lineWidth = 1.5
         ctx.setLineDash([])
         ctx.strokeRect(left + 1.5, top + 1.5, cell - 3, cell - 3)

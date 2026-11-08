@@ -11,7 +11,7 @@ function HeroCircuit() {
     <svg viewBox="0 0 560 460" className="hero-art" fill="none" aria-hidden="true">
       <defs>
         <pattern id="hero-grid" width="28" height="28" patternUnits="userSpaceOnUse">
-          <path d="M28 0H0v28" stroke="#1a2030" strokeWidth="1" />
+          <path d="M28 0H0v28" stroke="#e6ebf4" strokeWidth="1" />
         </pattern>
         <radialGradient id="hero-glow" cx="52%" cy="42%" r="62%">
           <stop offset="0" stopColor="#ff6b4a" stopOpacity="0.14" />
@@ -26,12 +26,12 @@ function HeroCircuit() {
       </defs>
 
       <g clipPath="url(#hero-clip)">
-        <rect x="1" y="1" width="558" height="458" fill="#0e1219" />
+        <rect x="1" y="1" width="558" height="458" fill="#ffffff" />
         <rect x="1" y="1" width="558" height="458" fill="url(#hero-grid)" opacity="0.65" />
         <rect x="1" y="1" width="558" height="458" fill="url(#hero-glow)" />
 
         {/* 没通电的支路 */}
-        <g stroke="#2a3246" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <g stroke="#c9d2e1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M196 240v68h66" />
           <path d="M306 308h148v52" />
           <path d="M420 140V84h80v84" />
@@ -57,7 +57,7 @@ function HeroCircuit() {
         {/* 一段流动的高亮，示意信号在导线上跑 */}
         <path
           d="M84 240h112v-100h104"
-          stroke="#ffb199"
+          stroke="#ff9c7a"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeDasharray="10 214"
@@ -102,7 +102,7 @@ function HeroCircuit() {
           x="476"
           y="246"
           textAnchor="middle"
-          fill="#ff8a70"
+          fill="#d4441c"
           fontSize="17"
           fontWeight="700"
           fontFamily="ui-monospace, monospace"
@@ -111,13 +111,13 @@ function HeroCircuit() {
         </text>
 
         {/* 非门 */}
-        <g stroke="#2a3246" strokeWidth="2.5" strokeLinejoin="round">
-          <path d="M266 290v36l30-18z" fill="#0e1219" />
+        <g stroke="#c9d2e1" strokeWidth="2.5" strokeLinejoin="round">
+          <path d="M266 290v36l30-18z" fill="#ffffff" />
           <circle cx="303" cy="308" r="5" />
         </g>
 
         {/* 未通电的指示灯 */}
-        <circle cx="454" cy="360" r="8" fill="#141927" stroke="#2a3246" strokeWidth="2.5" />
+        <circle cx="454" cy="360" r="8" fill="#f1f4f9" stroke="#c9d2e1" strokeWidth="2.5" />
 
         {/* 通电的指示灯 */}
         <circle cx="500" cy="196" r="9" fill="#ff2b2b" className="hero-lamp" />
@@ -132,7 +132,7 @@ function HeroCircuit() {
 
       </g>
 
-      <rect x="1" y="1" width="558" height="458" rx="26" stroke="#232a3b" />
+      <rect x="1" y="1" width="558" height="458" rx="26" stroke="#dce1ea" />
     </svg>
   )
 }

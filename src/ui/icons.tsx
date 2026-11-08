@@ -48,7 +48,7 @@ export function ArrowUp({ size = 14 }: IconProps) {
   )
 }
 
-export function PauseIcon({ size = 14 }: IconProps) {
+export function PauseIcon({ size = 16 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
       <rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor" />
@@ -57,7 +57,7 @@ export function PauseIcon({ size = 14 }: IconProps) {
   )
 }
 
-export function PlayIcon({ size = 14 }: IconProps) {
+export function PlayIcon({ size = 16 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
       <path d="M4.5 2.6 13 8l-8.5 5.4z" fill="currentColor" />
@@ -65,7 +65,7 @@ export function PlayIcon({ size = 14 }: IconProps) {
   )
 }
 
-export function StepIcon({ size = 14 }: IconProps) {
+export function StepIcon({ size = 16 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
       <path d="M3 3.2 10.5 8 3 12.8z" fill="currentColor" />
@@ -75,7 +75,7 @@ export function StepIcon({ size = 14 }: IconProps) {
 }
 
 /** 菜单箭头：左边三个点、右边三条横线，和手机端顶栏的菜单键一致 */
-export function MenuIcon({ size = 16 }: IconProps) {
+export function MenuIcon({ size = 18 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
       <g fill="currentColor">

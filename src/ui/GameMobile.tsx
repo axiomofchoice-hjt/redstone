@@ -66,7 +66,7 @@ export function GameMobile({
             title="菜单"
             onClick={onMenuToggle}
           >
-            <MenuIcon size={14} />
+            <MenuIcon size={15} />
           </button>
           <div>
             <h1>

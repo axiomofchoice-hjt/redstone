@@ -108,7 +108,7 @@ export function GameDesktop({
       <header className="appbar">
         <button type="button" className="brand" onClick={onHome} title="返回首页">
           <span className="brand-mark">
-            <Logo size={18} />
+            <Logo size={20} />
           </span>
           <span className="brand-name">红石电路</span>
         </button>

@@ -1,16 +1,19 @@
 :root {
-  color-scheme: dark;
-  --bg: #0b0d14;
-  --panel: #0d1017;
-  --panel-2: #151a27;
-  --line: #232a3b;
-  --line-soft: #1b2130;
-  --text: #e6e9f2;
-  --muted: #9aa3b8;
-  --accent: #ff6b4a;
-  --accent-ink: #1a0d08;
-  --ok: #6ee7a8;
-  --redstone: #ff2b2b;
+  color-scheme: light;
+  --bg: #f5f7fb;
+  --panel: #ffffff;
+  --panel-2: #f7f8fc;
+  --field: #f1f4fa;
+  --line: #dce1ea;
+  --line-strong: #c4cddd;
+  --line-soft: #e9edf4;
+  --text: #1b2230;
+  --muted: #5c687c;
+  --accent: #f0562e;
+  --accent-strong: #cf4318;
+  --accent-ink: #2a0f06;
+  --ok: #178a55;
+  --redstone: #ed2b2b;
   --mono:
     ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
@@ -48,5 +51,5 @@ button {
 }
 
 ::selection {
-  background: rgba(255, 107, 74, 0.32);
+  background: rgba(240, 86, 46, 0.22);
 }

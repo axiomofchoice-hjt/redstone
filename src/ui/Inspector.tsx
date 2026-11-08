@@ -96,7 +96,7 @@ export function Inspector({
                 onTool(item.id ? { type: item.type, id: item.id } : { type: item.type })
               }
             >
-              <ToolIcon type={item.type} id={item.id} dir={dir} size={34} />
+              <ToolIcon type={item.type} id={item.id} dir={dir} size={38} />
               <span className="tool-label">{item.label}</span>
             </button>
           )
@@ -119,7 +119,7 @@ export function Inspector({
                 className="dir-arrow"
                 style={{ transform: `rotate(${[0, 90, 180, -90][item.dir]}deg)` }}
               >
-                <ArrowUp size={13} />
+                <ArrowUp size={15} />
               </span>
             </button>
           ))}

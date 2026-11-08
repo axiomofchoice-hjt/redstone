@@ -3,7 +3,7 @@ export const MIN_CELL = 36
 export const MAX_CELL = 120
 
 /** 电脑端 100% 时一格固定多大：所有关卡一样，地图大小只影响能看见多少 */
-export const DESKTOP_CELL = 36
+export const DESKTOP_CELL = 54
 
 /**
  * 100% 缩放时的格子边长（之后还要乘相机缩放）。

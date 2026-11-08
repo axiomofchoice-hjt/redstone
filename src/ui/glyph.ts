@@ -2,7 +2,7 @@ import { dirOf, DX, DY, isSource } from '../game/sim'
 import type { Cell, CellType, Level } from '../game/types'
 
 export const ON = '#ff2b2b'
-export const OFF = '#ffffff'
+export const OFF = '#39445c'
 
 const DIRS: [number, number][] = DX.map((dx, d) => [dx, DY[d]])
 
@@ -145,7 +145,7 @@ export function drawComponent(
       ctx.fillStyle = color
       roundRect(ctx, cx - cell * 0.26, cy - cell * 0.26, cell * 0.52, cell * 0.52, cell * 0.12)
       ctx.fill()
-      drawLabel(ctx, component.id ?? '', cx, cy, cell, '#0e1018')
+      drawLabel(ctx, component.id ?? '', cx, cy, cell, '#ffffff')
       break
     }
     case 'output': {
