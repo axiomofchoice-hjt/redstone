@@ -24,6 +24,11 @@ describe('波形采样', () => {
     expect(history[history.length - 1].tick).toBe(WAVE_TICKS + 5)
   })
 
+  it('时间轴被拨回去时从新的一帧重新记', () => {
+    const history = [sample(30, 1, 1), sample(31, 1, 1)]
+    expect(pushSample(history, sample(0, 0, 0))).toEqual([sample(0, 0, 0)])
+  })
+
   it('按时间窗口对齐：右端是当前 tick 的结尾', () => {
     // tick=3、窗口 32：tick 0 落在 28，tick 3 落在 31..32
     const history = [sample(0, 0, 0), sample(1, 1, 0), sample(2, 1, 1), sample(3, 0, 1)]

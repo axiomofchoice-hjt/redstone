@@ -24,6 +24,8 @@ export function waveSample(level: Level, sim: Simulation): WaveSample {
  */
 export function pushSample(history: WaveSample[], sample: WaveSample): WaveSample[] {
   const last = history[history.length - 1]
+  // 时间轴被拨回去（恢复了更早的存档之类），旧采样接不上，从这一帧重新记
+  if (last && sample.tick < last.tick) return [sample]
   const next = last?.tick === sample.tick ? [...history.slice(0, -1), sample] : [...history, sample]
   return next.length > WAVE_TICKS ? next.slice(next.length - WAVE_TICKS) : next
 }

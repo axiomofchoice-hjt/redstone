@@ -93,6 +93,8 @@ export class Simulation {
 
   constructor(level: Level, previous?: Simulation) {
     this.level = level
+    // 改元件重建时时间轴接着走：tick 是这一局已经跑过的时间，不该被编辑拨回去
+    if (previous) this.tick = previous.tick
     const n = level.cells.length
     this.notOn = new Array<boolean>(n).fill(true)
     this.repeaterOut = new Array<boolean>(n).fill(false)

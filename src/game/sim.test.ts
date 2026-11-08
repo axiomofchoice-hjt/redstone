@@ -255,6 +255,26 @@ describe('充能器', () => {
   })
 })
 
+it('改元件重建仿真时时间轴接着走', () => {
+  const level = makeLevel(
+    3,
+    1,
+    [
+      [0, 0, { type: 'input', id: 'A' }],
+      [2, 0, { type: 'output', id: 'L' }],
+    ],
+    [],
+  )
+  const sim = new Simulation(level)
+  sim.step()
+  sim.step()
+
+  const cells = level.cells.slice()
+  cells[1] = { type: 'wire' }
+  const rebuilt = new Simulation({ ...level, cells }, sim)
+  expect(rebuilt.tick).toBe(2)
+})
+
 it('后接上的回馈线不会让两个非门震荡', () => {
   const cols = 6
   const rows = 5
