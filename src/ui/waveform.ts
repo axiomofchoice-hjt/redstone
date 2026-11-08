@@ -11,7 +11,11 @@ export interface WaveSample {
   outputs: Record<string, 0 | 1>
 }
 
-/** 给当前这一 tick 拍一帧采样 */
+/**
+ * 给当前这一 tick 拍一帧采样。
+ * 输出按关卡声明的端口逐个记：没放到地图上的输出就是 0；
+ * 输入记的是玩家设过的值，输入元件删掉后这个值也还留着（sim 里会一直保存）。
+ */
 export function waveSample(level: Level, sim: Simulation): WaveSample {
   const outputs: Record<string, 0 | 1> = {}
   for (const id of level.outputs ?? []) outputs[id] = sim.output(id) ? 1 : 0
@@ -56,6 +60,14 @@ export function waveRuns(
     const last = runs[runs.length - 1]
     if (last && last.to === from && last.value === value) last.to = from + 1
     else runs.push({ from, to: from + 1, value })
+  }
+
+  // 关卡刚开始、窗口里还没攒够 32 帧：前面这段按 0 补满，一上来就是一整条 0 线，
+  // 而不是只在最右边挂一小截
+  const first = runs[0]
+  if (first && first.from > 0) {
+    if (first.value === 0) first.from = 0
+    else runs.unshift({ from: 0, to: first.from, value: 0 })
   }
   return runs
 }

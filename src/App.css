@@ -727,19 +727,10 @@ button.wave-tag:hover:not(:disabled) {
   color: var(--text);
 }
 
-button.wave-tag:disabled {
-  cursor: default;
-}
-
 .wave-tag.on {
   border-color: rgba(237, 43, 43, 0.45);
   background: rgba(237, 43, 43, 0.07);
   color: #b9221d;
-}
-
-.wave-row.missing .wave-tag {
-  border-style: dashed;
-  opacity: 0.55;
 }
 
 .wave-lane {
@@ -762,11 +753,6 @@ button.wave-tag:disabled {
   stroke: #39445c;
   stroke-width: 1.5;
   stroke-linejoin: round;
-}
-
-.wave-line.missing {
-  stroke: #c4cddd;
-  stroke-dasharray: 2 2;
 }
 
 .wave-now {

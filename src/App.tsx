@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
 import type { Cell, Dir, Level } from './game/types'
 import { LEVELS } from './levels'
@@ -25,20 +25,21 @@ type Screen = 'start' | 'levels' | 'game'
 interface Editing {
   level: Level
   sim: Simulation
+  /** 检查器波形图用的采样，只保留最近一段 tick；和仿真一起更新，改元件时当拍就能覆盖 */
+  history: WaveSample[]
 }
 
 const initial = (): Editing => {
   const level = { ...LEVELS[0], cells: LEVELS[0].cells.slice() }
-  return { level, sim: new Simulation(level) }
+  const sim = new Simulation(level)
+  return { level, sim, history: [waveSample(level, sim)] }
 }
 
 export default function App() {
-  const [{ level, sim }, setEditing] = useState<Editing>(initial)
+  const [{ level, sim, history }, setEditing] = useState<Editing>(initial)
   const [tool, setTool] = useState<Tool>({ type: 'wire' })
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
-  // 检查器波形图用的采样，只保留最近一段 tick；刚进界面先放当前这一帧
-  const [history, setHistory] = useState<WaveSample[]>(() => [waveSample(level, sim)])
   // 编辑器里手动开关的输入
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   const [menuOpen, setMenuOpen] = useState(false)
@@ -51,22 +52,35 @@ export default function App() {
   // 手机菜单只在手机布局里算数；拖到桌面宽度时不应该把仿真停住
   const mobileMenuOpen = menuOpen && !isDesktop
 
+  /**
+   * 定时器只建一次：改元件会重建仿真，如果定时器依赖 sim，每放一格都会被清掉重建，
+   * 计数又从 0 开始——一直连点 / 拖动画布时 tick 就永远到不了 250ms，看起来是卡住了。
+   * 这里让定时器读 ref 里的最新仿真，放东西不会打断节拍。
+   */
+  const simRef = useRef(sim)
+  useEffect(() => {
+    simRef.current = sim
+  }, [sim])
+
   /** 给波形图补一帧当前 tick 的采样；手机端不画波形，不用记 */
   const record = useCallback(() => {
     if (!isDesktop) return
-    setHistory((prev) => pushSample(prev, waveSample(level, sim)))
-  }, [isDesktop, level, sim])
+    setEditing((prev) => ({
+      ...prev,
+      history: pushSample(prev.history, waveSample(prev.level, prev.sim)),
+    }))
+  }, [isDesktop])
 
   useEffect(() => {
     if (paused || mobileMenuOpen || screen !== 'game') return
     const timer = setInterval(() => {
       // step() 直接返回画面有没有变化，不用前后各拍一次快照
-      const changed = sim.step()
+      const changed = simRef.current.step()
       record()
       if (changed) repaint()
     }, TICK_MS)
     return () => clearInterval(timer)
-  }, [sim, paused, mobileMenuOpen, screen, record])
+  }, [paused, mobileMenuOpen, screen, record])
 
   // 鼠标点完按钮别留下焦点：焦点在按钮上时再按键盘，浏览器会描一圈焦点框
   useEffect(() => {
@@ -112,7 +126,12 @@ export default function App() {
       const sim = new Simulation(level, prev.sim)
       // 重建后把手动开关的输入接着用
       sim.setInputs(inputs)
-      return { level, sim }
+      // 这一 tick 的输出已经跟着电路变了，采样要覆盖成新值，
+      // 只改最后一格的画面没用：过一刻它就成了历史，又会显示回旧电平
+      const history = isDesktop
+        ? pushSample(prev.history, waveSample(level, sim))
+        : prev.history
+      return { level, sim, history }
     })
     setRun(null)
   }
@@ -153,19 +172,17 @@ export default function App() {
     const next = { ...level, cells: solution.cells }
     const sim = new Simulation(next)
     sim.restore(solution.state)
-    setEditing({ level: next, sim })
+    // 参考解把 tick 拨回去了，旧波形接不上，从这个 tick 重新记
+    setEditing({ level: next, sim, history: [waveSample(next, sim)] })
     setInputs(solution.state.inputs)
     setRun(null)
     setMenuOpen(false)
-    // 参考解把 tick 拨回去了，旧波形接不上，从这个 tick 重新记
-    setHistory([waveSample(next, sim)])
   }
 
   const startLevel = (next: Level) => {
     const level = { ...next, cells: next.cells.slice() }
     const sim = new Simulation(level)
-    setEditing({ level, sim })
-    setHistory([waveSample(level, sim)])
+    setEditing({ level, sim, history: [waveSample(level, sim)] })
     // 换关后元件选择也回到这关的默认元件，别把上一关照到哪都带着
     setTool({ type: defaultTool(level) })
     setDir(INITIAL_DIR)

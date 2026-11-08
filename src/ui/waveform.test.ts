@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { pushSample, waveRuns, WAVE_TICKS, type WaveSample } from './waveform'
+import { Simulation } from '../game/sim'
+import type { Level } from '../game/types'
+import { pushSample, waveRuns, waveSample, WAVE_TICKS, type WaveSample } from './waveform'
 
 const sample = (tick: number, input: 0 | 1, output: 0 | 1): WaveSample => ({
   tick,
@@ -29,29 +31,54 @@ describe('波形采样', () => {
     expect(pushSample(history, sample(0, 0, 0))).toEqual([sample(0, 0, 0)])
   })
 
-  it('按时间窗口对齐：右端是当前 tick 的结尾', () => {
-    // tick=3、窗口 32：tick 0 落在 28，tick 3 落在 31..32
+  it('按时间窗口对齐：右端是当前 tick 的结尾，开局那段补 0', () => {
+    // tick=3、窗口 32：tick 0 落在 28，tick 3 落在 31..32；
+    // 关还没跑满 8 秒，0 之前那截按 0 画，整条线从左边一直拉到现在
     const history = [sample(0, 0, 0), sample(1, 1, 0), sample(2, 1, 1), sample(3, 0, 1)]
     expect(waveRuns(history, 'inputs', 'A', 3)).toEqual([
-      { from: 28, to: 29, value: 0 },
+      { from: 0, to: 29, value: 0 },
       { from: 29, to: 31, value: 1 },
       { from: 31, to: 32, value: 0 },
     ])
     expect(waveRuns(history, 'outputs', 'B', 3)).toEqual([
-      { from: 28, to: 30, value: 0 },
+      { from: 0, to: 30, value: 0 },
       { from: 30, to: 32, value: 1 },
     ])
   })
 
-  it('窗口外的旧采样丢掉，没记录的信号当 0', () => {
+  it('窗口外的旧采样丢掉', () => {
     const history = [sample(0, 1, 1), sample(40, 1, 1), sample(41, 0, 0)]
     expect(waveRuns(history, 'inputs', 'A', 41)).toEqual([
+      { from: 0, to: 30, value: 0 },
       { from: 30, to: 31, value: 1 },
       { from: 31, to: 32, value: 0 },
     ])
     // 窗口一路往前挪，旧采样全落在外面
     expect(waveRuns(history, 'inputs', 'A', 80)).toEqual([])
-    // 没记录的信号按 0 画
-    expect(waveRuns(history, 'outputs', 'Z', 41)).toEqual([{ from: 30, to: 32, value: 0 }])
+  })
+
+  it('没记录的端口按 0 画满整条线', () => {
+    // 未放置的输出一直按 0 处理：从左边开始就是一整条 0 线
+    const history = [sample(40, 1, 1), sample(41, 0, 0)]
+    expect(waveRuns(history, 'outputs', 'Z', 41)).toEqual([{ from: 0, to: 32, value: 0 }])
+  })
+
+  it('采样把声明的输出都记上，没放的输出记 0', () => {
+    const level: Level = {
+      id: 't',
+      name: 't',
+      cols: 3,
+      rows: 1,
+      inputs: ['A'],
+      outputs: ['B', 'C'],
+      // 只放了 A 和 B，输出 C 还没放到地图上
+      cells: [{ type: 'input', id: 'A' }, { type: 'output', id: 'B' }, null],
+      tests: [],
+    }
+    expect(waveSample(level, new Simulation(level))).toEqual({
+      tick: 0,
+      inputs: { A: 0 },
+      outputs: { B: 0, C: 0 },
+    })
   })
 })

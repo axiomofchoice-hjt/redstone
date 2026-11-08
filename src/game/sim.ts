@@ -174,6 +174,9 @@ export class Simulation {
       }
       this.settle(queue)
     }
+
+    // 输出先按新电路算一遍：暂停时改元件不会再有 step 来补，读数不能停在旧值
+    this.outputValues = this.collectOutputs()
   }
 
   setInputs(values: Record<string, 0 | 1>): void {
@@ -187,6 +190,8 @@ export class Simulation {
       for (const i of this.inputCells.get(key) ?? []) this.refreshEmit(i, queue)
     }
     this.settle(queue)
+    // 拨开关同样不用等 step：组合逻辑的输出这一刻就该变
+    this.outputValues = this.collectOutputs()
   }
 
   /** 完整复制一份当前状态，用来跑测试：测试怎么折腾都不会动到编辑器里这一份 */

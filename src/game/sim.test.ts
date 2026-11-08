@@ -275,6 +275,37 @@ it('改元件重建仿真时时间轴接着走', () => {
   expect(rebuilt.tick).toBe(2)
 })
 
+describe('输出不用等下一个 tick 就能读到', () => {
+  // A 通过一段导线接到 B：没有延迟元件，拨开关的这一刻 B 就该跟着变
+  const wired = (connected: boolean): Level => {
+    const entries: [number, number, Cell][] = [
+      [0, 0, { type: 'input', id: 'A' }],
+      [3, 0, { type: 'output', id: 'B' }],
+    ]
+    if (connected) entries.push([1, 0, { type: 'wire' }], [2, 0, { type: 'wire' }])
+    return makeLevel(4, 1, entries, [])
+  }
+
+  it('拨输入不用等 step，输出马上跟着变', () => {
+    const sim = new Simulation(wired(true))
+    expect(sim.output('B')).toBe(false)
+    sim.setInputs({ A: 1 })
+    expect(sim.output('B')).toBe(true)
+    sim.setInputs({ A: 0 })
+    expect(sim.output('B')).toBe(false)
+  })
+
+  it('补上导线重建后，输出立刻是新电路的值', () => {
+    const before = new Simulation(wired(false))
+    before.setInputs({ A: 1 })
+    expect(before.output('B')).toBe(false)
+
+    const rebuilt = new Simulation(wired(true), before)
+    rebuilt.setInputs({ A: 1 })
+    expect(rebuilt.output('B')).toBe(true)
+  })
+})
+
 it('后接上的回馈线不会让两个非门震荡', () => {
   const cols = 6
   const rows = 5

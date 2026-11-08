@@ -74,14 +74,7 @@ export function Inspector({
     [level, ports],
   )
 
-  const placed = useMemo(() => {
-    const set = new Set<string>()
-    for (const cell of level.cells) {
-      if (cell?.id && (cell.type === 'input' || cell.type === 'output')) set.add(cell.id)
-    }
-    return set
-  }, [level.cells])
-
+  // 波形把关卡声明的端口都列出来：没放到地图上的也占一行，输出按 0 画，输入按玩家设置
   const inputIds = level.inputs ?? []
   const outputIds = level.outputs ?? []
   const outcomes = run?.outcomes ?? []
@@ -180,7 +173,6 @@ export function Inspector({
           tick={tick}
           inputIds={inputIds}
           outputIds={outputIds}
-          placed={placed}
           inputs={inputs}
           outputAt={outputAt}
           onToggleInput={onToggleInput}
