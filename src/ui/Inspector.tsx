@@ -185,7 +185,7 @@ export function Inspector({
       </div>
 
       <div className="inspector-hints">
-        <p className="inspector-hint">滚轮换朝向 · WASD / 方向键移图</p>
+        <p className="inspector-hint">滚轮换朝向 · WASD / 方向键移视野</p>
         <p className="inspector-hint">左键拖动连续放置 · 右键拖动连续删除</p>
       </div>
     </aside>

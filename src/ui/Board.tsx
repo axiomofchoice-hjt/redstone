@@ -51,20 +51,24 @@ const WHEEL_STEP = 50
 const DRAG_SLOP = 6
 /** 系统开了「减少动态效果」就不做通电渐变，直接跳到目标色 */
 const REDUCE_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
-/** 电脑端键盘平移：一次走半格，格子特别大或特别小时夹一下 */
-const PAN_MIN = 24
-const PAN_MAX = 72
+/** 电脑端键盘平移：按住时每秒走这么多格，缩放时跟着格子大小一起变 */
+const PAN_SPEED = 8
 
-/** 电脑端键盘平移地图：WASD 和方向键，键名统一转小写 */
+/**
+ * 电脑端键盘平移：WASD 和方向键，键名统一转小写。
+ * 键指的是「想看哪边」，所以相机跟键同向走、地图看上去朝反方向退：
+ * 按 W 往上查看地图上方，地图整体往下走。和拖动地图（地图跟着指针走）不是一个朝向。
+ * 按住不放就按 PAN_SPEED 一直走，不等系统那一下半秒的重复延迟。
+ */
 const PAN_KEYS: Record<string, readonly [number, number]> = {
-  w: [0, -1],
-  a: [-1, 0],
-  s: [0, 1],
-  d: [1, 0],
-  arrowup: [0, -1],
-  arrowleft: [-1, 0],
-  arrowdown: [0, 1],
-  arrowright: [1, 0],
+  w: [0, 1],
+  a: [1, 0],
+  s: [0, -1],
+  d: [-1, 0],
+  arrowup: [0, 1],
+  arrowleft: [1, 0],
+  arrowdown: [0, -1],
+  arrowright: [-1, 0],
 }
 
 interface Geom extends Viewport {
@@ -318,34 +322,94 @@ export function Board({
     return () => canvas.removeEventListener('wheel', onWheel)
   }, [updateCamera])
 
-  // 电脑端 WASD / 方向键平移地图；手机端的 WASD 仍然是换朝向（在元件栏里处理）
+  // 电脑端 WASD / 方向键平移地图：按住就一直走，不等系统的按键重复延迟；
+  // 手机端的 WASD 仍然是换朝向（在元件栏里处理）
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
+    /** 正按着的平移键；多个键一起按就走对角线 */
+    const held = new Set<string>()
+    let frame = 0
+    /** 上一帧的时间，第一帧当 60fps 算，按下就立刻动一下 */
+    let last = 0
+
+    const stop = () => {
+      held.clear()
+      last = 0
+      if (frame) {
+        cancelAnimationFrame(frame)
+        frame = 0
+      }
+    }
+
+    const tick = (now: number) => {
+      frame = 0
       const desktop = workbenchRef.current
-      if (!desktop) return
+      const g = geom.current
+      if (!desktop || g.cell <= 0 || held.size === 0) {
+        last = 0
+        return
+      }
+      // 切后台再回来时间差会很大，夹一下免得太跳
+      const dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 60
+      last = now
+
+      let dx = 0
+      let dy = 0
+      for (const key of held) {
+        const step = PAN_KEYS[key]
+        if (!step) continue
+        dx += step[0]
+        dy += step[1]
+      }
+      const len = Math.hypot(dx, dy)
+      if (len > 0) {
+        const dist = g.cell * PAN_SPEED * dt
+        const current = camRef.current
+        const next = clampCamera(
+          current.x + (dx / len) * dist,
+          current.y + (dy / len) * dist,
+          g.w,
+          g.h,
+          g.mapW,
+          g.mapH,
+        )
+        // 到底了就别每帧都推一次新相机，免得白重渲染
+        if (next.x !== current.x || next.y !== current.y) {
+          updateCamera({ x: next.x, y: next.y, zoom: current.zoom })
+        }
+      }
+      frame = requestAnimationFrame(tick)
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!workbenchRef.current) return
       if (event.ctrlKey || event.metaKey || event.altKey) return
       if (isTypingTarget(event.target)) return
 
-      const step = PAN_KEYS[event.key.toLowerCase()]
-      if (!step) return
-      const g = geom.current
-      if (g.cell <= 0) return
-
+      const key = event.key.toLowerCase()
+      if (!PAN_KEYS[key]) return
+      // 方向键会滚动页面，按住不放也一直拦着
       event.preventDefault()
-      const current = camRef.current
-      const stepPx = Math.min(PAN_MAX, Math.max(PAN_MIN, Math.round(g.cell * 0.5)))
-      const next = clampCamera(
-        current.x + step[0] * stepPx,
-        current.y + step[1] * stepPx,
-        g.w,
-        g.h,
-        g.mapW,
-        g.mapH,
-      )
-      updateCamera({ x: next.x, y: next.y, zoom: current.zoom })
+      // 系统发来的重复事件不用管，按住这段时间由 rAF 一帧一帧推进
+      if (event.repeat) return
+      held.add(key)
+      if (!frame) frame = requestAnimationFrame(tick)
     }
+
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (!held.delete(event.key.toLowerCase())) return
+      if (held.size === 0) stop()
+    }
+
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    // 焦点跑了就收不到 keyup，松手会变成一直走
+    window.addEventListener('blur', stop)
+    return () => {
+      stop()
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('blur', stop)
+    }
   }, [updateCamera])
 
   /** 指针位置落在哪个格子上；不在图上返回 -1 */
