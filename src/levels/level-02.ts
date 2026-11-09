@@ -35,7 +35,7 @@ export const level02: Level = {
   id: 'level-02',
   no: 2,
   name: '或门',
-  brief: '',
+  brief: 'C = A OR B：A、B 只要有一个是 1，C 就是 1；两个都是 0 时 C 才是 0。\n这一关只能用导线。',
   cols,
   rows,
   inputs: ['A', 'B'],

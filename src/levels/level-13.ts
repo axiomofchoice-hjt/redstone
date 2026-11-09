@@ -57,7 +57,7 @@ export const level13: Level = {
   id: 'level-13',
   no: 13,
   name: '脉冲过滤器',
-  brief: '',
+  brief: '只放行宽度 3 tick 及以上的脉冲：1、2 tick 的窄脉冲直接吞掉。\n通过的脉冲晚 4 tick 出现，宽度不变。\n输入 A 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['A'],

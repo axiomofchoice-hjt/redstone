@@ -122,7 +122,7 @@ export const level18: Level = {
   id: 'level-18',
   no: 18,
   name: 'T 触发器',
-  brief: '',
+  brief: 'T 每来一个上升沿（0→1），Y 翻转一次；没有上升沿就保持。\nT 一直高着只翻一次，下降沿不动。\n输入 T 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['T'],

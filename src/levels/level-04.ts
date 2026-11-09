@@ -37,7 +37,7 @@ export const level04: Level = {
   id: 'level-04',
   no: 4,
   name: '与门',
-  brief: '',
+  brief: 'C = A AND B：只有 A、B 同时为 1，C 才为 1，其余情况 C = 0。\n输入 A、B 和输出 C 的位置自己定。',
   cols,
   rows,
   inputs: ['A', 'B'],

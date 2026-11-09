@@ -27,7 +27,7 @@ export const level12: Level = {
   id: 'level-12',
   no: 12,
   name: '脉冲延迟器',
-  brief: '',
+  brief: '把 A 的脉冲整体延后 5 tick，宽度不变。\n1 tick 的脉冲晚 5 tick 出现，3 tick 的还是 3 tick。\n输入 A 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['A'],

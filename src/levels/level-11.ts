@@ -39,7 +39,7 @@ export const level11: Level = {
   id: 'level-11',
   no: 11,
   name: '脉冲延长器',
-  brief: '',
+  brief: '把 A 的每个脉冲延长 2 tick：前沿跟输入同一 tick，后沿晚 2 tick 落下。\n1 tick 的脉冲变成 3 tick，两个靠得近的脉冲也不能粘成一个。\n输入 A 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['A'],

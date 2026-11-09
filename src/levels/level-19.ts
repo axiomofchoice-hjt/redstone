@@ -31,7 +31,7 @@ export const level19: Level = {
   id: 'level-19',
   no: 19,
   name: '脉冲长度感应器',
-  brief: '',
+  brief: 'P 高 1～4 tick，落回 0 后让对应编号的输出为 1：1 tick → 输出 1，2 tick → 输出 2，3 tick → 输出 3，4 tick → 输出 4，其余三个清 0。\n结果保持到下一个脉冲结束；脉冲还高着时保持上一个结果。\n输入 P 和输出 1～4 的位置自己定。',
   cols,
   rows,
   inputs: ['P'],

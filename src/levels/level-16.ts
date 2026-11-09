@@ -65,7 +65,7 @@ export const level16: Level = {
   id: 'level-16',
   no: 16,
   name: 'D 锁存器',
-  brief: '',
+  brief: 'E 开着时 Y 跟着 D 走；E 关掉后 Y 锁住那一刻的值，D 再怎么变都不影响。\n再打开 E，Y 重新跟上当前的 D。\n输入 D、E 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['D', 'E'],

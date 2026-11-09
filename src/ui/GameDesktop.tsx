@@ -5,7 +5,7 @@ import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
 import { clampZoom, zoomAround, type Camera, type Viewport } from './camera'
 import { Inspector } from './Inspector'
-import { Logo, MenuIcon, PauseIcon, PlayIcon, StepIcon } from './icons'
+import { InfoIcon, Logo, MenuIcon, PauseIcon, PlayIcon, StepIcon } from './icons'
 import type { Tool } from './Palette'
 import type { WaveSample } from './waveform'
 import { padNo } from './levels-meta'
@@ -38,7 +38,7 @@ interface Props {
   onLevels: () => void
 }
 
-/** 电脑端游戏界面：顶栏（右上角一个菜单键）+ 左侧检查器 + 右侧画布 */
+/** 电脑端游戏界面：顶栏（右上角关卡信息 + 菜单键）+ 左侧检查器 + 右侧画布 */
 export function GameDesktop({
   level,
   tool,
@@ -71,6 +71,7 @@ export function GameDesktop({
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 })
   const viewport = useRef<Viewport | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   const zoomTo = (zoom: number) => {
@@ -78,22 +79,39 @@ export function GameDesktop({
     setCamera((cam) => (view ? zoomAround(cam, view, zoom) : { ...cam, zoom: clampZoom(zoom) }))
   }
 
-  // 点菜单外面或者按 Esc 都收起来
+  const toggleMenu = () => {
+    setInfoOpen(false)
+    setMenuOpen((open) => !open)
+  }
+
+  const toggleInfo = () => {
+    setMenuOpen(false)
+    setInfoOpen((open) => !open)
+  }
+
+  // 点菜单 / 关卡信息外面或者按 Esc 都收起来
   useEffect(() => {
-    if (!menuOpen) return
+    if (!menuOpen && !infoOpen) return
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target
-      // 菜单里的项交给它自己的 onClick；菜单键负责开关，别在这里抢
+      // 面板里的内容和开关键交给它们自己的 onClick，别在这里抢
       if (
         target instanceof Element &&
-        (target.closest('.menu-panel') || target.closest('.menu-key'))
+        (target.closest('.menu-panel') ||
+          target.closest('.menu-key') ||
+          target.closest('.info-panel') ||
+          target.closest('.info-key'))
       ) {
         return
       }
       setMenuOpen(false)
+      setInfoOpen(false)
     }
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false)
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+        setInfoOpen(false)
+      }
     }
     document.addEventListener('pointerdown', onPointerDown)
     document.addEventListener('keydown', onKeyDown)
@@ -101,10 +119,11 @@ export function GameDesktop({
       document.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [menuOpen])
+  }, [menuOpen, infoOpen])
 
   const pick = (action: () => void) => () => {
     setMenuOpen(false)
+    setInfoOpen(false)
     action()
   }
 
@@ -149,12 +168,24 @@ export function GameDesktop({
 
           <button
             type="button"
+            className="btn icon info-key"
+            aria-label="关卡信息"
+            aria-expanded={infoOpen}
+            aria-controls="level-info"
+            title="关卡信息"
+            onClick={toggleInfo}
+          >
+            <InfoIcon />
+          </button>
+
+          <button
+            type="button"
             className="btn icon menu-key"
             aria-label="菜单"
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             title="菜单"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={toggleMenu}
           >
             <MenuIcon />
           </button>
@@ -185,6 +216,13 @@ export function GameDesktop({
                 返回选关
               </button>
             </div>
+          ) : null}
+
+          {infoOpen ? (
+            <section id="level-info" className="info-panel" aria-label="关卡信息">
+              <p className="info-label">本关目标</p>
+              <p className="info-text">{level.brief?.trim() || '这一关还没写目标说明。'}</p>
+            </section>
           ) : null}
         </div>
       </header>

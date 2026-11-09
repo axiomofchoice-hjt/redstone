@@ -34,7 +34,7 @@ export const level03: Level = {
   id: 'level-03',
   no: 3,
   name: '非门',
-  brief: '',
+  brief: 'B = NOT A：A 为 1 时 B 为 0，A 为 0 时 B 为 1。\n这一关可用导线、充能器、非门。',
   cols,
   rows,
   inputs: ['A'],

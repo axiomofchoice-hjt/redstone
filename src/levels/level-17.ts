@@ -119,7 +119,7 @@ export const level17: Level = {
   id: 'level-17',
   no: 17,
   name: 'JK 触发器',
-  brief: '',
+  brief: '只在时钟 C 的上升沿按当时的 J、K 改 Y：J=1、K=0 置 1；J=0、K=1 清 0；J=K=0 保持；J=K=1 翻转。\nC 高着的时候改 J、K 不生效，下降沿也不动。\n输入 J、K、C 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['J', 'K', 'C'],

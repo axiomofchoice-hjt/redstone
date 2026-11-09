@@ -52,7 +52,7 @@ export const level05: Level = {
   id: 'level-05',
   no: 5,
   name: '异或门',
-  brief: '',
+  brief: 'C = A XOR B：A、B 不同时 C = 1，相同时 C = 0。\n输入 A、B 和输出 C 的位置自己定。',
   cols,
   rows,
   inputs: ['A', 'B'],

@@ -61,7 +61,7 @@ export const level07: Level = {
   id: 'level-07',
   no: 7,
   name: '三人投票器',
-  brief: '',
+  brief: '三人投票：A、B、C 里至少有两个人是 1 时，Y = 1；否则 Y = 0。\n输入 A、B、C 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['A', 'B', 'C'],

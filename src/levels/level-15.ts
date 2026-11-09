@@ -46,7 +46,7 @@ export const level15: Level = {
   id: 'level-15',
   no: 15,
   name: 'RS 锁存器',
-  brief: '',
+  brief: 'S 拉一下让 Y 变 1，R 拉一下让 Y 变 0；S、R 都不拉时保持上一次的值。\nS、R 同时为 1 的情况不用管。\n输入 S、R 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['S', 'R'],

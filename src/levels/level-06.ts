@@ -62,7 +62,7 @@ export const level06: Level = {
   id: 'level-06',
   no: 6,
   name: '半加器',
-  brief: '',
+  brief: '半加器：S = A XOR B 是本位和，C = A AND B 是进位。\n输入 A、B 和输出 S、C 的位置自己定。',
   cols,
   rows,
   inputs: ['A', 'B'],
