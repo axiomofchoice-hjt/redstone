@@ -58,6 +58,11 @@ export function GameMobile({
     <div className="app">
       <header className="top">
         <div className="head">
+          <div>
+            <h1>
+              第 {level.no ?? 1} 关 · {level.name}
+            </h1>
+          </div>
           <button
             type="button"
             className="menu"
@@ -68,11 +73,6 @@ export function GameMobile({
           >
             <MenuIcon size={15} />
           </button>
-          <div>
-            <h1>
-              第 {level.no ?? 1} 关 · {level.name}
-            </h1>
-          </div>
         </div>
       </header>
 
