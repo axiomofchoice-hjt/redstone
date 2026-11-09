@@ -232,6 +232,12 @@ function drawConnections(
   }
 }
 
+/**
+ * 字母墨迹的上下沿 → 基线该落在哪：让墨迹的正中压在 cy 上。
+ * middle 对齐的是 em 框中心，大写字母和数字在 em 框里偏上，直接用会顶着方块上沿。
+ */
+export const labelBaseline = (cy: number, up: number, down: number) => cy + (up - down) / 2
+
 function drawLabel(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -242,10 +248,14 @@ function drawLabel(
 ) {
   if (!text) return
   ctx.fillStyle = color
-  ctx.font = `600 ${Math.floor(cell * 0.3)}px system-ui, sans-serif`
+  const size = Math.max(1, Math.floor(cell * 0.3))
+  ctx.font = `600 ${size}px system-ui, sans-serif`
   ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(text, cx, cy)
+  ctx.textBaseline = 'alphabetic'
+  const metrics = ctx.measureText(text)
+  const up = metrics.actualBoundingBoxAscent || size * 0.72
+  const down = metrics.actualBoundingBoxDescent || 0
+  ctx.fillText(text, cx, labelBaseline(cy, up, down))
 }
 
 function roundRect(
