@@ -122,7 +122,7 @@ export function GameMobile({
                   ? '未运行'
                   : run.passed
                     ? '全部测试通过'
-                    : `${run.outcomes.filter((outcome) => !outcome.passed).length} / ${run.outcomes.length} 个测试未通过`}
+                    : '测试未通过'}
               </span>
             </div>
             <div className="actions">

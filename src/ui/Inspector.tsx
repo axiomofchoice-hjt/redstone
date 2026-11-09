@@ -77,8 +77,6 @@ export function Inspector({
   // 波形把关卡声明的端口都列出来：没放到地图上的也占一行，输出按 0 画，输入按玩家设置
   const inputIds = level.inputs ?? []
   const outputIds = level.outputs ?? []
-  const outcomes = run?.outcomes ?? []
-  const passed = outcomes.filter((outcome) => outcome.passed).length
   const testState = run === null ? '' : run.passed ? ' ok' : ' bad'
 
   return (
@@ -182,7 +180,7 @@ export function Inspector({
       <div className={`test-line${testState}`} role="status">
         <span className="test-dot" aria-hidden="true" />
         <span>
-          {run === null ? '未运行' : run.passed ? '全部通过' : `${outcomes.length - passed} 组未通过`}
+          {run === null ? '未运行' : run.passed ? '全部通过' : '未通过'}
         </span>
       </div>
 
