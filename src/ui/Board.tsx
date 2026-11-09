@@ -166,9 +166,7 @@ export function Board({
   const drawRef = useRef<() => void>(() => {})
 
   useEffect(() => {
-    const wrap = wrapRef.current
-    const canvas = canvasRef.current
-    if (!wrap || !canvas) return
+    if (!wrapRef.current || !canvasRef.current) return
 
     let frame = 0
 
@@ -181,6 +179,10 @@ export function Board({
     }
 
     function draw(now = performance.now()) {
+      // 每帧重新取，函数声明会被提升，外面那次判空收窄传不进来
+      const wrap = wrapRef.current
+      const canvas = canvasRef.current
+      if (!wrap || !canvas) return
       const rect = wrap.getBoundingClientRect()
       const dpr = window.devicePixelRatio || 1
       // 只用内容区（去掉 .board 的内边距），画布不会溢出到左右/下方
