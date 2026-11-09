@@ -52,6 +52,7 @@ export const level05: Level = {
   id: 'level-05',
   no: 5,
   name: '异或门',
+  brief: '',
   cols,
   rows,
   inputs: ['A', 'B'],

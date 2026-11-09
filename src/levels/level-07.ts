@@ -61,6 +61,7 @@ export const level07: Level = {
   id: 'level-07',
   no: 7,
   name: '三人投票器',
+  brief: '',
   cols,
   rows,
   inputs: ['A', 'B', 'C'],

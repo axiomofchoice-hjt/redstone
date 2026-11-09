@@ -34,6 +34,7 @@ export const level03: Level = {
   id: 'level-03',
   no: 3,
   name: '非门',
+  brief: '',
   cols,
   rows,
   inputs: ['A'],

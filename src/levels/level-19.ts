@@ -31,6 +31,7 @@ export const level19: Level = {
   id: 'level-19',
   no: 19,
   name: '脉冲长度感应器',
+  brief: '',
   cols,
   rows,
   inputs: ['P'],

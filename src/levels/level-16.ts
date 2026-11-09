@@ -65,6 +65,7 @@ export const level16: Level = {
   id: 'level-16',
   no: 16,
   name: 'D 锁存器',
+  brief: '',
   cols,
   rows,
   inputs: ['D', 'E'],

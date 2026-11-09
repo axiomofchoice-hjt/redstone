@@ -57,6 +57,7 @@ export const level13: Level = {
   id: 'level-13',
   no: 13,
   name: '脉冲过滤器',
+  brief: '',
   cols,
   rows,
   inputs: ['A'],

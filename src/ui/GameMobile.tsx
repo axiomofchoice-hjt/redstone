@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import { hasDirection } from '../game/sim'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
-import { MenuIcon } from './icons'
+import { InfoIcon, MenuIcon } from './icons'
 import { Palette } from './Palette'
 import type { Tool } from './Palette'
 
@@ -54,6 +55,14 @@ export function GameMobile({
   onExport,
   onLevels,
 }: Props) {
+  // 信息页只盖住地图和操控区，顶栏不动；再点一次 ⓘ 或「返回地图」就退出来
+  const [infoOpen, setInfoOpen] = useState(false)
+
+  const toggleInfo = () => {
+    if (menuOpen) onContinue()
+    setInfoOpen((open) => !open)
+  }
+
   return (
     <div className="app">
       <header className="top">
@@ -63,16 +72,31 @@ export function GameMobile({
               第 {level.no ?? 1} 关 · {level.name}
             </h1>
           </div>
-          <button
-            type="button"
-            className="menu"
-            aria-label="菜单"
-            aria-expanded={menuOpen}
-            title="菜单"
-            onClick={onMenuToggle}
-          >
-            <MenuIcon size={15} />
-          </button>
+          <div className="head-keys">
+            <button
+              type="button"
+              className="menu"
+              aria-label="本关目标"
+              aria-pressed={infoOpen}
+              title="本关目标"
+              onClick={toggleInfo}
+            >
+              <InfoIcon size={15} />
+            </button>
+            <button
+              type="button"
+              className="menu"
+              aria-label="菜单"
+              aria-expanded={menuOpen}
+              title="菜单"
+              onClick={() => {
+                setInfoOpen(false)
+                onMenuToggle()
+              }}
+            >
+              <MenuIcon size={15} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -96,6 +120,21 @@ export function GameMobile({
             </button>
             <button type="button" className="btn menu-btn" onClick={onLevels}>
               返回选关界面
+            </button>
+          </div>
+        </div>
+      ) : infoOpen ? (
+        // 只写本关目标：地图、工具栏、元件栏都不显示，顶栏保留
+        <div className="info-screen">
+          <div className="info-card">
+            <p className="info-label">本关目标</p>
+            <p className="info-text">{level.brief?.trim() || '这一关还没写目标说明。'}</p>
+            <button
+              type="button"
+              className="btn primary menu-btn"
+              onClick={() => setInfoOpen(false)}
+            >
+              返回地图
             </button>
           </div>
         </div>

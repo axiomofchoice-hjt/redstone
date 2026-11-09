@@ -62,6 +62,7 @@ export const level09: Level = {
   id: 'level-09',
   no: 9,
   name: '时钟',
+  brief: '',
   cols,
   rows,
   outputs: ['Y'],

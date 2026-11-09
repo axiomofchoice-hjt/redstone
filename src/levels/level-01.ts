@@ -30,6 +30,7 @@ export const level01: Level = {
   id: 'level-01',
   no: 1,
   name: '导线',
+  brief: '',
   cols,
   rows,
   inputs: ['A'],

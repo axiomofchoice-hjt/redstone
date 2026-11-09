@@ -92,6 +92,7 @@ export const level08: Level = {
   id: 'level-08',
   no: 8,
   name: '交叉',
+  brief: '',
   cols,
   rows,
   inputs: ['A', 'B'],

@@ -46,6 +46,7 @@ export const level15: Level = {
   id: 'level-15',
   no: 15,
   name: 'RS 锁存器',
+  brief: '',
   cols,
   rows,
   inputs: ['S', 'R'],

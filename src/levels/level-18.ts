@@ -122,6 +122,7 @@ export const level18: Level = {
   id: 'level-18',
   no: 18,
   name: 'T 触发器',
+  brief: '',
   cols,
   rows,
   inputs: ['T'],

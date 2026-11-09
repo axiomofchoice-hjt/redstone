@@ -45,6 +45,7 @@ export const level10: Level = {
   id: 'level-10',
   no: 10,
   name: '上升沿感应器',
+  brief: '',
   cols,
   rows,
   inputs: ['A'],

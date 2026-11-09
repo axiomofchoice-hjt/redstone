@@ -27,6 +27,7 @@ export const level12: Level = {
   id: 'level-12',
   no: 12,
   name: '脉冲延迟器',
+  brief: '',
   cols,
   rows,
   inputs: ['A'],

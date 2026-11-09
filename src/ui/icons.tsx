@@ -74,6 +74,17 @@ export function StepIcon({ size = 16 }: IconProps) {
   )
 }
 
+/** 信息：圆圈里一个 i，和手机端顶栏的 ⓘ 键一致 */
+export function InfoIcon({ size = 18 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.1" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="8" cy="4.9" r="0.95" fill="currentColor" />
+      <path d="M8 7.2v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 /** 菜单箭头：左边三个点、右边三条横线，和手机端顶栏的菜单键一致 */
 export function MenuIcon({ size = 18 }: IconProps) {
   return (

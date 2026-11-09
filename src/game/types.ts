@@ -71,6 +71,8 @@ export interface Level {
   /** 第几关 */
   no?: number
   name: string
+  /** 这一关的目标说明：手机端顶栏的 ⓘ 打开后只显示这段文字；空字符串表示还没写 */
+  brief?: string
   cols: number
   rows: number
   /** 输入元件的字母，按顺序排 */

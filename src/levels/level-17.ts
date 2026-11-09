@@ -119,6 +119,7 @@ export const level17: Level = {
   id: 'level-17',
   no: 17,
   name: 'JK 触发器',
+  brief: '',
   cols,
   rows,
   inputs: ['J', 'K', 'C'],

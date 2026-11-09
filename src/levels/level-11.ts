@@ -39,6 +39,7 @@ export const level11: Level = {
   id: 'level-11',
   no: 11,
   name: '脉冲延长器',
+  brief: '',
   cols,
   rows,
   inputs: ['A'],

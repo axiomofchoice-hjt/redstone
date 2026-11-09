@@ -862,9 +862,22 @@ button.wave-tag:hover:not(:disabled) {
   min-width: 0;
 }
 
-/* 标题太长时省略，别把右边的菜单键挤出去 */
-.head > div {
+/* 标题太长时省略，别把右边的 ⓘ / 菜单键挤出去 */
+.head > div:first-child {
   min-width: 0;
+}
+
+.head-keys {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 信息页打开时 ⓘ 保持高亮，提示再点一次能收回去 */
+.menu[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .head h1 {
@@ -1089,6 +1102,42 @@ button.wave-tag:hover:not(:disabled) {
   flex-direction: column;
   gap: 12px;
   width: min(260px, 80%);
+}
+
+/* ⓘ 页：只留本关目标，顶栏照旧 */
+.info-screen {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(340px, 100%);
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.info-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.info-text {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
 }
 
 .btn.menu-btn {

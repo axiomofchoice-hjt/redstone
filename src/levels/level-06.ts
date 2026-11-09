@@ -62,6 +62,7 @@ export const level06: Level = {
   id: 'level-06',
   no: 6,
   name: '半加器',
+  brief: '',
   cols,
   rows,
   inputs: ['A', 'B'],

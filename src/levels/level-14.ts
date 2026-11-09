@@ -73,6 +73,7 @@ export const level14: Level = {
   id: 'level-14',
   no: 14,
   name: '双边沿感应器',
+  brief: '',
   cols,
   rows,
   inputs: ['A'],
