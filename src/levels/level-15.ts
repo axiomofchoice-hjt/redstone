@@ -25,15 +25,13 @@ const solution = cellsFrom(cols * rows, {
   21: { type: 'output', id: 'Y' },
 })
 
-/** 导出时的一刻：S=1、R=0，Y=1（tick 46） */
+/** 导出时的一刻：S=0、R=0，Y=0（tick 82） */
 const solutionState = stateFrom(
-  { tick: 46, inputs: { S: 1, R: 0 }, outputs: { Y: 1 } },
+  { tick: 82, inputs: { S: 0, R: 0 }, outputs: { Y: 0 } },
   {
-    0: 1,
-    1: 3,
-    2: 1,
-    11: 1,
-    21: 1,
+    3: 1,
+    12: 1,
+    13: 3,
   },
 )
 

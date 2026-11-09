@@ -5,7 +5,9 @@ import { baseCell } from './board-layout'
 import { cellIndexAt, gridLine } from './board-hit'
 import { clampCamera, clampZoom, type Camera, type Viewport } from './camera'
 import { drawComponent, linkedDirs } from './glyph'
+import { advanceFade, tweenValue, type Fade } from './fade'
 import { isTypingTarget } from './keyboard'
+import { useMediaQuery } from './useMediaQuery'
 import type { Tool } from './Palette'
 
 interface Props {
@@ -47,6 +49,8 @@ const WHEEL_ZOOM = 0.0015
 const WHEEL_STEP = 50
 /** 手机 / 平板拖动地图前，指针要挪出这个距离才算拖动而不是点按 */
 const DRAG_SLOP = 6
+/** 系统开了「减少动态效果」就不做通电渐变，直接跳到目标色 */
+const REDUCE_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 /** 电脑端键盘平移：一次走半格，格子特别大或特别小时夹一下 */
 const PAN_MIN = 24
 const PAN_MAX = 72
@@ -139,6 +143,9 @@ export function Board({
   // wheel / keydown 是原生监听，只挂一次，相机和模式都从这里取最新值
   const workbenchRef = useRef(workbench)
   const [hover, setHover] = useState(-1)
+  // 每格的通电渐变进度。rAF 只推进这张表、重画画布，不触发 React 重渲染
+  const fades = useRef(new Map<number, Fade>())
+  const reduceMotion = useMediaQuery(REDUCE_MOTION_QUERY)
 
   useEffect(() => {
     camRef.current = cam
@@ -163,7 +170,17 @@ export function Board({
     const canvas = canvasRef.current
     if (!wrap || !canvas) return
 
-    const draw = () => {
+    let frame = 0
+
+    function schedule() {
+      if (frame || reduceMotion) return
+      frame = requestAnimationFrame((time) => {
+        frame = 0
+        draw(time)
+      })
+    }
+
+    function draw(now = performance.now()) {
       const rect = wrap.getBoundingClientRect()
       const dpr = window.devicePixelRatio || 1
       // 只用内容区（去掉 .board 的内边距），画布不会溢出到左右/下方
@@ -183,6 +200,8 @@ export function Board({
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      // 先把通电渐变推到这一帧，再按进度取色；没走完就再排一帧
+      const moving = advanceFade(fades.current, cells, powerAt, now, reduceMotion)
       // 右键拖动删除时，悬停预览也画成红叉，别显示成要放置的元件
       const hoverPreview = stroke.current?.erase ? 'erase' : preview
       render(
@@ -199,12 +218,21 @@ export function Board({
         hoverPreview,
         previewDir,
         workbench != null,
+        (index, horizontal) => {
+          const fade = fades.current.get(index)
+          return fade ? tweenValue(horizontal ? fade.h : fade.v, now) : 0
+        },
       )
       if (viewportRef) viewportRef.current = geom.current
+      if (moving) schedule()
     }
 
     drawRef.current = draw
     draw()
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+    }
   }, [
     level,
     cells,
@@ -217,6 +245,7 @@ export function Board({
     previewDir,
     workbench,
     viewportRef,
+    reduceMotion,
   ])
 
   useEffect(() => {
@@ -529,6 +558,8 @@ function render(
   preview: Tool | null,
   previewDir: Dir | undefined,
   fixedCell: boolean,
+  /** 每格通电渐变的进度，参数是格子下标和「是不是横线」 */
+  mixAt: (index: number, horizontal: boolean) => number,
 ) {
   ctx.clearRect(0, 0, w, h)
   ctx.fillStyle = BG
@@ -607,6 +638,8 @@ function render(
         component.type === 'wire' ? linkedDirs(cells, level, x, y) : null,
         undefined,
         lockedAt?.(i) === true,
+        mixAt(i, false),
+        mixAt(i, true),
       )
     }
   }

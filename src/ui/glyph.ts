@@ -4,6 +4,18 @@ import type { Cell, CellType, Level } from '../game/types'
 export const ON = '#ff2b2b'
 export const OFF = '#39445c'
 
+const ON_RGB = [255, 43, 43] as const
+const OFF_RGB = [57, 68, 92] as const
+
+/** 通电程度 0..1 对应的导线颜色：0 是灰、1 是红，中间线性过渡 */
+export function mixColor(amount: number): string {
+  const t = amount <= 0 ? 0 : amount >= 1 ? 1 : amount
+  const r = Math.round(OFF_RGB[0] + (ON_RGB[0] - OFF_RGB[0]) * t)
+  const g = Math.round(OFF_RGB[1] + (ON_RGB[1] - OFF_RGB[1]) * t)
+  const b = Math.round(OFF_RGB[2] + (ON_RGB[2] - OFF_RGB[2]) * t)
+  return `rgb(${r}, ${g}, ${b})`
+}
+
 const DIRS: [number, number][] = DX.map((dx, d) => [dx, DY[d]])
 
 export const lineWidth = (cell: number) => Math.max(1.5, cell * 0.06)
@@ -44,9 +56,14 @@ export function drawComponent(
   override?: string,
   /** 中继器被侧面锁住：三角形填实，表示输出被按住不动 */
   locked = false,
+  /** 通电渐变的进度：0 灰、1 红；不传就直接按 power 取色 */
+  mix?: number,
+  /** cross 的横线单独的进度（竖线用 mix），不传就跟 mix 一样 */
+  horizontalMix?: number,
 ) {
   const on = power !== 0
-  const color = override ?? (on ? ON : OFF)
+  const amount = mix ?? (on ? 1 : 0)
+  const color = override ?? mixColor(amount)
 
   switch (component.type) {
     case 'wire': {
@@ -56,6 +73,8 @@ export function drawComponent(
     case 'cross': {
       const vertical = (power & 1) !== 0
       const horizontal = (power & 2) !== 0
+      const verticalColor = override ?? mixColor(mix ?? (vertical ? 1 : 0))
+      const horizontalColor = override ?? mixColor(horizontalMix ?? mix ?? (horizontal ? 1 : 0))
       const r = cell * 0.18
       const lw = lineWidth(cell)
       // 圆头会多伸出半个线宽，端点往里收，正好停在格子边框上
@@ -64,7 +83,7 @@ export function drawComponent(
       ctx.lineCap = 'round'
 
       // 横线在中间向下绕半个圆，从竖线下穿过去
-      ctx.strokeStyle = override ?? (horizontal ? ON : OFF)
+      ctx.strokeStyle = horizontalColor
       ctx.beginPath()
       ctx.moveTo(cx - reach, cy)
       ctx.lineTo(cx - r, cy)
@@ -73,7 +92,7 @@ export function drawComponent(
       ctx.stroke()
 
       // 竖线是一条直线
-      ctx.strokeStyle = override ?? (vertical ? ON : OFF)
+      ctx.strokeStyle = verticalColor
       ctx.beginPath()
       ctx.moveTo(cx, cy - reach)
       ctx.lineTo(cx, cy + reach)
@@ -118,9 +137,10 @@ export function drawComponent(
     case 'not': {
       // 灯泡符号：圆圈 + 叉
       const r = cell * 0.33
-      if (on) {
+      if (amount > 0.02) {
         const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 1.9)
-        glow.addColorStop(0, 'rgba(255, 43, 43, 0.45)')
+        // 光晕跟着渐变一起亮起来，不会先灰后猛地点亮
+        glow.addColorStop(0, `rgba(255, 43, 43, ${0.45 * amount})`)
         glow.addColorStop(1, 'rgba(255, 43, 43, 0)')
         ctx.fillStyle = glow
         ctx.beginPath()

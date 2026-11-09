@@ -59,24 +59,24 @@ const solution = cellsFrom(cols * rows, {
   67: { type: 'not', dir: 0 },
 })
 
-/** 导出时的一刻：T=1，Y=0（tick 138） */
+/** 导出时的一刻：T=0，Y=0（tick 219） */
 const solutionState = stateFrom(
-  { tick: 138, inputs: { T: 1 }, outputs: { Y: 0 } },
+  { tick: 219, inputs: { T: 0 }, outputs: { Y: 0 } },
   {
-    0: 1,
     2: 3,
     3: 1,
-    10: 1,
     12: 3,
+    20: 1,
     21: 3,
     22: 3,
     25: 1,
     26: 3,
     27: 1,
+    30: 1,
     32: 3,
     36: 1,
+    40: 1,
     42: 3,
-    50: 1,
     51: 3,
     52: 3,
     62: 3,
