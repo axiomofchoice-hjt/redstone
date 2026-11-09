@@ -30,17 +30,11 @@ const solution = cellsFrom(cols * rows, {
   13: { type: 'wire' },
 })
 
-/** 导出时的一刻：A=1，已经过了脉冲，Y=0 */
-const solutionState = stateFrom({ tick: 86, inputs: { A: 1 }, outputs: { Y: 0 } }, {
-  // 第 0 行
-  0: 1,
-  1: 1,
+/** 导出时的一刻：A=0、Y=0（tick 104） */
+const solutionState = stateFrom({ tick: 104, inputs: { A: 0 }, outputs: { Y: 0 } }, {
+  2: 1,
   3: 3,
   4: 1,
-  // 第 1 行
-  10: 3,
-  11: 1,
-  12: 1,
   13: 3,
 })
 
