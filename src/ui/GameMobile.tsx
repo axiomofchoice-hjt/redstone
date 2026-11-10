@@ -40,6 +40,8 @@ interface Props {
   trace: TraceInfo | null
   /** 参考解那几条输出线的采样 */
   refHistory: WaveSample[]
+  /** 回放已经走到最后一刻，不能再往后单步 */
+  traceEnd: boolean
   onTool: (tool: Tool) => void
   onDir: (dir: Dir) => void
   onCell: (index: number) => void
@@ -76,6 +78,7 @@ export function GameMobile({
   outputAt,
   trace,
   refHistory,
+  traceEnd,
   onTool,
   onDir,
   onCell,
@@ -261,9 +264,9 @@ export function GameMobile({
                 type="button"
                 className="debug icon"
                 onClick={onNextTick}
-                disabled={!paused}
-                aria-label={trace ? '下一刻回放' : '推进一个 tick'}
-                title={trace ? '下一刻：回放往后走一个 tick' : '推进一个 tick'}
+                disabled={!paused || traceEnd}
+                aria-label={traceEnd ? '回放已到最后' : trace ? '下一刻回放' : '推进一个 tick'}
+                title={traceEnd ? '已到最后一刻' : trace ? '下一刻：回放往后走一个 tick' : '推进一个 tick'}
               >
                 <StepIcon size={14} />
               </button>

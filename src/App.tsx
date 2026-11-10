@@ -8,7 +8,7 @@ import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
 import { pushSample, waveSample, type WaveSample } from './ui/waveform'
-import { checksOf, refLevelOf, replayStep, type TraceInfo } from './ui/trace'
+import { checksOf, refLevelOf, refSimOf, replayStep, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/Palette'
 import { editAction, type EditMode } from './ui/edit-mode'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
@@ -57,7 +57,7 @@ const initial = (): Editing => {
  */
 function replayTo(level: Level, test: TestCase, refLevel: Level | null, steps: number) {
   const sim = new Simulation(level)
-  const refSim = refLevel ? new Simulation(refLevel) : null
+  const refSim = refSimOf(level, refLevel)
   let history = [waveSample(level, sim)]
   let refHistory = refSim && refLevel ? [waveSample(refLevel, refSim)] : []
   for (let t = 0; t < steps; t++) {
@@ -94,6 +94,8 @@ export default function App() {
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
   // 手机菜单只在手机布局里算数；拖到桌面宽度时不应该把仿真停住
   const mobileMenuOpen = menuOpen && !isDesktop
+  // 回放已经走到最后一刻：仿真多走了一步才停，所以是 > lastTick
+  const traceEnd = replay !== null && sim.tick > replay.lastTick
 
   // 手机端的「交互」是元件栏里的工具；拖到电脑端后换成模式按钮，
   // 别留下一个电脑端没有入口再退出的交互工具
@@ -406,6 +408,7 @@ export default function App() {
         run={run}
         trace={replay?.info ?? null}
         refHistory={refHistory}
+        traceEnd={traceEnd}
         paused={paused}
         revision={version}
         powerAt={powerAt}
@@ -451,6 +454,7 @@ export default function App() {
       outputAt={outputAt}
       trace={replay?.info ?? null}
       refHistory={refHistory}
+      traceEnd={traceEnd}
       onTool={pickTool}
       onDir={setDir}
       onCell={handleCell}

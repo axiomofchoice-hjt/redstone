@@ -1,4 +1,4 @@
-import type { Simulation } from '../game/sim'
+import { Simulation } from '../game/sim'
 import type { Level, TestCase } from '../game/types'
 import { solutionCells } from './solution'
 
@@ -23,6 +23,18 @@ export const checksOf = (test: TestCase): TraceCheck[] =>
 export function refLevelOf(level: Level): Level | null {
   const cells = solutionCells(level)
   return cells ? { ...level, cells } : null
+}
+
+/**
+ * 参考解并排跑测试用的仿真：除了铺元件，还要恢复保存的电路状态。
+ * 导出的 tick 只是保存那一刻，回放和玩家一样从 tick 0 开始，所以 tick 和输入归零；
+ * 延迟元件的通电位必须留下，否则 T / JK 触发器这类参考解会从错误的相位起跑。
+ */
+export function refSimOf(level: Level, refLevel = refLevelOf(level)): Simulation | null {
+  if (!refLevel || !level.solution) return null
+  const sim = new Simulation(refLevel)
+  sim.restore({ ...level.solution.state, tick: 0, inputs: {} })
+  return sim
 }
 
 /**

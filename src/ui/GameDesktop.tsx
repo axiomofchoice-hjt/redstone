@@ -39,6 +39,8 @@ interface Props {
   trace: TraceInfo | null
   /** 参考解那几条输出线的采样 */
   refHistory: WaveSample[]
+  /** 回放已经走到最后一刻，不能再往后单步 */
+  traceEnd: boolean
   paused: boolean
   revision: number
   powerAt: (index: number) => number
@@ -75,6 +77,7 @@ export function GameDesktop({
   run,
   trace,
   refHistory,
+  traceEnd,
   paused,
   revision,
   powerAt,
@@ -199,9 +202,9 @@ export function GameDesktop({
             type="button"
             className="btn icon"
             onClick={onNextTick}
-            disabled={!paused}
-            aria-label="推进一个 tick"
-            title="推进一个 tick"
+            disabled={!paused || traceEnd}
+            aria-label={traceEnd ? '回放已到最后' : '推进一个 tick'}
+            title={traceEnd ? '已到最后一刻' : '推进一个 tick'}
           >
             <StepIcon />
           </button>
