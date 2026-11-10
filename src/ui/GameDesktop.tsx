@@ -14,10 +14,12 @@ import {
   MenuIcon,
   PauseIcon,
   PlayIcon,
+  PrevIcon,
   StepIcon,
 } from './icons'
 import type { Tool } from './Palette'
 import type { EditMode } from './edit-mode'
+import type { TraceInfo } from './trace'
 import type { WaveSample } from './waveform'
 import { padNo } from './levels-meta'
 
@@ -33,6 +35,10 @@ interface Props {
   history: WaveSample[]
   tick: number
   run: LevelRun | null
+  /** 测试失败后的回放；有值时编辑控件变灰，波形多画参考解和检查区间 */
+  trace: TraceInfo | null
+  /** 参考解那几条输出线的采样 */
+  refHistory: WaveSample[]
   paused: boolean
   revision: number
   powerAt: (index: number) => number
@@ -47,8 +53,11 @@ interface Props {
   onSolution: () => void
   onExport: () => void
   onRun: () => void
+  onOpenTrace: () => void
+  onCloseTrace: () => void
   onPause: () => void
   onNextTick: () => void
+  onPrevTick: () => void
   onRotate: (step: 1 | -1) => void
   onLevels: () => void
 }
@@ -64,6 +73,8 @@ export function GameDesktop({
   history,
   tick,
   run,
+  trace,
+  refHistory,
   paused,
   revision,
   powerAt,
@@ -78,8 +89,11 @@ export function GameDesktop({
   onSolution,
   onExport,
   onRun,
+  onOpenTrace,
+  onCloseTrace,
   onPause,
   onNextTick,
+  onPrevTick,
   onRotate,
   onLevels,
 }: Props) {
@@ -160,6 +174,18 @@ export function GameDesktop({
         </div>
 
         <div className="appbar-actions" ref={menuRef}>
+          {trace ? (
+            <button
+              type="button"
+              className="btn icon"
+              onClick={onPrevTick}
+              disabled={!paused || tick <= 0}
+              aria-label="上一刻"
+              title={paused ? '上一刻：回放往前退一个 tick' : '暂停后才能回退'}
+            >
+              <PrevIcon />
+            </button>
+          ) : null}
           <button
             type="button"
             className="btn icon"
@@ -185,7 +211,8 @@ export function GameDesktop({
             </button>
           )}
           {free ? null : (
-            <div
+            <button
+              type="button"
               className={
                 run === null
                   ? 'result topbar'
@@ -193,12 +220,30 @@ export function GameDesktop({
                     ? 'result topbar ok'
                     : 'result topbar fail'
               }
-              role="status"
-              title={run === null ? '还没运行测试' : run.passed ? '测试全部通过' : '测试未通过'}
+              disabled={run === null || run.passed}
+              onClick={trace ? onCloseTrace : onOpenTrace}
+              aria-label={
+                run === null
+                  ? '测试结果：未运行'
+                  : run.passed
+                    ? '测试结果：全部通过'
+                    : trace
+                      ? '测试结果：未通过，收起回放'
+                      : '测试结果：未通过，查看回放'
+              }
+              title={
+                run === null
+                  ? '还没运行测试'
+                  : run.passed
+                    ? '测试全部通过'
+                    : trace
+                      ? '收起回放，回到编辑'
+                      : '测试未通过，点这里看回放波形'
+              }
             >
               测试结果：
               {run === null ? <DotsIcon /> : run.passed ? <CheckIcon /> : <CrossIcon />}
-            </div>
+            </button>
           )}
 
           <button
@@ -273,6 +318,8 @@ export function GameDesktop({
           history={history}
           tick={tick}
           outputAt={outputAt}
+          trace={trace}
+          refHistory={refHistory}
           onTool={onTool}
           onMode={onMode}
           onDir={onDir}
@@ -290,12 +337,12 @@ export function GameDesktop({
             revision={revision}
             onCell={onCell}
             onErase={onErase}
-            preview={tool}
+            preview={trace ? null : tool}
             previewDir={
               tool !== 'erase' && tool !== 'interact' && hasDirection(tool.type) ? dir : undefined
             }
-            placeMode={mode === 'place'}
-            workbench={{ camera, onCamera: setCamera, onRotate }}
+            placeMode={mode === 'place' && trace === null}
+            workbench={{ camera, onCamera: setCamera, onRotate: trace ? () => {} : onRotate }}
             viewportRef={viewport}
           />
         </main>

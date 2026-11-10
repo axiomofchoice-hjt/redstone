@@ -231,9 +231,9 @@ export function GameMobile({
                   type="button"
                   className="debug icon"
                   onClick={onPrevTick}
-                  disabled={tick <= 0}
+                  disabled={!paused || tick <= 0}
                   aria-label="上一刻"
-                  title="上一刻：回放往前退一个 tick"
+                  title={paused ? '上一刻：回放往前退一个 tick' : '暂停后才能回退'}
                 >
                   <PrevIcon size={14} />
                 </button>

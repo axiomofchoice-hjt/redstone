@@ -515,6 +515,7 @@ button:focus-visible,
 
 .tool-tile:disabled {
   opacity: 0.3;
+  filter: grayscale(1);
   cursor: default;
 }
 
@@ -559,9 +560,15 @@ button:focus-visible,
   cursor: pointer;
 }
 
-.dir-btn:hover {
+.dir-btn:hover:not(:disabled) {
   background: var(--field);
   color: var(--text);
+}
+
+.dir-btn:disabled {
+  opacity: 0.3;
+  filter: grayscale(1);
+  cursor: default;
 }
 
 .dir-btn.active {
@@ -596,9 +603,15 @@ button:focus-visible,
   cursor: pointer;
 }
 
-.mode-btn:hover {
+.mode-btn:hover:not(:disabled) {
   border-color: var(--line-strong);
   color: var(--text);
+}
+
+.mode-btn:disabled {
+  opacity: 0.3;
+  filter: grayscale(1);
+  cursor: default;
 }
 
 .mode-btn.active {
@@ -959,6 +972,15 @@ button.wave-tag:hover:not(:disabled) {
   border-radius: 9px;
   font-size: 13.5px;
   cursor: default;
+}
+
+.result.topbar.fail:not(:disabled) {
+  cursor: pointer;
+}
+
+.result.topbar.fail:not(:disabled):hover {
+  border-color: rgba(237, 43, 43, 0.65);
+  background: rgba(237, 43, 43, 0.04);
 }
 
 .actions {

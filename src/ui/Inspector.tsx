@@ -8,6 +8,7 @@ import { ToolIcon } from './ToolIcon'
 import { Waveform } from './Waveform'
 import type { WaveSample } from './waveform'
 import type { EditMode } from './edit-mode'
+import type { TraceInfo } from './trace'
 import { ArrowUp } from './icons'
 import type { Tool } from './Palette'
 
@@ -24,6 +25,10 @@ interface Props {
   /** 当前 tick，波形窗口的右端 */
   tick: number
   outputAt: (id: string) => boolean
+  /** 测试失败后的回放；有值时元件、模式和方向都不能改，波形多画参考解和检查区间 */
+  trace: TraceInfo | null
+  /** 参考解那几条输出线的采样 */
+  refHistory: WaveSample[]
   onTool: (tool: Tool) => void
   onMode: () => void
   onDir: (dir: Dir) => void
@@ -49,6 +54,8 @@ export function Inspector({
   history,
   tick,
   outputAt,
+  trace,
+  refHistory,
   onTool,
   onMode,
   onDir,
@@ -56,8 +63,9 @@ export function Inspector({
   onToggleInput,
 }: Props) {
   const ports = useMemo(() => portsFor(level), [level])
+  const replay = trace !== null
   // WASD / 方向键在电脑端留给画布平移，这里只认数字键
-  usePaletteKeys(level, ports, null, onTool)
+  usePaletteKeys(level, ports, null, onTool, replay)
 
   const tools = useMemo(
     () => [
@@ -91,7 +99,7 @@ export function Inspector({
               key={`${item.type}-${item.id ?? ''}`}
               type="button"
               className={active ? 'tool-tile active' : 'tool-tile'}
-              disabled={item.disabled}
+              disabled={item.disabled || replay}
               title={item.label}
               onClick={() =>
                 onTool(item.id ? { type: item.type, id: item.id } : { type: item.type })
@@ -112,6 +120,7 @@ export function Inspector({
               type="button"
               className={dir === item.dir ? 'dir-btn active' : 'dir-btn'}
               style={{ gridArea: item.area }}
+              disabled={replay}
               aria-label={`朝${item.label}`}
               title={`朝${item.label}`}
               onClick={() => onDir(item.dir)}
@@ -140,6 +149,7 @@ export function Inspector({
                 ? '当前放置模式，点击切换到覆盖模式'
                 : '当前覆盖模式，点击切换到放置模式'
             }
+            disabled={replay}
             onClick={onMode}
           >
             {mode === 'place' ? '放置' : '覆盖'}
@@ -149,6 +159,7 @@ export function Inspector({
             className={tool === 'erase' ? 'mode-btn active' : 'mode-btn'}
             aria-pressed={tool === 'erase'}
             title="删除：点击或拖动清除，右键也能拖着删"
+            disabled={replay}
             onClick={() => onTool('erase')}
           >
             删除
@@ -175,6 +186,7 @@ export function Inspector({
         <span className="zoom-value">{Math.round(zoom * 100)}%</span>
       </div>
 
+      {trace ? <p className="wave-note">回放：{trace.name}</p> : null}
       {inputIds.length > 0 || outputIds.length > 0 ? (
         <Waveform
           history={history}
@@ -184,6 +196,9 @@ export function Inspector({
           inputs={inputs}
           outputAt={outputAt}
           onToggleInput={onToggleInput}
+          interactive={!replay}
+          refHistory={replay ? refHistory : null}
+          checks={trace?.checks}
         />
       ) : null}
 

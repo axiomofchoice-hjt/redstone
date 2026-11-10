@@ -57,14 +57,17 @@ export const isTypingTarget = (target: EventTarget | null): boolean => {
 /**
  * 游戏页挂载时用数字键操作元件栏。
  * 手机端传 onDir，额外用 WASD 换朝向；电脑端传 null，WASD 和方向键留给地图平移。
+ * 回放时传 disabled，元件栏和方向键都变灰，键盘也别偷偷改选。
  */
 export function usePaletteKeys(
   level: Level,
   ports: PalettePort[],
   onDir: ((dir: Dir) => void) | null,
   onTool: (tool: PaletteTool) => void,
+  disabled = false,
 ): void {
   useEffect(() => {
+    if (disabled) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return
       if (isTypingTarget(event.target)) return
@@ -83,5 +86,5 @@ export function usePaletteKeys(
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [level, ports, onDir, onTool])
+  }, [level, ports, onDir, onTool, disabled])
 }

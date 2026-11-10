@@ -404,6 +404,8 @@ export default function App() {
         history={history}
         tick={sim.tick}
         run={run}
+        trace={replay?.info ?? null}
+        refHistory={refHistory}
         paused={paused}
         revision={version}
         powerAt={powerAt}
@@ -418,9 +420,14 @@ export default function App() {
         onSolution={applySolution}
         onExport={() => download(mapFileName(level), mapJson(level, sim))}
         onRun={runTests}
+        onOpenTrace={openTrace}
+        onCloseTrace={closeTrace}
         onPause={togglePause}
         onNextTick={nextTick}
-        onRotate={(step) => setDir((value) => rotateDir(value, step))}
+        onPrevTick={prevTick}
+        onRotate={(step) => {
+          if (!replay) setDir((value) => rotateDir(value, step))
+        }}
         onLevels={goLevels}
       />
     )

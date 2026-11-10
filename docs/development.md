@@ -29,7 +29,7 @@ src/
     edit-mode.ts    电脑端放置 / 覆盖模式下点一格该做什么
     keyboard.ts     数字键选元件、方向键 / WASD 换朝向
     Inspector.tsx   电脑端左侧面板：元件、朝向、放置 / 覆盖模式、删除、缩放滑轨、信号
-    Waveform.tsx    输入 / 输出波形图（电脑端检查器、手机端交互和回放共用）
+    Waveform.tsx    输入 / 输出波形图（电脑端检查器和回放、手机端交互和回放共用）
     waveform.ts     波形采样：每 tick 取一帧、滚动窗口、切成电平段
     trace.ts        回放要显示的检查区间，以及参考解并排跑同一组测试
     export.ts       导出地图：稀疏化 cells / powers 并下载 JSON
