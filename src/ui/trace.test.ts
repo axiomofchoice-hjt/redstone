@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { level13 } from '../levels/level-13'
-import { checksOf, eventsAt, lastTickOf, refLevelOf, replayStep } from './trace'
+import { Simulation, testSpan } from '../game/sim'
+import { waveSample } from './waveform'
+import { checksOf, eventsAt, refLevelOf, replayStep } from './trace'
 
 describe('测试回放', () => {
   const test = level13.tests[2]
 
   it('算出一组测试跑到第几个 tick', () => {
-    expect(lastTickOf(test)).toBe(33)
+    expect(testSpan(test)).toBe(33)
   })
 
   it('检查区间带着期望值，没写 to 就当只查一个 tick', () => {
@@ -36,16 +38,14 @@ describe('测试回放', () => {
 })
 
 describe('回放推进', () => {
-  it('按测试事件驱动输入，参考解走完正好对上每个检查区间', async () => {
-    const { Simulation } = await import('../game/sim')
-    const { waveSample } = await import('./waveform')
+  it('按测试事件驱动输入，参考解走完正好对上每个检查区间', () => {
     const test = level13.tests[2]
     const refLevel = refLevelOf(level13)!
     const mine = new Simulation(level13)
     const ref = new Simulation(refLevel)
-    const samples = []
-    for (let t = 0; t <= lastTickOf(test); t++) {
-      replayStep(test, [mine, ref])
+    const samples: { tick: number; mine: boolean; ref: boolean }[] = []
+    for (let i = 0; i <= testSpan(test); i++) {
+      replayStep(test, mine, ref)
       samples.push({ mine: mine.output('Y'), ref: ref.output('Y'), tick: mine.tick })
     }
     // 一开始输入全 0，15 tick 才拨成 1、18 tick 拨回 0

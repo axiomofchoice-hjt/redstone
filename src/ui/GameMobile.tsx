@@ -3,7 +3,17 @@ import { hasDirection } from '../game/sim'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
-import { CheckIcon, CrossIcon, DotsIcon, InfoIcon, MenuIcon, PrevIcon, StepIcon } from './icons'
+import {
+  CheckIcon,
+  CrossIcon,
+  DotsIcon,
+  InfoIcon,
+  MenuIcon,
+  PauseIcon,
+  PlayIcon,
+  PrevIcon,
+  StepIcon,
+} from './icons'
 import { Palette } from './Palette'
 import type { Tool } from './Palette'
 import { Waveform } from './Waveform'
@@ -88,15 +98,24 @@ export function GameMobile({
     setInfoOpen((open) => !open)
   }
 
+  // 回放和「交互」两种波形共用同一份数据，只在回放时多画参考解和检查区间
+  const wave = {
+    history,
+    tick,
+    inputIds: level.inputs ?? [],
+    outputIds: level.outputs ?? [],
+    inputs,
+    outputAt,
+    onToggleInput,
+  }
+
   return (
     <div className="app">
       <header className="top">
         <div className="head">
-          <div>
-            <h1>
-              第 {level.no ?? 1} 关 · {level.name}
-            </h1>
-          </div>
+          <h1>
+            第 {level.no ?? 1} 关 · {level.name}
+          </h1>
           <div className="head-keys">
             <button
               type="button"
@@ -173,7 +192,7 @@ export function GameMobile({
             revision={revision}
             onCell={onCell}
             onErase={onErase}
-            preview={tool}
+            preview={trace ? null : tool}
             previewDir={
               tool !== 'erase' && tool !== 'interact' && hasDirection(tool.type) ? dir : undefined
             }
@@ -230,18 +249,7 @@ export function GameMobile({
                 title={paused ? '继续' : '暂停'}
                 onClick={onPause}
               >
-                {paused ? (
-                  // 继续：朝右三角形
-                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-                    <path d="M4 2 L13 8 L4 14 Z" fill="currentColor" />
-                  </svg>
-                ) : (
-                  // 暂停：两条竖线
-                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-                    <rect x="3" y="2" width="3.5" height="12" fill="currentColor" />
-                    <rect x="9.5" y="2" width="3.5" height="12" fill="currentColor" />
-                  </svg>
-                )}
+                {paused ? <PlayIcon size={14} /> : <PauseIcon size={14} />}
               </button>
               <button
                 type="button"
@@ -264,13 +272,7 @@ export function GameMobile({
             <div className="wave-panel">
               <p className="wave-note">回放：{trace.name}</p>
               <Waveform
-                history={history}
-                tick={tick}
-                inputIds={level.inputs ?? []}
-                outputIds={level.outputs ?? []}
-                inputs={inputs}
-                outputAt={outputAt}
-                onToggleInput={onToggleInput}
+                {...wave}
                 interactive={false}
                 refHistory={refHistory}
                 checks={trace.checks}
@@ -279,15 +281,7 @@ export function GameMobile({
           ) : tool === 'interact' ? (
             // 交互模式：元件栏换成波形图，点行首的字母就能拨输入
             <div className="wave-panel">
-              <Waveform
-                history={history}
-                tick={tick}
-                inputIds={level.inputs ?? []}
-                outputIds={level.outputs ?? []}
-                inputs={inputs}
-                outputAt={outputAt}
-                onToggleInput={onToggleInput}
-              />
+              <Waveform {...wave} />
             </div>
           ) : (
             <Palette level={level} tool={tool} dir={dir} onTool={onTool} onDir={onDir} />

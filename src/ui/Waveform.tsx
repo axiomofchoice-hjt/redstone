@@ -75,24 +75,23 @@ export function Waveform({
       }))
       .filter((band) => band.to > band.from)
 
-  const renderRow = (samples: WaveSample[], id: string, input: boolean, ref: boolean) => {
+  const renderRow = (samples: WaveSample[], id: string, kind: 'input' | 'output' | 'ref') => {
     const last = samples[samples.length - 1]
-    const value: 0 | 1 = ref
-      ? last
-        ? (last.outputs[id] ?? 0)
-        : 0
-      : input
-        ? (inputs[id] ?? 0)
-        : outputAt(id)
-          ? 1
-          : 0
+    const value: 0 | 1 =
+      kind === 'ref'
+        ? (last?.outputs[id] ?? 0)
+        : kind === 'input'
+          ? (inputs[id] ?? 0)
+          : outputAt(id)
+            ? 1
+            : 0
     // 当前这一格的采样由 App 在改元件 / 拨输入时覆盖，画出来和右边的数字是同一份数据
-    const runs = waveRuns(samples, input ? 'inputs' : 'outputs', id, tick)
-    const bands = input ? [] : bandsFor(id)
+    const runs = waveRuns(samples, kind === 'input' ? 'inputs' : 'outputs', id, tick)
+    const bands = kind === 'input' ? [] : bandsFor(id)
 
     return (
-      <div key={`${ref ? 'ref' : 'mine'}-${input ? 'in' : 'out'}-${id}`} className="wave-row">
-        {input && interactive ? (
+      <div key={`${kind}-${id}`} className="wave-row">
+        {kind === 'input' && interactive ? (
           <button
             type="button"
             className={`wave-tag${value ? ' on' : ''}`}
@@ -105,8 +104,8 @@ export function Waveform({
           </button>
         ) : (
           <span
-            className={`wave-tag${ref ? ' ref' : ''}${value ? ' on' : ''}`}
-            title={`${ref ? '参考解输出' : input ? '输入' : '输出'} ${id} = ${value}`}
+            className={`wave-tag${kind === 'ref' ? ' ref' : ''}${value ? ' on' : ''}`}
+            title={`${kind === 'ref' ? '参考解输出' : kind === 'input' ? '输入' : '输出'} ${id} = ${value}`}
           >
             {id}
           </span>
@@ -155,13 +154,13 @@ export function Waveform({
 
   return (
     <div className="wave" role="group" aria-label="输入输出波形">
-      {inputIds.map((id) => renderRow(history, id, true, false))}
-      {outputIds.map((id) => renderRow(history, id, false, false))}
+      {inputIds.map((id) => renderRow(history, id, 'input'))}
+      {outputIds.map((id) => renderRow(history, id, 'output'))}
 
       {refHistory && refHistory.length > 0 ? (
         <>
           <p className="wave-head">参考解</p>
-          {outputIds.map((id) => renderRow(refHistory, id, false, true))}
+          {outputIds.map((id) => renderRow(refHistory, id, 'ref'))}
         </>
       ) : null}
 

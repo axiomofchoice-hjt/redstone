@@ -15,15 +15,7 @@ export interface TraceInfo {
   checks: TraceCheck[]
 }
 
-/** 这组测试跑到第几个 tick（和 runTest 里的算法一致） */
-export function lastTickOf(test: TestCase): number {
-  let maxTick = 0
-  for (const e of test.events ?? []) maxTick = Math.max(maxTick, e.tick)
-  for (const c of test.checks ?? []) maxTick = Math.max(maxTick, c.to ?? c.from)
-  for (const p of test.pairs ?? []) maxTick = Math.max(maxTick, p.ticks[0], p.ticks[1])
-  return maxTick
-}
-
+/** 检查区间统一带上 `to`，没写的就当只查一个 tick */
 export const checksOf = (test: TestCase): TraceCheck[] =>
   (test.checks ?? []).map((c) => ({ from: c.from, to: c.to ?? c.from, outputs: c.outputs }))
 
@@ -49,11 +41,15 @@ export function eventsAt(test: TestCase, tick: number): Record<string, 0 | 1> | 
 }
 
 /**
- * 回放推进一刻：先把这一 tick 的测试事件拨上（拨一次就保持），再让所有仿真一起走一步。
- * 玩家电路和参考解共用同一份输入，所以波形才对得上。
+ * 回放推进一刻：先把这一 tick 的测试事件拨上（拨一次就保持），再让玩家电路和参考解一起走一步。
+ * 两边共用同一份输入，波形才对得上。
  */
-export function replayStep(test: TestCase, sims: Simulation[]): void {
-  const values = eventsAt(test, sims[0].tick)
-  if (values) for (const sim of sims) sim.setInputs(values)
-  for (const sim of sims) sim.step()
+export function replayStep(test: TestCase, mine: Simulation, ref?: Simulation | null): void {
+  const values = eventsAt(test, mine.tick)
+  if (values) {
+    mine.setInputs(values)
+    ref?.setInputs(values)
+  }
+  mine.step()
+  ref?.step()
 }

@@ -789,7 +789,7 @@ button.wave-tag:hover:not(:disabled) {
   transform: translateX(-50%);
 }
 
-/* 测试回放波形：分组标题、检查区间底色、未通过标记和回放光标 */
+/* 测试回放波形：分组标题、参考解那几行和检查区间底色 */
 .wave-note {
   margin: 0 0 2px;
   color: var(--muted);

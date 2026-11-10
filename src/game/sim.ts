@@ -765,6 +765,15 @@ export function cloneLevel(level: Level): Level {
   }
 }
 
+/** 一组测试要跑到第几个 tick：事件、检查区间和成对检查里最晚的那个 */
+export function testSpan(test: TestCase): number {
+  let maxTick = 0
+  for (const e of test.events ?? []) maxTick = Math.max(maxTick, e.tick)
+  for (const c of test.checks ?? []) maxTick = Math.max(maxTick, c.to ?? c.from)
+  for (const p of test.pairs ?? []) maxTick = Math.max(maxTick, p.ticks[0], p.ticks[1])
+  return maxTick
+}
+
 export function runTest(
   level: Level,
   test: TestCase,
@@ -775,11 +784,7 @@ export function runTest(
   const events = test.events ?? []
   const checks = test.checks ?? []
   const pairs = test.pairs ?? []
-
-  let maxTick = 0
-  for (const e of events) maxTick = Math.max(maxTick, e.tick)
-  for (const c of checks) maxTick = Math.max(maxTick, c.to ?? c.from)
-  for (const p of pairs) maxTick = Math.max(maxTick, p.ticks[0], p.ticks[1])
+  const maxTick = testSpan(test)
 
   // 成对检查要回看更早的 tick，按输出分别存下每个 tick 的取值
   const samples = new Map<string, boolean[]>()

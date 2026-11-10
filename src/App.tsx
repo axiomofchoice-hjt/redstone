@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
-import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
+import { hasDirection, runLevel, Simulation, testSpan, type LevelRun } from './game/sim'
 import type { Cell, Dir, Level, TestCase } from './game/types'
 import { LEVELS } from './levels'
 import { defaultTool } from './ui/tools'
@@ -7,7 +7,7 @@ import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
 import { pushSample, waveSample, type WaveSample } from './ui/waveform'
-import { checksOf, lastTickOf, refLevelOf, replayStep, type TraceInfo } from './ui/trace'
+import { checksOf, refLevelOf, replayStep, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/Palette'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
 import { StartScreen } from './ui/StartScreen'
@@ -47,6 +47,23 @@ const initial = (): Editing => {
   const level = { ...LEVELS[0], cells: LEVELS[0].cells.slice() }
   const sim = new Simulation(level)
   return { level, sim, history: [waveSample(level, sim)] }
+}
+
+/**
+ * 从冷启动按测试事件跑到第 steps 个 tick，返回玩家电路和参考解两份仿真、各自的波形。
+ * 回放进入（steps = 0）和「上一刻」（从冷启动重跑到前一个 tick）都走这里。
+ */
+function replayTo(level: Level, test: TestCase, refLevel: Level | null, steps: number) {
+  const sim = new Simulation(level)
+  const refSim = refLevel ? new Simulation(refLevel) : null
+  let history = [waveSample(level, sim)]
+  let refHistory = refSim && refLevel ? [waveSample(refLevel, refSim)] : []
+  for (let t = 0; t < steps; t++) {
+    replayStep(test, sim, refSim)
+    history = pushSample(history, waveSample(level, sim))
+    if (refSim && refLevel) refHistory = pushSample(refHistory, waveSample(refLevel, refSim))
+  }
+  return { sim, refSim, history, refHistory }
 }
 
 export default function App() {
@@ -98,17 +115,16 @@ export default function App() {
         setPaused(true)
         return
       }
-      replayStep(replay.test, replay.refSim ? [sim, replay.refSim] : [sim])
+      replayStep(replay.test, sim, replay.refSim)
       record()
-      if (replay.refSim && replay.refLevel) {
-        const refSim = replay.refSim
-        const refLevel = replay.refLevel
+      const { refLevel, refSim } = replay
+      if (refLevel && refSim) {
         setRefHistory((prev) => pushSample(prev, waveSample(refLevel, refSim)))
       }
       setInputs(sim.inputValues())
-      repaint()
       // 这组测试跑完就停住
       if (sim.tick > replay.lastTick) setPaused(true)
+      repaint()
       return
     }
     // step() 直接返回画面有没有变化，不用前后各拍一次快照
@@ -179,7 +195,6 @@ export default function App() {
     setReplay(null)
   }
 
-  /** 切换一个输入元件的 0 / 1；桌面端左侧面板和「交互」工具都走这里 */
   /** 选元件；「交互」再点一次就回到上一次选的元件 */
   const pickTool = useCallback((next: Tool) => {
     if (next === 'interact') {
@@ -190,6 +205,7 @@ export default function App() {
     setTool(next)
   }, [])
 
+  /** 切换一个输入元件的 0 / 1；桌面端左侧面板和「交互」工具都走这里 */
   const toggleInput = (id: string) => {
     const next: Record<string, 0 | 1> = { ...inputs, [id]: inputs[id] ? 0 : 1 }
     setInputs(next)
@@ -263,76 +279,60 @@ export default function App() {
   const openTrace = () => {
     if (!run || run.passed || replay) return
     const index = run.outcomes.findIndex((outcome) => !outcome.passed)
-    const test = level.tests[index < 0 ? 0 : index]
+    const test = level.tests[Math.max(0, index)]
     if (!test) return
     const refLevel = refLevelOf(level)
-    const fresh = new Simulation(level)
-    const refSim = refLevel ? new Simulation(refLevel) : null
+    const cold = replayTo(level, test, refLevel, 0)
     setReplay({
       info: { name: test.name ?? '测试', checks: checksOf(test) },
       test,
       refLevel,
-      refSim,
-      lastTick: lastTickOf(test),
+      refSim: cold.refSim,
+      lastTick: testSpan(test),
       saved: { level, sim, history, inputs, paused },
     })
-    setEditing({ level, sim: fresh, history: [waveSample(level, fresh)] })
-    setInputs({})
-    setRefHistory(refLevel && refSim ? [waveSample(refLevel, refSim)] : [])
+    setEditing({ level, sim: cold.sim, history: cold.history })
+    setInputs(cold.sim.inputValues())
+    setRefHistory(cold.refHistory)
     setPaused(true)
     repaint()
   }
 
-  /** 再点一次结果按钮：把进来之前的电路、输入和暂停状态原样还回去 */
-  const closeTrace = () => {
-    if (!replay) return
+  /** 退出回放：把进来之前的电路、输入和暂停状态原样还回去；不在回放里返回 null */
+  const leaveTrace = () => {
+    if (!replay) return null
     const { saved } = replay
     setEditing({ level: saved.level, sim: saved.sim, history: saved.history })
     setInputs(saved.inputs)
     setPaused(saved.paused)
     setReplay(null)
     setRefHistory([])
-    repaint()
+    return saved
+  }
+
+  /** 再点一次结果按钮：收起回放 */
+  const closeTrace = () => {
+    if (leaveTrace()) repaint()
   }
 
   /** 上一刻：回放从冷启动重跑到前一个 tick，地图和波形一起退 */
   const prevTick = () => {
     if (!replay) return
-    const target = Math.max(0, sim.tick - 1)
-    const fresh = new Simulation(level)
-    const refSim = replay.refLevel ? new Simulation(replay.refLevel) : null
-    let historyNext = [waveSample(level, fresh)]
-    let refNext = refSim && replay.refLevel ? [waveSample(replay.refLevel, refSim)] : []
-    for (let t = 0; t < target; t++) {
-      replayStep(replay.test, refSim ? [fresh, refSim] : [fresh])
-      historyNext = pushSample(historyNext, waveSample(level, fresh))
-      if (refSim && replay.refLevel) {
-        const refLevel = replay.refLevel
-        refNext = pushSample(refNext, waveSample(refLevel, refSim))
-      }
-    }
-    setReplay({ ...replay, refSim })
-    setEditing({ level, sim: fresh, history: historyNext })
-    setRefHistory(refNext)
-    setInputs(fresh.inputValues())
+    const back = replayTo(level, replay.test, replay.refLevel, Math.max(0, sim.tick - 1))
+    setReplay({ ...replay, refSim: back.refSim })
+    setEditing({ level, sim: back.sim, history: back.history })
+    setRefHistory(back.refHistory)
+    setInputs(back.sim.inputValues())
     repaint()
   }
 
   const togglePause = () => setPaused((value) => !value)
 
   const runTests = () => {
-    if (replay) {
-      const { saved } = replay
-      setEditing({ level: saved.level, sim: saved.sim, history: saved.history })
-      setInputs(saved.inputs)
-      setPaused(saved.paused)
-      setReplay(null)
-      setRefHistory([])
-      setRun(runLevel(saved.level, saved.sim))
-      repaint()
-      return
-    }
-    setRun(runLevel(level, sim))
+    // 回放中按「测试」：先退出回放，再拿回来那份电路重新测
+    const saved = leaveTrace()
+    setRun(runLevel(saved?.level ?? level, saved?.sim ?? sim))
+    if (saved) repaint()
   }
 
   const goHome = () => {
