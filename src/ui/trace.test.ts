@@ -4,7 +4,7 @@ import { level16 } from '../levels/level-16'
 import { level17 } from '../levels/level-17'
 import { Simulation, runLevel, testSpan } from '../game/sim'
 import { waveSample } from './waveform'
-import { checksOf, eventsAt, refLevelOf, refSimOf, replayStep } from './trace'
+import { checksOf, eventsAt, pairsOf, refLevelOf, refSimOf, replayStep } from './trace'
 
 describe('测试回放', () => {
   const test = level12.tests[2]
@@ -21,6 +21,24 @@ describe('测试回放', () => {
     ])
     expect(checksOf({ checks: [{ from: 5, outputs: { Y: 1 } }] })).toEqual([
       { from: 5, to: 5, outputs: { Y: 1 } },
+    ])
+  })
+
+  it('成对检查按两个时刻排好，T 触发器的翻转 / 保持都在里面', () => {
+    const pairs = pairsOf(level16.tests[0])
+    expect(pairs).toHaveLength(6)
+    expect(pairs[0]).toEqual({
+      output: 'Y',
+      from: 10,
+      to: 30,
+      allow: [
+        [0, 1],
+        [1, 0],
+      ],
+    })
+    // 两个时刻写反了也按先后排
+    expect(pairsOf({ pairs: [{ output: 'Y', ticks: [30, 10], allow: [[0, 0]] }] })).toEqual([
+      { output: 'Y', from: 10, to: 30, allow: [[0, 0]] },
     ])
   })
 

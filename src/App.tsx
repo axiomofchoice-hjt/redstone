@@ -8,7 +8,7 @@ import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
 import { pushSample, waveSample, type WaveSample } from './ui/waveform'
-import { checksOf, refLevelOf, refSimOf, replayStep, type TraceInfo } from './ui/trace'
+import { checksOf, pairsOf, refLevelOf, refSimOf, replayStep, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/Palette'
 import { editAction, type EditMode } from './ui/edit-mode'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
@@ -312,7 +312,7 @@ export default function App() {
     const refLevel = refLevelOf(level)
     const cold = replayTo(level, test, refLevel, 0)
     setReplay({
-      info: { name: test.name ?? '测试', checks: checksOf(test) },
+      info: { name: test.name ?? '测试', checks: checksOf(test), pairs: pairsOf(test) },
       test,
       refLevel,
       refSim: cold.refSim,

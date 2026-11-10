@@ -287,6 +287,7 @@ export function GameMobile({
                 interactive={false}
                 refHistory={refHistory}
                 checks={trace.checks}
+                pairs={trace.pairs}
               />
             </div>
           ) : tool === 'interact' ? (

@@ -9,15 +9,36 @@ export interface TraceCheck {
   outputs: Record<string, 0 | 1>
 }
 
-/** 回放面板要显示的东西：这组测试叫什么、检查区间在哪 */
+/**
+ * 成对检查：同一条输出在两个时刻的取值必须落在 allow 里。
+ * 时钟、T 触发器这类只看「翻转 / 保持」的测试用的都是它，没有固定的期望电平。
+ */
+export interface TracePair {
+  output: string
+  from: number
+  to: number
+  allow: (0 | 1)[][]
+}
+
+/** 回放面板要显示的东西：这组测试叫什么、检查区间和对比的时刻在哪 */
 export interface TraceInfo {
   name: string
   checks: TraceCheck[]
+  pairs: TracePair[]
 }
 
 /** 检查区间统一带上 `to`，没写的就当只查一个 tick */
 export const checksOf = (test: TestCase): TraceCheck[] =>
   (test.checks ?? []).map((c) => ({ from: c.from, to: c.to ?? c.from, outputs: c.outputs }))
+
+/** 成对检查按两个时刻排好，回放波形上画成一段对比区间 */
+export const pairsOf = (test: TestCase): TracePair[] =>
+  (test.pairs ?? []).map((p) => ({
+    output: p.output,
+    from: Math.min(p.ticks[0], p.ticks[1]),
+    to: Math.max(p.ticks[0], p.ticks[1]),
+    allow: p.allow,
+  }))
 
 /** 把参考解的元件铺到关卡上，用来并排跑同一组测试；没有参考解就返回 null */
 export function refLevelOf(level: Level): Level | null {

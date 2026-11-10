@@ -827,6 +827,16 @@ button.wave-tag:hover:not(:disabled) {
   fill: rgba(27, 34, 48, 0.045);
 }
 
+/* 成对检查没有固定期望电平，只用淡蓝区间和两端的竖条标出「对比这两刻」 */
+.trace-band.pair {
+  fill: rgba(58, 96, 190, 0.10);
+}
+
+.trace-pair-tick {
+  stroke: rgba(58, 96, 190, 0.55);
+  stroke-width: 1.5;
+}
+
 .inspector-hints {
   display: flex;
   flex-direction: column;

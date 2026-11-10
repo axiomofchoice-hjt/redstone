@@ -31,7 +31,7 @@ src/
     Inspector.tsx   电脑端左侧面板：元件、朝向、放置 / 覆盖模式、删除、缩放滑轨、信号
     Waveform.tsx    输入 / 输出波形图（电脑端检查器和回放、手机端交互和回放共用）
     waveform.ts     波形采样：每 tick 取一帧、滚动窗口、切成电平段
-    trace.ts        回放要显示的检查区间，以及带参考解电路状态并排跑同一组测试
+    trace.ts        回放要显示的检查区间 / 成对检查，以及带参考解电路状态并排跑同一组测试
     export.ts       导出地图：稀疏化 cells / powers 并下载 JSON
     solution.ts     把参考解的布局和电路状态复制出来盖到地图上
     GameDesktop.tsx 电脑端两栏布局与顶栏（菜单、返回选关）

@@ -199,6 +199,7 @@ export function Inspector({
           interactive={!replay}
           refHistory={replay ? refHistory : null}
           checks={trace?.checks}
+          pairs={trace?.pairs}
         />
       ) : null}
 

@@ -1,4 +1,4 @@
-import type { TraceCheck } from './trace'
+import type { TraceCheck, TracePair } from './trace'
 import { waveRuns, WAVE_TICKS, type WaveRun, type WaveSample } from './waveform'
 
 interface Props {
@@ -16,6 +16,8 @@ interface Props {
   refHistory?: WaveSample[] | null
   /** 回放的检查区间：画在输出行上，期望 1 是浅绿、期望 0 是浅灰 */
   checks?: TraceCheck[]
+  /** 回放的成对检查：两个时刻只要求翻转或保持，画成一段淡蓝对比区间 */
+  pairs?: TracePair[]
 }
 
 /** svg 的纵坐标：高电平在上、低电平在下，上下各留一点给描边 */
@@ -61,6 +63,7 @@ export function Waveform({
   interactive = true,
   refHistory,
   checks,
+  pairs,
 }: Props) {
   // 检查区间按 tick 落到窗口里，超出窗口的部分裁掉
   const start = tick - WAVE_TICKS + 1
@@ -75,6 +78,27 @@ export function Waveform({
       }))
       .filter((band) => band.to > band.from)
 
+  // 成对检查只看两个时刻：把窗口里的对比区间并成一段淡蓝底，端点画深色竖条。
+  // 并起来是为了不让相邻的检查反复叠色（时钟那种一检查就是一片）
+  const pairBandsFor = (id: string) => {
+    const visible = (pairs ?? [])
+      .filter((pair) => pair.output === id)
+      .map((pair) => ({ from: pair.from - start, to: pair.to - start }))
+      .filter((pair) => pair.from >= 0 && pair.to < WAVE_TICKS)
+      .sort((a, b) => a.from - b.from)
+    const runs: { from: number; to: number }[] = []
+    for (const pair of visible) {
+      const last = runs[runs.length - 1]
+      const end = pair.to + 1
+      if (last && pair.from <= last.to) last.to = Math.max(last.to, end)
+      else runs.push({ from: pair.from, to: end })
+    }
+    const marks = [...new Set(visible.flatMap((pair) => [pair.from, pair.to]))].sort(
+      (a, b) => a - b,
+    )
+    return { runs, marks }
+  }
+
   const renderRow = (samples: WaveSample[], id: string, kind: 'input' | 'output' | 'ref') => {
     const last = samples[samples.length - 1]
     const value: 0 | 1 =
@@ -88,6 +112,7 @@ export function Waveform({
     // 当前这一格的采样由 App 在改元件 / 拨输入时覆盖，画出来和右边的数字是同一份数据
     const runs = waveRuns(samples, kind === 'input' ? 'inputs' : 'outputs', id, tick)
     const bands = kind === 'input' ? [] : bandsFor(id)
+    const pairMarks = kind === 'input' ? { runs: [], marks: [] } : pairBandsFor(id)
 
     return (
       <div key={`${kind}-${id}`} className="wave-row">
@@ -130,6 +155,28 @@ export function Waveform({
               y={0}
               width={band.to - band.from}
               height={10}
+            />
+          ))}
+          {pairMarks.runs.map((run) => (
+            <rect
+              key={`pair-run-${run.from}`}
+              className="trace-band pair"
+              x={run.from}
+              y={0}
+              width={run.to - run.from}
+              height={10}
+            >
+              <title>
+                {`成对检查：第 ${run.from + start}–${run.to + start - 1} tick 要翻转或保持`}
+              </title>
+            </rect>
+          ))}
+          {pairMarks.marks.map((mark) => (
+            <path
+              key={`pair-mark-${mark}`}
+              className="trace-pair-tick"
+              d={`M${mark} 0v10`}
+              vectorEffect="non-scaling-stroke"
             />
           ))}
           {runs
