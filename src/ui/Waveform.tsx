@@ -203,7 +203,8 @@ export function Waveform({
           {full ? (
             <path
               className="wave-playhead"
-              d={`M${tick} 0v10`}
+              // 画在当前这一格（tick）的右边：采样格是 [tick, tick + 1)
+              d={`M${Math.min(tick + 1, domain)} 0v10`}
               vectorEffect="non-scaling-stroke"
             />
           ) : null}
