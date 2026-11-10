@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { labelBaseline, mixColor, OFF, ON } from './glyph'
+import { edgeReach, labelBaseline, lineWidth, mixColor, OFF, ON } from './glyph'
 
 describe('mixColor', () => {
   it('0 / 1 正好是未通电和通电的颜色', () => {
@@ -36,5 +36,18 @@ describe('labelBaseline', () => {
 
   it('上下沿一样高就正好落在 cy 上', () => {
     expect(labelBaseline(18.5, 4, 4)).toBe(18.5)
+  })
+})
+
+describe('edgeReach', () => {
+  it('圆头外沿离格子边框正好 1px，不压在网格线上', () => {
+    for (const cell of [12, 20, 36, 54, 108]) {
+      const width = lineWidth(cell)
+      expect(cell / 2 - (edgeReach(cell, width) + width / 2)).toBeCloseTo(1)
+    }
+  })
+
+  it('格子小到放不下时退回 0，不会画到反方向', () => {
+    expect(edgeReach(1, 4)).toBe(0)
   })
 })

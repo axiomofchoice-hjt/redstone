@@ -20,6 +20,17 @@ const DIRS: [number, number][] = DX.map((dx, d) => [dx, DY[d]])
 
 export const lineWidth = (cell: number) => Math.max(1.5, cell * 0.06)
 
+/** 线端离格子边框留的空隙（CSS px）：圆头不会压在网格线上 */
+const EDGE_INSET = 1
+
+/**
+ * 线端圆头中心离格子中心多远：圆头外沿正好停在离边框 EDGE_INSET 的地方。
+ * 导线、交叉导线、充能器共用，线头都不会贴到格子边框上。
+ */
+export function edgeReach(cell: number, width: number): number {
+  return Math.max(0, cell * 0.5 - width / 2 - EDGE_INSET)
+}
+
 export interface Glyph {
   type: CellType
   dir?: Cell['dir']
@@ -77,8 +88,8 @@ export function drawComponent(
       const horizontalColor = override ?? mixColor(horizontalMix ?? mix ?? (horizontal ? 1 : 0))
       const r = cell * 0.18
       const lw = lineWidth(cell)
-      // 圆头会多伸出半个线宽，端点往里收，正好停在格子边框上
-      const reach = cell * 0.5 - lw / 2
+      // 圆头外沿停在边框往里 1px 处，线头不压在网格线上
+      const reach = edgeReach(cell, lw)
       ctx.lineWidth = lw
       ctx.lineCap = 'round'
 
@@ -102,13 +113,15 @@ export function drawComponent(
     case 'charger':
       // 箭头：一条主干 + 两条箭羽
       drawDirected(ctx, cx, cy, cell, component, color, (k) => {
+        const tip = edgeReach(k, lineWidth(k))
+        const barb = tip - k * 0.18
         ctx.beginPath()
-        ctx.moveTo(-k * 0.46, 0)
-        ctx.lineTo(k * 0.46, 0)
-        ctx.moveTo(k * 0.46, 0)
-        ctx.lineTo(k * 0.28, -k * 0.18)
-        ctx.moveTo(k * 0.46, 0)
-        ctx.lineTo(k * 0.28, k * 0.18)
+        ctx.moveTo(-tip, 0)
+        ctx.lineTo(tip, 0)
+        ctx.moveTo(tip, 0)
+        ctx.lineTo(barb, -k * 0.18)
+        ctx.moveTo(tip, 0)
+        ctx.lineTo(barb, k * 0.18)
         ctx.stroke()
       })
       break
@@ -221,8 +234,8 @@ function drawConnections(
       : dirs.length === 1
         ? [dirs[0], [-dirs[0][0], -dirs[0][1]]]
         : dirs
-  // 端点收半个线宽，圆头正好停在格子边框上
-  const reach = cell * 0.5 - width / 2
+  // 端点收半个线宽再多收 1px，圆头外沿离格子边框留一点缝
+  const reach = edgeReach(cell, width)
 
   for (const [dx, dy] of strokes) {
     ctx.beginPath()
