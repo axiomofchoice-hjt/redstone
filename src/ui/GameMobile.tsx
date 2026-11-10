@@ -3,7 +3,7 @@ import { hasDirection } from '../game/sim'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
-import { InfoIcon, MenuIcon } from './icons'
+import { InfoIcon, MenuIcon, StepIcon } from './icons'
 import { Palette } from './Palette'
 import type { Tool } from './Palette'
 import { Waveform } from './Waveform'
@@ -206,11 +206,18 @@ export function GameMobile({
                   </svg>
                 )}
               </button>
-              <button type="button" className="debug" onClick={onNextTick} disabled={!paused}>
-                下一刻
+              <button
+                type="button"
+                className="debug icon"
+                onClick={onNextTick}
+                disabled={!paused}
+                aria-label="推进一个 tick"
+                title="推进一个 tick"
+              >
+                <StepIcon size={14} />
               </button>
-              <button type="button" className="run" onClick={onRun}>
-                运行测试
+              <button type="button" className="run" onClick={onRun} title="运行测试">
+                测试
               </button>
             </div>
           </div>
