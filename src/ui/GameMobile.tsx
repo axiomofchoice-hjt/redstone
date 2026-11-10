@@ -6,6 +6,8 @@ import { Board } from './Board'
 import { InfoIcon, MenuIcon } from './icons'
 import { Palette } from './Palette'
 import type { Tool } from './Palette'
+import { Waveform } from './Waveform'
+import type { WaveSample } from './waveform'
 
 interface Props {
   level: Level
@@ -15,12 +17,17 @@ interface Props {
   paused: boolean
   revision: number
   menuOpen: boolean
+  history: WaveSample[]
+  tick: number
+  inputs: Record<string, 0 | 1>
   powerAt: (index: number) => number
+  outputAt: (id: string) => boolean
   lockedAt: (index: number) => boolean
   onTool: (tool: Tool) => void
   onDir: (dir: Dir) => void
   onCell: (index: number) => void
   onErase: (index: number) => void
+  onToggleInput: (id: string) => void
   onRun: () => void
   onPause: () => void
   onNextTick: () => void
@@ -40,12 +47,17 @@ export function GameMobile({
   paused,
   revision,
   menuOpen,
+  history,
+  tick,
+  inputs,
   powerAt,
   lockedAt,
+  outputAt,
   onTool,
   onDir,
   onCell,
   onErase,
+  onToggleInput,
   onRun,
   onPause,
   onNextTick,
@@ -167,6 +179,15 @@ export function GameMobile({
             <div className="actions">
               <button
                 type="button"
+                className={tool === 'interact' ? 'debug active' : 'debug'}
+                aria-pressed={tool === 'interact'}
+                title="交互：点输入元件切换 0 / 1"
+                onClick={() => onTool('interact')}
+              >
+                交互
+              </button>
+              <button
+                type="button"
                 className="debug icon"
                 aria-label={paused ? '继续' : '暂停'}
                 title={paused ? '继续' : '暂停'}
@@ -194,7 +215,22 @@ export function GameMobile({
             </div>
           </div>
 
-          <Palette level={level} tool={tool} dir={dir} onTool={onTool} onDir={onDir} />
+          {tool === 'interact' ? (
+            // 交互模式：元件栏换成波形图，点行首的字母就能拨输入
+            <div className="wave-panel">
+              <Waveform
+                history={history}
+                tick={tick}
+                inputIds={level.inputs ?? []}
+                outputIds={level.outputs ?? []}
+                inputs={inputs}
+                outputAt={outputAt}
+                onToggleInput={onToggleInput}
+              />
+            </div>
+          ) : (
+            <Palette level={level} tool={tool} dir={dir} onTool={onTool} onDir={onDir} />
+          )}
         </>
       )}
     </div>

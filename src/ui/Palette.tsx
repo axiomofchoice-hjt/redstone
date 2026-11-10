@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { CellType, Dir, Level } from '../game/types'
+import { TrashIcon } from './icons'
 import { usePaletteKeys } from './keyboard'
 import { portsFor } from './ports'
 import { toolEnabled, TOOLS } from './tools'
@@ -79,18 +80,12 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
         <div className="stack">
           <button
             type="button"
-            className={tool === 'interact' ? 'swap active' : 'swap'}
-            onClick={() => onTool('interact')}
-          >
-            交互
-          </button>
-          <button
-            type="button"
             className={tool === 'erase' ? 'erase active' : 'erase'}
-            title="右键地图也可以直接删除"
+            aria-label="删除"
+            title="删除（右键地图也可以直接删掉一格）"
             onClick={() => onTool('erase')}
           >
-            删除
+            <TrashIcon size={16} />
           </button>
         </div>
       </div>

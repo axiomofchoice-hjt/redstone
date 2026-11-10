@@ -85,6 +85,33 @@ export function InfoIcon({ size = 18 }: IconProps) {
   )
 }
 
+/** 垃圾桶：手机端元件栏的「删除」键 */
+export function TrashIcon({ size = 16 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M2.9 4.5h10.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M6.3 4.3V3.2c0-.5.4-.9.9-.9h1.6c.5 0 .9.4.9.9v1.1"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M4.5 4.7h7l-.7 8c-.05.6-.6 1.1-1.2 1.1H6.4c-.6 0-1.15-.5-1.2-1.1z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.9 6.9v4.5M9.1 6.9v4.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 /** 菜单箭头：左边三个点、右边三条横线，和手机端顶栏的菜单键一致 */
 export function MenuIcon({ size = 18 }: IconProps) {
   return (

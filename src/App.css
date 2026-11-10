@@ -694,21 +694,7 @@ button:focus-visible,
 .wave {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.wave-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.wave-group-title {
-  margin: 0 0 1px;
-  color: #97a0b1;
-  font-family: var(--mono);
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
+  gap: 4px;
 }
 
 .wave-row {
@@ -951,6 +937,12 @@ button.wave-tag:hover:not(:disabled) {
   font-size: 13px;
 }
 
+.result span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .result.ok {
   color: var(--ok);
 }
@@ -976,6 +968,14 @@ button.wave-tag:hover:not(:disabled) {
 
 .debug:disabled {
   opacity: 0.32;
+}
+
+/* 「交互」跟暂停 / 下一刻 / 运行测试 排在同一行，选中时和元件按钮一样高亮 */
+.debug.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
 }
 
 .debug.icon {
@@ -1019,7 +1019,6 @@ button.wave-tag:hover:not(:disabled) {
 
 .tool,
 .dir,
-.swap,
 .erase {
   flex: 0 0 auto;
   padding: 9px 11px;
@@ -1050,7 +1049,6 @@ button.wave-tag:hover:not(:disabled) {
 
 .tool.active,
 .dir.active,
-.swap.active,
 .erase.active {
   border-color: var(--accent);
   background: var(--accent);
@@ -1099,12 +1097,27 @@ button.wave-tag:hover:not(:disabled) {
 .stack {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 5px;
+  align-self: stretch;
+}
+
+/* 手机端「交互」模式：元件栏整个换成波形图，点行首字母拨 0 / 1 */
+.wave-panel {
+  flex: 0 0 auto;
+  max-height: 42vh;
+  overflow-y: auto;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line-soft);
+  background: var(--panel);
 }
 
 .stack button {
+  display: grid;
+  place-items: center;
+  width: 34px;
   height: 30px;
-  padding: 0 9px;
+  padding: 0;
 }
 
 .menu-screen {

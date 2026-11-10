@@ -108,19 +108,8 @@ export function Waveform({
 
   return (
     <div className="wave" role="group" aria-label="输入输出波形">
-      {inputIds.length > 0 ? (
-        <div className="wave-group">
-          <p className="wave-group-title">输入</p>
-          {inputIds.map((id) => renderRow(id, true))}
-        </div>
-      ) : null}
-
-      {outputIds.length > 0 ? (
-        <div className="wave-group">
-          <p className="wave-group-title">输出</p>
-          {outputIds.map((id) => renderRow(id, false))}
-        </div>
-      ) : null}
+      {inputIds.map((id) => renderRow(id, true))}
+      {outputIds.map((id) => renderRow(id, false))}
 
       <div className="wave-axis" aria-hidden="true" title={`最近 ${WAVE_TICKS} 个 tick`}>
         {AXIS.map((label, index) => (

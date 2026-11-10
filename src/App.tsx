@@ -38,6 +38,8 @@ const initial = (): Editing => {
 export default function App() {
   const [{ level, sim, history }, setEditing] = useState<Editing>(initial)
   const [tool, setTool] = useState<Tool>({ type: 'wire' })
+  // 再点一次「交互」还原成上一次选的元件（手机端交互时元件栏换成了波形图）
+  const lastTool = useRef<Tool>({ type: 'wire' })
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
   // 编辑器里手动开关的输入
@@ -62,14 +64,13 @@ export default function App() {
     simRef.current = sim
   }, [sim])
 
-  /** 给波形图补一帧当前 tick 的采样；手机端不画波形，不用记 */
+  /** 给波形图补一帧当前 tick 的采样；电脑端检查器和手机端「交互」面板都读它 */
   const record = useCallback(() => {
-    if (!isDesktop) return
     setEditing((prev) => ({
       ...prev,
       history: pushSample(prev.history, waveSample(prev.level, prev.sim)),
     }))
-  }, [isDesktop])
+  }, [])
 
   useEffect(() => {
     if (paused || mobileMenuOpen || screen !== 'game') return
@@ -128,15 +129,22 @@ export default function App() {
       sim.setInputs(inputs)
       // 这一 tick 的输出已经跟着电路变了，采样要覆盖成新值，
       // 只改最后一格的画面没用：过一刻它就成了历史，又会显示回旧电平
-      const history = isDesktop
-        ? pushSample(prev.history, waveSample(level, sim))
-        : prev.history
-      return { level, sim, history }
+      return { level, sim, history: pushSample(prev.history, waveSample(level, sim)) }
     })
     setRun(null)
   }
 
   /** 切换一个输入元件的 0 / 1；桌面端左侧面板和「交互」工具都走这里 */
+  /** 选元件；「交互」再点一次就回到上一次选的元件 */
+  const pickTool = useCallback((next: Tool) => {
+    if (next === 'interact') {
+      setTool((prev) => (prev === 'interact' ? lastTool.current : 'interact'))
+      return
+    }
+    lastTool.current = next
+    setTool(next)
+  }, [])
+
   const toggleInput = (id: string) => {
     const next: Record<string, 0 | 1> = { ...inputs, [id]: inputs[id] ? 0 : 1 }
     setInputs(next)
@@ -184,7 +192,8 @@ export default function App() {
     const sim = new Simulation(level)
     setEditing({ level, sim, history: [waveSample(level, sim)] })
     // 换关后元件选择也回到这关的默认元件，别把上一关照到哪都带着
-    setTool({ type: defaultTool(level) })
+    lastTool.current = { type: defaultTool(level) }
+    setTool(lastTool.current)
     setDir(INITIAL_DIR)
     setInputs({})
     setRun(null)
@@ -236,7 +245,7 @@ export default function App() {
         powerAt={powerAt}
         lockedAt={lockedAt}
         outputAt={outputAt}
-        onTool={setTool}
+        onTool={pickTool}
         onDir={setDir}
         onCell={handleCell}
         onErase={handleErase}
@@ -262,12 +271,17 @@ export default function App() {
       paused={paused}
       revision={version}
       menuOpen={mobileMenuOpen}
+      history={history}
+      tick={sim.tick}
+      inputs={inputs}
       powerAt={powerAt}
       lockedAt={lockedAt}
-      onTool={setTool}
+      outputAt={outputAt}
+      onTool={pickTool}
       onDir={setDir}
       onCell={handleCell}
       onErase={handleErase}
+      onToggleInput={toggleInput}
       onRun={() => setRun(runLevel(level, sim))}
       onPause={() => setPaused((value) => !value)}
       onNextTick={nextTick}
