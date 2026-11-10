@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { Simulation } from '../game/sim'
 import type { Level } from '../game/types'
-import { pushSample, waveRuns, waveSample, WAVE_TICKS, type WaveSample } from './waveform'
+import {
+  pushSample,
+  waveRuns,
+  waveRunsBetween,
+  waveSample,
+  WAVE_TICKS,
+  type WaveSample,
+} from './waveform'
 
 const sample = (tick: number, input: 0 | 1, output: 0 | 1): WaveSample => ({
   tick,
@@ -24,6 +31,32 @@ describe('波形采样', () => {
     expect(history).toHaveLength(WAVE_TICKS)
     expect(history[0].tick).toBe(6)
     expect(history[history.length - 1].tick).toBe(WAVE_TICKS + 5)
+  })
+
+  it('回放可以留更多帧，默认还是只留 WAVE_TICKS 帧', () => {
+    let history: WaveSample[] = []
+    for (let tick = 0; tick < 40; tick++) history = pushSample(history, sample(tick, 0, 0), 100)
+    expect(history).toHaveLength(40)
+    history = pushSample(history, sample(40, 0, 0), 10)
+    expect(history).toHaveLength(10)
+    expect(history[0].tick).toBe(31)
+  })
+
+  it('整组测试按 from..to 取采样，前面不补 0，还没跑到的 tick 留空', () => {
+    const history = [sample(0, 0, 0), sample(1, 0, 1), sample(2, 1, 1), sample(3, 1, 0)]
+    expect(waveRunsBetween(history, 'inputs', 'A', 0, 3)).toEqual([
+      { from: 0, to: 2, value: 0 },
+      { from: 2, to: 4, value: 1 },
+    ])
+    expect(waveRunsBetween(history, 'outputs', 'B', 0, 2)).toEqual([
+      { from: 0, to: 1, value: 0 },
+      { from: 1, to: 3, value: 1 },
+    ])
+    // 只取后半段时坐标从 from 重新起算
+    expect(waveRunsBetween(history, 'outputs', 'B', 2, 3)).toEqual([
+      { from: 0, to: 1, value: 1 },
+      { from: 1, to: 2, value: 0 },
+    ])
   })
 
   it('时间轴被拨回去时从新的一帧重新记', () => {

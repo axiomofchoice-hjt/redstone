@@ -837,6 +837,12 @@ button.wave-tag:hover:not(:disabled) {
   stroke-width: 1.5;
 }
 
+/* 回放铺整组测试时，每行一条竖线标出当前走到哪个 tick */
+.wave-playhead {
+  stroke: rgba(240, 86, 46, 0.7);
+  stroke-width: 1.5;
+}
+
 .inspector-hints {
   display: flex;
   flex-direction: column;

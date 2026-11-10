@@ -200,6 +200,7 @@ export function Inspector({
           refHistory={replay ? refHistory : null}
           checks={trace?.checks}
           pairs={trace?.pairs}
+          span={trace ? trace.lastTick + 1 : undefined}
         />
       ) : null}
 

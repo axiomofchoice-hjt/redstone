@@ -26,12 +26,17 @@ export function waveSample(level: Level, sim: Simulation): WaveSample {
  * 追加一帧。同一个 tick 直接覆盖：暂停时拨输入开关、编辑元件都会重建仿真，
  * 但它们仍然属于当前这一 tick，不该在波形上多出一格。超出窗口就丢掉最老的。
  */
-export function pushSample(history: WaveSample[], sample: WaveSample): WaveSample[] {
+export function pushSample(
+  history: WaveSample[],
+  sample: WaveSample,
+  /** 最多留几帧；回放要看整组测试，会传更大的值 */
+  cap = WAVE_TICKS,
+): WaveSample[] {
   const last = history[history.length - 1]
   // 时间轴被拨回去（恢复了更早的存档之类），旧采样接不上，从这一帧重新记
   if (last && sample.tick < last.tick) return [sample]
   const next = last?.tick === sample.tick ? [...history.slice(0, -1), sample] : [...history, sample]
-  return next.length > WAVE_TICKS ? next.slice(next.length - WAVE_TICKS) : next
+  return next.length > cap ? next.slice(next.length - cap) : next
 }
 
 /** 一段电平不变的区间，坐标就是 svg 里的横坐标（0 是窗口左端） */
@@ -39,6 +44,29 @@ export interface WaveRun {
   from: number
   to: number
   value: 0 | 1
+}
+
+/**
+ * 取 [from, to] 这一段 tick 的采样，坐标从 from 起算，不在前面补 0。
+ * 回放时整组测试铺在波形上，还没跑到的 tick 留空，用它。
+ */
+export function waveRunsBetween(
+  history: WaveSample[],
+  field: 'inputs' | 'outputs',
+  id: string,
+  from: number,
+  to: number,
+): WaveRun[] {
+  const runs: WaveRun[] = []
+  for (const sample of history) {
+    if (sample.tick < from || sample.tick > to) continue
+    const start = sample.tick - from
+    const value = sample[field][id] ?? 0
+    const last = runs[runs.length - 1]
+    if (last && last.to === start && last.value === value) last.to = start + 1
+    else runs.push({ from: start, to: start + 1, value })
+  }
+  return runs
 }
 
 /**

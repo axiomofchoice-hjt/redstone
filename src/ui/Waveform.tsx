@@ -1,5 +1,5 @@
 import type { TraceCheck, TracePair } from './trace'
-import { waveRuns, WAVE_TICKS, type WaveRun, type WaveSample } from './waveform'
+import { waveRuns, waveRunsBetween, WAVE_TICKS, type WaveRun, type WaveSample } from './waveform'
 
 interface Props {
   history: WaveSample[]
@@ -18,6 +18,8 @@ interface Props {
   checks?: TraceCheck[]
   /** 回放的成对检查：两个时刻只要求翻转或保持，画成一段淡蓝对比区间 */
   pairs?: TracePair[]
+  /** 回放时铺整组测试：横轴从 0 到测试结束，检查区间不用等播放到才出现 */
+  span?: number
 }
 
 /** svg 的纵坐标：高电平在上、低电平在下，上下各留一点给描边 */
@@ -64,16 +66,19 @@ export function Waveform({
   refHistory,
   checks,
   pairs,
+  span,
 }: Props) {
-  // 检查区间按 tick 落到窗口里，超出窗口的部分裁掉
-  const start = tick - WAVE_TICKS + 1
+  // 回放铺整组测试，横轴 0–span；平时仍只画最近 WAVE_TICKS 个 tick，右端是现在
+  const full = span !== undefined && span > 0
+  const domain = full ? span : WAVE_TICKS
+  const start = full ? 0 : tick - WAVE_TICKS + 1
   const bandsFor = (id: string) =>
     (checks ?? [])
       .filter((check) => id in check.outputs)
       .map((check) => ({
         key: `${check.from}-${check.to}`,
         from: Math.max(0, check.from - start),
-        to: Math.min(WAVE_TICKS, check.to - start + 1),
+        to: Math.min(domain, check.to - start + 1),
         expected: check.outputs[id] === 1,
       }))
       .filter((band) => band.to > band.from)
@@ -84,7 +89,7 @@ export function Waveform({
     const visible = (pairs ?? [])
       .filter((pair) => pair.output === id)
       .map((pair) => ({ from: pair.from - start, to: pair.to - start }))
-      .filter((pair) => pair.from >= 0 && pair.to < WAVE_TICKS)
+      .filter((pair) => pair.from >= 0 && pair.to < domain)
       .sort((a, b) => a.from - b.from)
     const runs: { from: number; to: number }[] = []
     for (const pair of visible) {
@@ -110,7 +115,10 @@ export function Waveform({
             ? 1
             : 0
     // 当前这一格的采样由 App 在改元件 / 拨输入时覆盖，画出来和右边的数字是同一份数据
-    const runs = waveRuns(samples, kind === 'input' ? 'inputs' : 'outputs', id, tick)
+    const field = kind === 'input' ? 'inputs' : 'outputs'
+    const runs = full
+      ? waveRunsBetween(samples, field, id, 0, tick)
+      : waveRuns(samples, field, id, tick)
     const bands = kind === 'input' ? [] : bandsFor(id)
     const pairMarks = kind === 'input' ? { runs: [], marks: [] } : pairBandsFor(id)
 
@@ -138,13 +146,13 @@ export function Waveform({
 
         <svg
           className="wave-lane"
-          viewBox={`0 0 ${WAVE_TICKS} 10`}
+          viewBox={`0 0 ${domain} 10`}
           preserveAspectRatio="none"
           aria-hidden="true"
         >
           <path
             className="wave-grid"
-            d="M8 0v10M16 0v10M24 0v10"
+            d={[0.25, 0.5, 0.75].map((f) => `M${domain * f} 0v10`).join('')}
             vectorEffect="non-scaling-stroke"
           />
           {bands.map((band) => (
@@ -192,6 +200,13 @@ export function Waveform({
               />
             ))}
           <path className="wave-line" d={lanePath(runs)} vectorEffect="non-scaling-stroke" />
+          {full ? (
+            <path
+              className="wave-playhead"
+              d={`M${tick} 0v10`}
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : null}
         </svg>
 
         <span className={`wave-now${value ? ' on' : ''}`}>{value}</span>
@@ -211,9 +226,16 @@ export function Waveform({
         </>
       ) : null}
 
-      <div className="wave-axis" aria-hidden="true" title={`最近 ${WAVE_TICKS} 个 tick`}>
-        {AXIS.map((label, index) => (
-          <span key={label} style={{ left: `${(index / (AXIS.length - 1)) * 100}%` }}>
+      <div
+        className="wave-axis"
+        aria-hidden="true"
+        title={full ? `整组测试：0–${domain} tick，竖线是现在` : `最近 ${WAVE_TICKS} 个 tick`}
+      >
+        {(full
+          ? [0, 1, 2, 3, 4].map((i) => String(Math.round((domain * i) / 4)))
+          : AXIS
+        ).map((label, index) => (
+          <span key={index} style={{ left: `${(index / 4) * 100}%` }}>
             {label}
           </span>
         ))}

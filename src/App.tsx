@@ -7,7 +7,7 @@ import { defaultTool } from './ui/tools'
 import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
-import { pushSample, waveSample, type WaveSample } from './ui/waveform'
+import { pushSample, WAVE_TICKS, waveSample, type WaveSample } from './ui/waveform'
 import { checksOf, pairsOf, refLevelOf, refSimOf, replayStep, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/Palette'
 import { editAction, type EditMode } from './ui/edit-mode'
@@ -58,12 +58,14 @@ const initial = (): Editing => {
 function replayTo(level: Level, test: TestCase, refLevel: Level | null, steps: number) {
   const sim = new Simulation(level)
   const refSim = refSimOf(level, refLevel)
+  // 回放波形铺整组测试，采样不能按 32 帧截断
+  const cap = testSpan(test) + 2
   let history = [waveSample(level, sim)]
   let refHistory = refSim && refLevel ? [waveSample(refLevel, refSim)] : []
   for (let t = 0; t < steps; t++) {
     replayStep(test, sim, refSim)
-    history = pushSample(history, waveSample(level, sim))
-    if (refSim && refLevel) refHistory = pushSample(refHistory, waveSample(refLevel, refSim))
+    history = pushSample(history, waveSample(level, sim), cap)
+    if (refSim && refLevel) refHistory = pushSample(refHistory, waveSample(refLevel, refSim), cap)
   }
   return { sim, refSim, history, refHistory }
 }
@@ -114,11 +116,18 @@ export default function App() {
     simRef.current = sim
   }, [sim])
 
+  const replayRef = useRef<Replay | null>(null)
+  useEffect(() => {
+    replayRef.current = replay
+  }, [replay])
+
   /** 给波形图补一帧当前 tick 的采样；电脑端检查器和手机端「交互」/ 回放面板都读它 */
   const record = useCallback(() => {
+    // 回放要看整组测试，采样留到测试结束；平时只留波形窗口里的 32 帧
+    const cap = replayRef.current ? replayRef.current.lastTick + 2 : WAVE_TICKS
     setEditing((prev) => ({
       ...prev,
-      history: pushSample(prev.history, waveSample(prev.level, prev.sim)),
+      history: pushSample(prev.history, waveSample(prev.level, prev.sim), cap),
     }))
   }, [])
 
@@ -134,7 +143,9 @@ export default function App() {
       record()
       const { refLevel, refSim } = replay
       if (refLevel && refSim) {
-        setRefHistory((prev) => pushSample(prev, waveSample(refLevel, refSim)))
+        setRefHistory((prev) =>
+          pushSample(prev, waveSample(refLevel, refSim), replay.lastTick + 2),
+        )
       }
       setInputs(sim.inputValues())
       // 这组测试跑完就停住
@@ -311,12 +322,18 @@ export default function App() {
     if (!test) return
     const refLevel = refLevelOf(level)
     const cold = replayTo(level, test, refLevel, 0)
+    const lastTick = testSpan(test)
     setReplay({
-      info: { name: test.name ?? '测试', checks: checksOf(test), pairs: pairsOf(test) },
+      info: {
+        name: test.name ?? '测试',
+        checks: checksOf(test),
+        pairs: pairsOf(test),
+        lastTick,
+      },
       test,
       refLevel,
       refSim: cold.refSim,
-      lastTick: testSpan(test),
+      lastTick,
       saved: { level, sim, history, inputs, paused },
     })
     setEditing({ level, sim: cold.sim, history: cold.history })

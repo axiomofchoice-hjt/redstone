@@ -25,6 +25,8 @@ export interface TraceInfo {
   name: string
   checks: TraceCheck[]
   pairs: TracePair[]
+  /** 这组测试跑到第几个 tick */
+  lastTick: number
 }
 
 /** 检查区间统一带上 `to`，没写的就当只查一个 tick */
