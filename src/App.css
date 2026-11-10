@@ -845,14 +845,13 @@ button.wave-tag:hover:not(:disabled) {
 }
 
 /* 回放铺整组测试时，每行一条竖线标出当前走到哪个 tick：
-   右边缘对齐当前格子的右边，线身向左留在波形里，最后一格也不会被裁 */
+   以当前格的右边界为中线（波形在那儿跳变时正好盖住那条竖线），位置由 JS 按设备像素算好 */
 .wave-playhead {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 2px;
   background: var(--accent);
-  transform: translateX(-100%);
 }
 
 .inspector-hints {

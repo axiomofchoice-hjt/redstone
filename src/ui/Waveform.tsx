@@ -1,6 +1,14 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { TraceCheck, TracePair } from './trace'
-import { waveRuns, waveRunsBetween, WAVE_TICKS, type WaveRun, type WaveSample } from './waveform'
+import {
+  playheadLeft,
+  playheadWidth,
+  waveRuns,
+  waveRunsBetween,
+  WAVE_TICKS,
+  type WaveRun,
+  type WaveSample,
+} from './waveform'
 
 interface Props {
   history: WaveSample[]
@@ -91,20 +99,11 @@ export function Waveform({
     observer.observe(root)
     return () => observer.disconnect()
   }, [])
+  // 播放头是 2px 竖线，宽度和位置都对齐设备像素：不然落在半个像素上会被抗锯齿摊成 3px，
+  // 看起来一会儿粗一会儿细。它以当前这一格的右边界为中线，波形在那儿跳变时整条竖线都被盖住
   const dpr = window.devicePixelRatio || 1
-  // 线宽也取整到设备像素：2px 在 1.25 / 1.5 倍缩放下会变成 2.5 / 3 个设备像素，
-  // 竖边同样会被抗锯齿，粗细还是会变
-  const playheadWidth = Math.max(1, Math.round(2 * dpr)) / dpr
-  const playheadLeft =
-    laneWidth > 0
-      ? Math.max(
-          playheadWidth,
-          Math.min(
-            Math.round(((Math.min(tick + 1, domain) / domain) * laneWidth * dpr)) / dpr,
-            laneWidth,
-          ),
-        )
-      : null
+  const headWidth = playheadWidth(dpr)
+  const headLeft = laneWidth > 0 ? playheadLeft(domain, tick, laneWidth, dpr) : null
   const bandsFor = (id: string) =>
     (checks ?? [])
       .filter((check) => id in check.outputs)
@@ -138,10 +137,12 @@ export function Waveform({
   }
 
   const renderRow = (samples: WaveSample[], id: string, kind: 'input' | 'output' | 'ref') => {
-    const last = samples[samples.length - 1]
+    // 参考解那一行没有活的仿真，取当前 tick 的那一帧；整组波形里不能拿最后一帧
+    // （那是测试跑完时的值，回放到一半就会显示成最终结果）
+    const current = full ? samples.find((item) => item.tick === tick) : samples[samples.length - 1]
     const value: 0 | 1 =
       kind === 'ref'
-        ? (last?.outputs[id] ?? 0)
+        ? (current?.outputs[id] ?? 0)
         : kind === 'input'
           ? (inputs[id] ?? 0)
           : outputAt(id)
@@ -236,12 +237,12 @@ export function Waveform({
               ))}
             <path className="wave-line" d={lanePath(runs)} vectorEffect="non-scaling-stroke" />
           </svg>
-          {full && playheadLeft !== null ? (
+          {full && headLeft !== null ? (
             <span
               className="wave-playhead"
-              // 右边缘正好压在当前这一格的右边（采样格是 [tick, tick + 1)），
-              // 用 HTML 覆盖层画，线身留在波形里，不会被 SVG 视口裁掉一半
-              style={{ left: playheadLeft, width: playheadWidth }}
+              // 以当前这一格的右边界为中线（采样格是 [tick, tick + 1)），线身两边各留一半，
+              // 用 HTML 覆盖层画：既盖住波形的跳变竖线，又不会被 SVG 视口裁掉
+              style={{ left: headLeft, width: headWidth }}
               aria-hidden="true"
             />
           ) : null}

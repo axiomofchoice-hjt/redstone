@@ -39,6 +39,26 @@ export function pushSample(
   return next.length > cap ? next.slice(next.length - cap) : next
 }
 
+/** 回放播放头的宽度：固定 2 CSS px，但按设备像素取整，竖边才不会糊成 3px */
+export function playheadWidth(dpr = 1): number {
+  return Math.max(1, Math.round(2 * dpr)) / dpr
+}
+
+/**
+ * 回放播放头（收进波形里的那条竖线）的左边缘，单位是 CSS px。
+ * 采样格是 [tick, tick + 1)，这一格的右边界就是「现在」：波形在那儿由 0 跳到 1
+ * （或反过来）时，竖线正好画在这条边界上，所以播放头以边界为中线、左右各压一半，
+ * 整条跳变竖线都被红线盖住。
+ * 左边缘再对齐到设备像素（线身不会一会儿粗一会儿细），最后夹在波形里，两端都露全。
+ */
+export function playheadLeft(domain: number, tick: number, laneWidth: number, dpr = 1): number {
+  if (domain <= 0 || laneWidth <= 0) return 0
+  const width = playheadWidth(dpr)
+  const boundary = (Math.min(tick + 1, domain) / domain) * laneWidth
+  const left = Math.round((boundary - width / 2) * dpr) / dpr
+  return Math.min(Math.max(left, 0), Math.max(0, laneWidth - width))
+}
+
 /** 一段电平不变的区间，坐标就是 svg 里的横坐标（0 是窗口左端） */
 export interface WaveRun {
   from: number

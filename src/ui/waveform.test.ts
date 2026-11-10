@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { Simulation } from '../game/sim'
 import type { Level } from '../game/types'
 import {
+  playheadLeft,
+  playheadWidth,
   pushSample,
   waveRuns,
   waveRunsBetween,
@@ -113,5 +115,72 @@ describe('波形采样', () => {
       inputs: { A: 0 },
       outputs: { B: 0, C: 0 },
     })
+  })
+})
+
+describe('回放播放头', () => {
+  // 采样格是 [tick, tick + 1)，波形在这一格的右边界上跳变
+  const boundaryOf = (domain: number, tick: number, lane: number) =>
+    (Math.min(tick + 1, domain) / domain) * lane
+
+  it('线宽是 2 CSS px，按设备像素取整', () => {
+    expect(playheadWidth(1)).toBe(2)
+    expect(playheadWidth(2)).toBe(2)
+    // 1.25 / 1.5 倍缩放：2px 会落在半个设备像素上，取整到 3 个设备像素
+    expect(playheadWidth(1.25)).toBe(2.4)
+    expect(playheadWidth(1.5)).toBe(2)
+  })
+
+  it('以这一格的右边界为中线，最多偏半个设备像素，2 倍屏上跳变竖线整个在红线里', () => {
+    const cases: [number, number, number][] = [
+      [21, 0, 265],
+      [21, 1, 265],
+      [171, 0, 265],
+      [171, 60, 265],
+      [34, 20, 300],
+    ]
+    for (const dpr of [1, 2]) {
+      for (const [domain, tick, lane] of cases) {
+        const width = playheadWidth(dpr)
+        const left = playheadLeft(domain, tick, lane, dpr)
+        const center = left + width / 2
+        // 只能偏半个设备像素（再远就是没对齐）
+        expect(Math.abs(center - boundaryOf(domain, tick, lane))).toBeLessThanOrEqual(
+          0.5 / dpr + 1e-9,
+        )
+      }
+    }
+    // 波形的竖线是 1.5px、以边界为中点：2 倍屏上整条都躲在 2px 的红线后面
+    for (const [domain, tick, lane] of cases) {
+      const width = playheadWidth(2)
+      const left = playheadLeft(domain, tick, lane, 2)
+      const boundary = boundaryOf(domain, tick, lane)
+      expect(left).toBeLessThanOrEqual(boundary - 0.75)
+      expect(left + width).toBeGreaterThanOrEqual(boundary + 0.75)
+    }
+  })
+
+  it('竖边对齐设备像素，不会落在半个像素上发虚', () => {
+    for (const dpr of [1, 1.25, 1.5, 2, 3]) {
+      for (const tick of [0, 3, 9]) {
+        const left = playheadLeft(21, tick, 265, dpr)
+        const width = playheadWidth(dpr)
+        expect(Math.abs(left * dpr - Math.round(left * dpr))).toBeLessThan(1e-9)
+        expect(Math.abs(width * dpr - Math.round(width * dpr))).toBeLessThan(1e-9)
+      }
+    }
+  })
+
+  it('两端夹在波形里：第一刻贴左边、最后一刻贴右边，都露全', () => {
+    const lane = 265
+    for (const dpr of [1, 1.25, 1.5, 2]) {
+      const width = playheadWidth(dpr)
+      const first = playheadLeft(21, 0, lane, dpr)
+      expect(first).toBeGreaterThanOrEqual(0)
+      // 回放会在测试结束后多走一步（tick = domain + 1），靠夹住不会再往右跑
+      const last = playheadLeft(21, 22, lane, dpr)
+      expect(last + width).toBeCloseTo(lane, 6)
+      expect(playheadLeft(21, 30, lane, dpr) + width).toBeCloseTo(lane, 6)
+    }
   })
 })
