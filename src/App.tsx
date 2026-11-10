@@ -7,7 +7,7 @@ import { defaultTool } from './ui/tools'
 import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
-import { pushSample, WAVE_TICKS, waveSample, type WaveSample } from './ui/waveform'
+import { pushSample, waveSample, type WaveSample } from './ui/waveform'
 import { checksOf, pairsOf, refLevelOf, refSimOf, replayStep, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/Palette'
 import { editAction, type EditMode } from './ui/edit-mode'
@@ -39,8 +39,9 @@ interface Editing {
 interface Replay {
   info: TraceInfo
   test: TestCase
-  refLevel: Level | null
-  refSim: Simulation | null
+  /** 整组测试的波形：进回放时一次跑完存下来，红线只当播放头，不跟着重画 */
+  history: WaveSample[]
+  refHistory: WaveSample[]
   saved: Editing & { inputs: Record<string, 0 | 1>; paused: boolean }
   lastTick: number
 }
@@ -53,13 +54,13 @@ const initial = (): Editing => {
 
 /**
  * 从冷启动按测试事件跑到第 steps 个 tick，返回玩家电路和参考解两份仿真、各自的波形。
- * 回放进入（steps = 0）和「上一刻」（从冷启动重跑到前一个 tick）都走这里。
+ * 回放进入（steps = 0）和「上一刻」（从冷启动重跑到前一个 tick）都走这里；
+ * 进回放时再跑一遍整组，拿到一次画满整条横轴要用的波形。
  */
 function replayTo(level: Level, test: TestCase, refLevel: Level | null, steps: number) {
   const sim = new Simulation(level)
   const refSim = refSimOf(level, refLevel)
-  // 回放波形铺整组测试，采样不能按 32 帧截断
-  const cap = testSpan(test) + 2
+  const cap = steps + 2
   let history = [waveSample(level, sim)]
   let refHistory = refSim && refLevel ? [waveSample(refLevel, refSim)] : []
   for (let t = 0; t < steps; t++) {
@@ -81,8 +82,6 @@ export default function App() {
   const [run, setRun] = useState<LevelRun | null>(null)
   // 测试没通过后点结果按钮进入的回放：元件栏换成波形图，电路从冷启动重跑
   const [replay, setReplay] = useState<Replay | null>(null)
-  // 参考解那几条输出线的采样
-  const [refHistory, setRefHistory] = useState<WaveSample[]>([])
   // 编辑器里手动开关的输入
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   const [menuOpen, setMenuOpen] = useState(false)
@@ -116,18 +115,11 @@ export default function App() {
     simRef.current = sim
   }, [sim])
 
-  const replayRef = useRef<Replay | null>(null)
-  useEffect(() => {
-    replayRef.current = replay
-  }, [replay])
-
-  /** 给波形图补一帧当前 tick 的采样；电脑端检查器和手机端「交互」/ 回放面板都读它 */
+  /** 给波形图补一帧当前 tick 的采样；电脑端检查器和手机端「交互」面板都读它 */
   const record = useCallback(() => {
-    // 回放要看整组测试，采样留到测试结束；平时只留波形窗口里的 32 帧
-    const cap = replayRef.current ? replayRef.current.lastTick + 2 : WAVE_TICKS
     setEditing((prev) => ({
       ...prev,
-      history: pushSample(prev.history, waveSample(prev.level, prev.sim), cap),
+      history: pushSample(prev.history, waveSample(prev.level, prev.sim)),
     }))
   }, [])
 
@@ -139,14 +131,8 @@ export default function App() {
         setPaused(true)
         return
       }
-      replayStep(replay.test, sim, replay.refSim)
-      record()
-      const { refLevel, refSim } = replay
-      if (refLevel && refSim) {
-        setRefHistory((prev) =>
-          pushSample(prev, waveSample(refLevel, refSim), replay.lastTick + 2),
-        )
-      }
+      // 整组波形进回放时就跑完了，这儿只推仿真，波形和红线都不用重采样
+      replayStep(replay.test, sim)
       setInputs(sim.inputValues())
       // 这组测试跑完就停住
       if (sim.tick > replay.lastTick) setPaused(true)
@@ -305,7 +291,6 @@ export default function App() {
     setInputs({})
     setRun(null)
     setReplay(null)
-    setRefHistory([])
     setPaused(false)
     setMenuOpen(false)
     setScreen('game')
@@ -313,7 +298,8 @@ export default function App() {
 
   /**
    * 点「测试结果：×」进入回放：电路从冷启动重跑第一组没通过的测试，
-   * 输入全 0、由测试事件驱动，元件栏换成波形图，地图和波形一起往前走。
+   * 输入全 0、由测试事件驱动，元件栏换成波形图。整组波形一进来就画满，
+   * 红线只当播放头，地图跟着「继续」/「下一刻」走。
    */
   const openTrace = () => {
     if (!run || run.passed || replay) return
@@ -321,8 +307,11 @@ export default function App() {
     const test = level.tests[Math.max(0, index)]
     if (!test) return
     const refLevel = refLevelOf(level)
-    const cold = replayTo(level, test, refLevel, 0)
     const lastTick = testSpan(test)
+    // 从冷启动跑到测试结束，把玩家的输入 / 输出和参考解的输出一整条都存下来；
+    // 起点那份仿真单独跑一次（steps = 0），用来把地图停在第一刻
+    const cold = replayTo(level, test, refLevel, 0)
+    const whole = replayTo(level, test, refLevel, lastTick + 1)
     setReplay({
       info: {
         name: test.name ?? '测试',
@@ -331,14 +320,13 @@ export default function App() {
         lastTick,
       },
       test,
-      refLevel,
-      refSim: cold.refSim,
+      history: whole.history,
+      refHistory: whole.refHistory,
       lastTick,
       saved: { level, sim, history, inputs, paused },
     })
     setEditing({ level, sim: cold.sim, history: cold.history })
     setInputs(cold.sim.inputValues())
-    setRefHistory(cold.refHistory)
     setPaused(true)
     repaint()
   }
@@ -351,7 +339,6 @@ export default function App() {
     setInputs(saved.inputs)
     setPaused(saved.paused)
     setReplay(null)
-    setRefHistory([])
     return saved
   }
 
@@ -360,13 +347,12 @@ export default function App() {
     if (leaveTrace()) repaint()
   }
 
-  /** 上一刻：回放从冷启动重跑到前一个 tick，地图和波形一起退 */
+  /** 上一刻：回放从冷启动重跑到前一个 tick；整组波形不动，只有红线往左退一格 */
   const prevTick = () => {
     if (!replay) return
-    const back = replayTo(level, replay.test, replay.refLevel, Math.max(0, sim.tick - 1))
-    setReplay({ ...replay, refSim: back.refSim })
-    setEditing({ level, sim: back.sim, history: back.history })
-    setRefHistory(back.refHistory)
+    // 波形和参考解已经整组存下了，往后退只重跑玩家那份，把地图停到前一刻
+    const back = replayTo(level, replay.test, null, Math.max(0, sim.tick - 1))
+    setEditing((prev) => ({ ...prev, sim: back.sim }))
     setInputs(back.sim.inputValues())
     repaint()
   }
@@ -420,11 +406,11 @@ export default function App() {
         mode={mode}
         dir={dir}
         inputs={inputs}
-        history={history}
+        history={replay ? replay.history : history}
         tick={sim.tick}
         run={run}
         trace={replay?.info ?? null}
-        refHistory={refHistory}
+        refHistory={replay ? replay.refHistory : []}
         traceEnd={traceEnd}
         paused={paused}
         revision={version}
@@ -463,14 +449,14 @@ export default function App() {
       paused={paused}
       revision={version}
       menuOpen={mobileMenuOpen}
-      history={history}
+      history={replay ? replay.history : history}
       tick={sim.tick}
       inputs={inputs}
       powerAt={powerAt}
       lockedAt={lockedAt}
       outputAt={outputAt}
       trace={replay?.info ?? null}
-      refHistory={refHistory}
+      refHistory={replay ? replay.refHistory : []}
       traceEnd={traceEnd}
       onTool={pickTool}
       onDir={setDir}

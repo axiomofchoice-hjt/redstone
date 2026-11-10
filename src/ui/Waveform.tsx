@@ -19,7 +19,7 @@ interface Props {
   checks?: TraceCheck[]
   /** 回放的成对检查：两个时刻只要求翻转或保持，画成一段淡蓝对比区间 */
   pairs?: TracePair[]
-  /** 回放时铺整组测试：横轴从 0 到测试结束，检查区间不用等播放到才出现 */
+  /** 回放时铺整组测试：横轴从 0 到测试结束，整组波形和检查区间一次画满 */
   span?: number
 }
 
@@ -53,7 +53,8 @@ const AXIS = [
 /**
  * 信号波形（电脑端检查器、手机端交互和回放共用）：横轴是最近 WAVE_TICKS 个 tick，
  * 右端是现在，高电平画在上沿。输入点左边的字母就能切换 0 / 1，每行右边写当前取值。
- * 回放时额外画参考解的输出（虚线框字母）和测试的检查区间，输入行不能点。
+ * 回放时横轴换成整组测试：波形、参考解输出和检查区间一次全画出来，红线只当播放头，
+ * 输入行不能点。
  */
 export function Waveform({
   history,
@@ -148,8 +149,9 @@ export function Waveform({
             : 0
     // 当前这一格的采样由 App 在改元件 / 拨输入时覆盖，画出来和右边的数字是同一份数据
     const field = kind === 'input' ? 'inputs' : 'outputs'
+    // 回放把整组测试一次画满（横轴就是 0 到测试结束），不用等播放到才长出来
     const runs = full
-      ? waveRunsBetween(samples, field, id, 0, tick)
+      ? waveRunsBetween(samples, field, id, 0, domain - 1)
       : waveRuns(samples, field, id, tick)
     const bands = kind === 'input' ? [] : bandsFor(id)
     const pairMarks = kind === 'input' ? { runs: [], marks: [] } : pairBandsFor(id)

@@ -48,7 +48,7 @@ export interface WaveRun {
 
 /**
  * 取 [from, to] 这一段 tick 的采样，坐标从 from 起算，不在前面补 0。
- * 回放时整组测试铺在波形上，还没跑到的 tick 留空，用它。
+ * 回放的横轴是整组测试，用它一次取出整条波形。
  */
 export function waveRunsBetween(
   history: WaveSample[],
