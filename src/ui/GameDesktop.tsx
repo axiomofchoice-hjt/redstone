@@ -7,6 +7,7 @@ import { clampZoom, zoomAround, type Camera, type Viewport } from './camera'
 import { Inspector } from './Inspector'
 import { InfoIcon, Logo, MenuIcon, PauseIcon, PlayIcon, StepIcon } from './icons'
 import type { Tool } from './Palette'
+import type { EditMode } from './edit-mode'
 import type { WaveSample } from './waveform'
 import { padNo } from './levels-meta'
 
@@ -15,6 +16,8 @@ interface Props {
   /** 自由模式：没有关卡号、端口和测试，相关入口收起来 */
   free: boolean
   tool: Tool
+  /** 电脑端左键模式：放置不覆盖已有元件、点输入元件拨 0 / 1 */
+  mode: EditMode
   dir: Dir
   inputs: Record<string, 0 | 1>
   history: WaveSample[]
@@ -26,6 +29,7 @@ interface Props {
   lockedAt: (index: number) => boolean
   outputAt: (id: string) => boolean
   onTool: (tool: Tool) => void
+  onMode: () => void
   onDir: (dir: Dir) => void
   onCell: (index: number) => void
   onErase: (index: number) => void
@@ -44,6 +48,7 @@ export function GameDesktop({
   level,
   free,
   tool,
+  mode,
   dir,
   inputs,
   history,
@@ -55,6 +60,7 @@ export function GameDesktop({
   lockedAt,
   outputAt,
   onTool,
+  onMode,
   onDir,
   onCell,
   onErase,
@@ -235,6 +241,7 @@ export function GameDesktop({
           level={level}
           free={free}
           tool={tool}
+          mode={mode}
           dir={dir}
           zoom={camera.zoom}
           inputs={inputs}
@@ -243,6 +250,7 @@ export function GameDesktop({
           outputAt={outputAt}
           run={run}
           onTool={onTool}
+          onMode={onMode}
           onDir={onDir}
           onZoom={zoomTo}
           onToggleInput={onToggleInput}
@@ -262,6 +270,7 @@ export function GameDesktop({
             previewDir={
               tool !== 'erase' && tool !== 'interact' && hasDirection(tool.type) ? dir : undefined
             }
+            placeMode={mode === 'place'}
             workbench={{ camera, onCamera: setCamera, onRotate }}
             viewportRef={viewport}
           />

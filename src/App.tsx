@@ -10,6 +10,7 @@ import { solutionMap } from './ui/solution'
 import { pushSample, waveSample, type WaveSample } from './ui/waveform'
 import { checksOf, refLevelOf, replayStep, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/Palette'
+import { editAction, type EditMode } from './ui/edit-mode'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
 import { StartScreen } from './ui/StartScreen'
 import { LevelSelect } from './ui/LevelSelect'
@@ -72,6 +73,8 @@ export default function App() {
   const [tool, setTool] = useState<Tool>({ type: 'wire' })
   // 再点一次「交互」还原成上一次选的元件（手机端交互时元件栏换成了波形图）
   const lastTool = useRef<Tool>({ type: 'wire' })
+  // 电脑端左键模式：默认放置（只填空格、不覆盖已有元件），切到覆盖才会替换
+  const [mode, setMode] = useState<EditMode>('place')
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
   // 测试没通过后点结果按钮进入的回放：元件栏换成波形图，电路从冷启动重跑
@@ -91,6 +94,13 @@ export default function App() {
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
   // 手机菜单只在手机布局里算数；拖到桌面宽度时不应该把仿真停住
   const mobileMenuOpen = menuOpen && !isDesktop
+
+  // 手机端的「交互」是元件栏里的工具；拖到电脑端后换成模式按钮，
+  // 别留下一个电脑端没有入口再退出的交互工具
+  useEffect(() => {
+    if (!isDesktop) return
+    setTool((prev) => (prev === 'interact' ? lastTool.current : prev))
+  }, [isDesktop])
 
   /**
    * 定时器只建一次：改元件会重建仿真，如果定时器依赖 sim，每放一格都会被清掉重建，
@@ -222,18 +232,30 @@ export default function App() {
   const handleCell = (index: number) => {
     // 回放时地图只是旁观，别把回放的电路改了
     if (replay) return
-    // 交互：点输入元件开关它
+    // 手机端的「交互」工具：点输入元件开关它
     if (tool === 'interact') {
       const cell = level.cells[index]
-      if (cell?.type !== 'input' || !cell.id) return
-      toggleInput(cell.id)
+      if (cell?.type === 'input' && cell.id) toggleInput(cell.id)
       return
     }
+    // 删除工具在两种模式下都直接删，不受「不覆盖」限制
+    if (tool === 'erase') {
+      writeCell(index, null)
+      return
+    }
+    // 手机端没有模式切换，仍然保持原来的放置 / 覆盖
+    const action = editAction(isDesktop ? mode : 'overwrite', level.cells[index])
+    if (action.type === 'toggle') {
+      toggleInput(action.id)
+      return
+    }
+    if (action.type === 'blocked') return
 
-    const cell: Cell | null =
-      tool === 'erase'
-        ? null
-        : { type: tool.type, dir: hasDirection(tool.type) ? dir : undefined, id: tool.id }
+    const cell: Cell = {
+      type: tool.type,
+      dir: hasDirection(tool.type) ? dir : undefined,
+      id: tool.id,
+    }
     writeCell(index, cell)
   }
 
@@ -262,9 +284,10 @@ export default function App() {
     const level = { ...next, cells: next.cells.slice() }
     const sim = new Simulation(level)
     setEditing({ level, sim, history: [waveSample(level, sim)] })
-    // 换关后元件选择也回到这关的默认元件，别把上一关照到哪都带着
+    // 换关后元件选择也回到这关的默认元件，模式回到默认的放置，别把上一关的选择带过来
     lastTool.current = { type: defaultTool(level) }
     setTool(lastTool.current)
+    setMode('place')
     setDir(INITIAL_DIR)
     setInputs({})
     setRun(null)
@@ -375,6 +398,7 @@ export default function App() {
         level={level}
         free={free}
         tool={tool}
+        mode={mode}
         dir={dir}
         inputs={inputs}
         history={history}
@@ -386,6 +410,7 @@ export default function App() {
         lockedAt={lockedAt}
         outputAt={outputAt}
         onTool={pickTool}
+        onMode={() => setMode((value) => (value === 'place' ? 'overwrite' : 'place'))}
         onDir={setDir}
         onCell={handleCell}
         onErase={handleErase}

@@ -8,14 +8,17 @@ import { TOOLS, toolEnabled } from './tools'
 import { ToolIcon } from './ToolIcon'
 import { Waveform } from './Waveform'
 import type { WaveSample } from './waveform'
+import type { EditMode } from './edit-mode'
 import { ArrowUp } from './icons'
 import type { Tool } from './Palette'
 
 interface Props {
   level: Level
-  /** 自由模式：没有端口和测试，相关的模式键与结果行收起来 */
+  /** 自由模式：没有端口和测试，相关的入口收起来 */
   free: boolean
   tool: Tool
+  /** 电脑端左键模式：按钮上显示的就是当前模式 */
+  mode: EditMode
   dir: Dir
   zoom: number
   inputs: Record<string, 0 | 1>
@@ -26,6 +29,7 @@ interface Props {
   outputAt: (id: string) => boolean
   run: LevelRun | null
   onTool: (tool: Tool) => void
+  onMode: () => void
   onDir: (dir: Dir) => void
   onZoom: (zoom: number) => void
   onToggleInput: (id: string) => void
@@ -43,6 +47,7 @@ export function Inspector({
   level,
   free,
   tool,
+  mode,
   dir,
   zoom,
   inputs,
@@ -51,6 +56,7 @@ export function Inspector({
   outputAt,
   run,
   onTool,
+  onMode,
   onDir,
   onZoom,
   onToggleInput,
@@ -128,17 +134,23 @@ export function Inspector({
         </div>
 
         <div className="mode-switch">
-          {free ? null : (
-            <button
-              type="button"
-              className={tool === 'interact' ? 'mode-btn active' : 'mode-btn'}
-              aria-pressed={tool === 'interact'}
-              title="交互：点击输入元件切换 0 / 1"
-              onClick={() => onTool('interact')}
-            >
-              交互
-            </button>
-          )}
+          <button
+            type="button"
+            className={`mode-btn ${mode === 'place' ? 'mode-place' : 'mode-overwrite'}`}
+            title={
+              mode === 'place'
+                ? '当前：放置模式 · 点输入元件拨 0 / 1，放元件不会覆盖已有元件；点击切到覆盖模式'
+                : '当前：覆盖模式 · 放元件会盖掉已有元件；点击切到放置模式'
+            }
+            aria-label={
+              mode === 'place'
+                ? '当前放置模式，点击切换到覆盖模式'
+                : '当前覆盖模式，点击切换到放置模式'
+            }
+            onClick={onMode}
+          >
+            {mode === 'place' ? '放置' : '覆盖'}
+          </button>
           <button
             type="button"
             className={tool === 'erase' ? 'mode-btn active' : 'mode-btn'}

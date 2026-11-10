@@ -26,8 +26,9 @@ src/
     Palette.tsx     手机端底部元件栏
     ports.ts        元件栏里还有哪些输入 / 输出按钮
     tools.ts        可用元件、元件栏顺序和换关时的默认元件
+    edit-mode.ts    电脑端放置 / 覆盖模式下点一格该做什么
     keyboard.ts     数字键选元件、方向键 / WASD 换朝向
-    Inspector.tsx   电脑端左侧面板：元件、朝向、交互 / 删除、缩放滑轨、信号、测试
+    Inspector.tsx   电脑端左侧面板：元件、朝向、放置 / 覆盖模式、删除、缩放滑轨、信号、测试
     Waveform.tsx    输入 / 输出波形图（电脑端检查器、手机端交互和回放共用）
     waveform.ts     波形采样：每 tick 取一帧、滚动窗口、切成电平段
     trace.ts        回放要显示的检查区间，以及参考解并排跑同一组测试

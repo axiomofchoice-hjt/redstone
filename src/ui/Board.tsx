@@ -26,6 +26,8 @@ interface Props {
   preview?: Tool | null
   /** 有方向元件的预览朝向 */
   previewDir?: Dir
+  /** 电脑端放置模式：输入元件可以拨，已有元件不会被覆盖，悬停时别画覆盖预览 */
+  placeMode?: boolean
   /**
    * 电脑端工作台：相机由外面持有（右侧滑轨缩放），滚轮换朝向，
    * 左键按下就放、拖过去连续放；手机上不传，保留拖动平移 / 双指缩放。
@@ -116,6 +118,7 @@ export function Board({
   onErase,
   preview = null,
   previewDir,
+  placeMode = false,
   workbench,
   viewportRef,
 }: Props) {
@@ -223,6 +226,7 @@ export function Board({
         hover,
         hoverPreview,
         previewDir,
+        placeMode,
         workbench != null,
         (index, horizontal) => {
           const fade = fades.current.get(index)
@@ -249,6 +253,7 @@ export function Board({
     hover,
     preview,
     previewDir,
+    placeMode,
     workbench,
     viewportRef,
     reduceMotion,
@@ -509,7 +514,8 @@ export function Board({
         for (let i = 1; i < line.length; i++) {
           const cell = line[i][1] * cols + line[i][0]
           if (active.erase) onErase(cell)
-          else onCell(cell)
+          // 放置模式拖过输入元件不能一路反复拨，只有按下那一下算点击
+          else if (!(placeMode && cells[cell]?.type === 'input')) onCell(cell)
         }
         active.last = index
       }
@@ -623,6 +629,7 @@ function render(
   hover: number,
   preview: Tool | null,
   previewDir: Dir | undefined,
+  placeMode: boolean,
   fixedCell: boolean,
   /** 每格通电渐变的进度，参数是格子下标和「是不是横线」 */
   mixAt: (index: number, horizontal: boolean) => number,
@@ -719,6 +726,10 @@ function render(
     if (left + cell > 0 && top + cell > 0 && left < w && top < h) {
       const cellData = cells[hover]
       const locked = cellData?.locked === true
+      // 放置模式下已有元件不会被覆盖（输入元件除外，它是拿来拨的）
+      const activatable = cellData?.type === 'input' && Boolean(cellData.id)
+      const blocked =
+        placeMode && preview !== 'erase' && cellData !== null && !activatable
       const cx = left + cell / 2 + 0.5
       const cy = top + cell / 2 + 0.5
       ctx.save()
@@ -747,6 +758,13 @@ function render(
           ctx.lineWidth = 2
           ctx.strokeRect(left + 2, top + 2, cell - 4, cell - 4)
         }
+      } else if (placeMode && cellData) {
+        // 输入元件拨 0 / 1；其它已有元件点了不会动，也就不画放置预览
+        if (activatable) {
+          ctx.strokeStyle = 'rgba(240, 86, 46, 0.95)'
+          ctx.lineWidth = 2
+          ctx.strokeRect(left + 2, top + 2, cell - 4, cell - 4)
+        }
       } else if (preview) {
         ctx.globalAlpha = cellData ? 0.32 : 0.5
         drawComponent(
@@ -762,7 +780,8 @@ function render(
       }
 
       if (!locked) {
-        ctx.strokeStyle = 'rgba(240, 86, 46, 0.85)'
+        // 不能覆盖的格子用灰框，别给成「可以放」的橙色
+        ctx.strokeStyle = blocked ? 'rgba(150, 160, 180, 0.55)' : 'rgba(240, 86, 46, 0.85)'
         ctx.lineWidth = 1.5
         ctx.setLineDash([])
         ctx.strokeRect(left + 1.5, top + 1.5, cell - 3, cell - 3)

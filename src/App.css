@@ -607,6 +607,19 @@ button:focus-visible,
   color: var(--accent-strong);
 }
 
+/* 按钮上写的就是当前模式：放置是橙色，覆盖会盖掉已有元件，用红石红提示一下 */
+.mode-btn.mode-place {
+  border-color: var(--accent);
+  background: rgba(240, 86, 46, 0.10);
+  color: var(--accent-strong);
+}
+
+.mode-btn.mode-overwrite {
+  border-color: rgba(237, 43, 43, 0.4);
+  background: rgba(237, 43, 43, 0.06);
+  color: #b3261e;
+}
+
 .zoom-row {
   display: flex;
   align-items: center;
