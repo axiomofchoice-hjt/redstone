@@ -99,7 +99,7 @@ export default function App() {
     simRef.current = sim
   }, [sim])
 
-  /** 给波形图补一帧当前 tick 的采样；电脑端检查器和手机端「交互」面板都读它 */
+  /** 给波形图补一帧当前 tick 的采样；电脑端检查器和手机端「交互」/ 回放面板都读它 */
   const record = useCallback(() => {
     setEditing((prev) => ({
       ...prev,

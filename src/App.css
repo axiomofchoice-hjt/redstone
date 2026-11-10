@@ -1143,7 +1143,7 @@ button.wave-tag:hover:not(:disabled) {
   align-self: stretch;
 }
 
-/* 手机端「交互」模式：元件栏整个换成波形图，点行首字母拨 0 / 1 */
+/* 手机端「交互」和回放：元件栏整个换成波形图 */
 .wave-panel {
   flex: 0 0 auto;
   max-height: 42vh;
