@@ -519,7 +519,10 @@ describe('增量更新', () => {
 })
 
 describe('中继器侧面锁存', () => {
-  /** D → 导线 → 中继器 → Y；侧面一个由 E 驱动的充能器把中继器按住 */
+  /**
+   * D → 导线 → 中继器 → Y；旁边再摆一个中继器，由 E 驱动、正顶在它的侧面。
+   * 锁存靠的是第二个中继器，它的输出晚 1 tick，所以锁也比充能器方案晚 1 tick。
+   */
   const latch = () =>
     makeLevel(
       4,
@@ -529,7 +532,7 @@ describe('中继器侧面锁存', () => {
         [1, 0, { type: 'wire' }],
         [2, 0, { type: 'repeater', dir: 1 }],
         [3, 0, { type: 'output', id: 'Y' }],
-        [2, 1, { type: 'charger', dir: 0 }],
+        [2, 1, { type: 'repeater', dir: 0 }],
         [2, 2, { type: 'input', id: 'E' }],
       ],
       [],
@@ -540,12 +543,12 @@ describe('中继器侧面锁存', () => {
     for (let i = 0; i < 4; i++) sim.step()
   }
 
-  it('E 高时锁住，D 的 1 进不来', () => {
+  it('E 先到就锁住，之后 D 的 1 进不来', () => {
     const sim = new Simulation(cloneLevel(latch()))
     settleWith(sim, { D: 0, E: 0 })
-    expect(sim.output('Y')).toBe(false)
-    settleWith(sim, { D: 1, E: 1 })
+    settleWith(sim, { E: 1 })
     expect(sim.isLocked(2)).toBe(true)
+    settleWith(sim, { D: 1 })
     expect(sim.output('Y')).toBe(false)
   })
 
@@ -553,11 +556,21 @@ describe('中继器侧面锁存', () => {
     const sim = new Simulation(cloneLevel(latch()))
     settleWith(sim, { D: 1, E: 0 })
     expect(sim.output('Y')).toBe(true)
-    settleWith(sim, { D: 0, E: 1 })
+    settleWith(sim, { E: 1 })
+    expect(sim.output('Y')).toBe(true)
+    settleWith(sim, { D: 0 })
     expect(sim.output('Y')).toBe(true)
     settleWith(sim, { E: 0 })
     expect(sim.isLocked(2)).toBe(false)
     expect(sim.output('Y')).toBe(false)
+  })
+
+  it('侧面那个中继器晚 1 tick：同一拍拉高 D 和 E，D 会先进来一拍', () => {
+    const sim = new Simulation(cloneLevel(latch()))
+    settleWith(sim, { D: 0, E: 0 })
+    settleWith(sim, { D: 1, E: 1 })
+    expect(sim.isLocked(2)).toBe(true)
+    expect(sim.output('Y')).toBe(true)
   })
 
   it('只认侧面：从后方灌信号不算锁', () => {
@@ -601,3 +614,72 @@ describe('中继器侧面锁存', () => {
   })
 })
 
+describe('充能器顶侧面是断路', () => {
+  /** 同上面的锁存器，但侧面换成充能器：Y = D − E = D ∧ ¬E */
+  const breaker = () =>
+    makeLevel(
+      4,
+      3,
+      [
+        [0, 0, { type: 'input', id: 'D' }],
+        [1, 0, { type: 'wire' }],
+        [2, 0, { type: 'repeater', dir: 1 }],
+        [3, 0, { type: 'output', id: 'Y' }],
+        [2, 1, { type: 'charger', dir: 0 }],
+        [2, 2, { type: 'input', id: 'E' }],
+      ],
+      [],
+    )
+
+  const settleWith = (sim: Simulation, values: Record<string, 0 | 1>) => {
+    sim.setInputs(values)
+    for (let i = 0; i < 4; i++) sim.step()
+  }
+
+  it('E=1 把输出减成 0，而且不是锁存', () => {
+    const sim = new Simulation(cloneLevel(breaker()))
+    settleWith(sim, { D: 1, E: 0 })
+    expect(sim.isBroken(2)).toBe(false)
+    expect(sim.output('Y')).toBe(true)
+    settleWith(sim, { E: 1 })
+    expect(sim.isBroken(2)).toBe(true)
+    expect(sim.isLocked(2)).toBe(false)
+    expect(sim.output('Y')).toBe(false)
+  })
+
+  it('断路、恢复都走中继器自己的 1 tick 延迟', () => {
+    const sim = new Simulation(cloneLevel(breaker()))
+    settleWith(sim, { D: 1, E: 0 })
+    expect(sim.powerAt(2)).toBe(1)
+    sim.setInputs({ E: 1 })
+    expect(sim.powerAt(2)).toBe(1) // 这一拍还没断
+    sim.step()
+    expect(sim.powerAt(2)).toBe(0) // 下一拍才断
+    sim.setInputs({ E: 0 })
+    expect(sim.powerAt(2)).toBe(0) // 恢复也要等一拍
+    sim.step()
+    expect(sim.powerAt(2)).toBe(1)
+  })
+
+  it('断路期间 D 掉下去，撤掉侧面后输出也是 0', () => {
+    const sim = new Simulation(cloneLevel(breaker()))
+    settleWith(sim, { D: 1, E: 1 })
+    settleWith(sim, { D: 0 })
+    expect(sim.output('Y')).toBe(false)
+    settleWith(sim, { E: 0 })
+    expect(sim.output('Y')).toBe(false)
+  })
+
+  it('增量算法和全量算法把断路算成一样', () => {
+    const sim = new Simulation(cloneLevel(breaker()))
+    for (let t = 0; t < 6; t++) {
+      sim.setInputs({ D: (t % 2) as 0 | 1, E: ((t >> 1) % 2) as 0 | 1 })
+      for (let k = 0; k < 3; k++) {
+        sim.step()
+        const full = sim.snapshotFull()
+        expect(full.stable).toBe(true)
+        expect(sim.snapshot().powers).toEqual(full.powers)
+      }
+    }
+  })
+})

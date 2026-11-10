@@ -1,4 +1,4 @@
-import type { Cell, CircuitState, Dir, Level, TestCase } from './types'
+import type { Cell, CellType, CircuitState, Dir, Level, TestCase } from './types'
 
 export const DX = [0, 1, 0, -1] as const
 export const DY = [-1, 0, 1, 0] as const
@@ -237,8 +237,9 @@ export class Simulation {
       } else if (type === 'repeater') {
         // 侧面被锁住时不采样，输出保持不变
         if (this.isLocked(i)) continue
-        // 中继器读取后方当下的信号，下一 tick 才输出
-        const value = this.readBack(i)
+        // 中继器读取后方当下的信号，下一 tick 才输出；侧面被充能器断路时按 0 采样，
+        // 所以断开和恢复也都晚 1 tick
+        const value = this.readBack(i) && !this.isBroken(i)
         nextRepeater[i] = value
         if (value !== this.repeaterOut[i]) seeds.push(i)
       }
@@ -529,17 +530,12 @@ export class Simulation {
   }
 
   /**
-   * 中继器是否被旁边指向它的充能器 / 中继器从侧面锁住。
-   *
-   * 锁住期间中继器不采样后方，输出原地保持；侧面的驱动一撤，它才把后方信号
-   * 采样进来（还是延迟 1 tick）。前后方向是它自己读信号 / 输出的通路，不算侧面。
-   *
-   * 所以「中继器后面接 D、侧面接一个由 E 驱动的充能器」就是一个 D 锁存器：
-   * E=1 期间锁住保持，E=0 时 Y 跟着 D 走。
+   * 中继器侧面相邻、正对着它的那一类元件。前后方向是它自己读信号 / 输出的
+   * 通路，不算侧面，所以只看左右两侧。有就返回那一格的下标，没有返回 -1。
    */
-  isLocked(i: number): boolean {
+  private sideDriver(i: number, type: CellType): number {
     const c = this.level.cells[i]
-    if (!c || c.type !== 'repeater') return false
+    if (!c) return -1
     const front = dirOf(c)
     const { cols } = this.level
     const x = i % cols
@@ -551,11 +547,39 @@ export class Simulation {
       if (!this.inside(nx, ny)) continue
       const j = ny * cols + nx
       const cj = this.level.cells[j]
-      if (!isSource(cj)) continue
-      if (dirOf(cj as Cell) !== opposite(d)) continue
-      if (this.emitAt(j, opposite(d))) return true
+      if (!cj || cj.type !== type) continue
+      if (dirOf(cj) !== opposite(d)) continue
+      if (this.emitAt(j, opposite(d))) return j
     }
-    return false
+    return -1
+  }
+
+  /**
+   * 中继器是否被旁边指向它的中继器从侧面锁住。
+   *
+   * 只有中继器能锁：充能器是无延迟元件，让它顶住侧面等于白送一个锁存器，
+   * 所以侧面必须再摆一个中继器。中继器输出本身就晚 1 tick，锁存也跟着晚那一拍
+   * 才生效，这就是「两个中继器」的 D 锁存器比拿充能器去顶多出来的 1 tick。
+   *
+   * 锁住期间中继器不采样后方，输出原地保持；侧面的驱动一撤，它才把后方信号
+   * 采样进来（还是延迟 1 tick）。前后方向是它自己读信号 / 输出的通路，不算侧面。
+   *
+   * 所以「中继器后面接 D、侧面接一个由 E 驱动的中继器」就是一个 D 锁存器：
+   * E=1 期间锁住保持，E=0 时 Y 跟着 D 走。
+   */
+  isLocked(i: number): boolean {
+    if (this.level.cells[i]?.type !== 'repeater') return false
+    return this.sideDriver(i, 'repeater') >= 0
+  }
+
+  /**
+   * 中继器是否被旁边指向它的充能器「断路」：充能器顶住侧面就把输出掐断，
+   * 相当于布尔减法 Y = D − E = D ∧ ¬E。断路算进中继器自己的采样：这一拍按 0
+   * 记下，下一拍才输出，所以断开也好、侧面撤掉恢复也好，都跟着中继器晚 1 tick。
+   */
+  isBroken(i: number): boolean {
+    if (this.level.cells[i]?.type !== 'repeater') return false
+    return this.sideDriver(i, 'charger') >= 0
   }
 
   /** 有方向的元件从它后面读到的信号 */
