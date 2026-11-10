@@ -13,8 +13,8 @@ const inputsNotSetAtStart = (level: Level, test: TestCase): string[] => {
 }
 
 /**
- * 点「测试」是冷启动跑的：输入从 0 开始，没写到的输入就一直是 0。
- * 每组测试还是把用到的输入在第 0 tick 写全，别隐式依赖这个初始值。
+ * 点「测试」是从现场快照起跑的：没写到的输入会沿用玩家拨过的那个值。
+ * 每组测试都把自己用到的输入在第 0 tick 写全，结果才不会跟着编辑器里的开关走。
  */
 describe('每组测试都自己把输入设全', () => {
   for (const level of LEVELS) {

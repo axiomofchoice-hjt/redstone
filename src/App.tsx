@@ -33,7 +33,7 @@ interface Editing {
 }
 
 /**
- * 测试没通过后的回放：从冷启动重跑这一组测试，输入由测试事件驱动，
+ * 测试没通过后的回放：按点「测试」那一刻的快照重跑这一组测试，输入由测试事件驱动，
  * 玩家电路和参考解一起走；退出时把进来前的编辑状态原样还回去。
  */
 interface Replay {
@@ -42,6 +42,8 @@ interface Replay {
   /** 整组测试的波形：进回放时一次跑完存下来，红线只当播放头，不跟着重画 */
   history: WaveSample[]
   refHistory: WaveSample[]
+  /** 这次测试的起跑仿真（快照，tick 归零）；「上一刻」也从它重跑 */
+  start: Simulation
   saved: Editing & { inputs: Record<string, 0 | 1>; paused: boolean }
   lastTick: number
 }
@@ -53,22 +55,40 @@ const initial = (): Editing => {
 }
 
 /**
- * 上一次「运行测试」的结果，以及当时测的那块电路。
- * 结果不跟编辑器里的电路联动：改元件、拨输入都不会把它清掉，
- * 只有再点一次「测试」才重算并替换；点开回放也按这块电路重跑，和结果对得上。
+ * 上一次「运行测试」的结果，以及点下去那一刻现场电路和状态的快照。
+ * 测试和回放都从这份快照起跑：编辑器之后继续跑、继续改，都不会影响已经跑出来的结果。
+ * 结果不跟编辑器联动，改元件、拨输入都不会把它清掉，只有再点一次「测试」才替换。
  */
 interface RunState {
   result: LevelRun
-  level: Level
+  snapshot: Simulation
 }
 
 /**
- * 从冷启动按测试事件跑到第 steps 个 tick，返回玩家电路和参考解两份仿真、各自的波形。
- * 回放进入（steps = 0）和「上一刻」（从冷启动重跑到前一个 tick）都走这里；
- * 进回放时再跑一遍整组，拿到一次画满整条横轴要用的波形。
+ * 回放的起跑仿真：拿「测试」那一刻的快照状态，tick 归零。
+ * 回放的横轴从 0 数、测试事件也按 0 起的 tick 排，但电路内部状态（非门、中继器、
+ * 导线电平和输入）保持快照里的样子，放出来的就是当时那次测试。
  */
-function replayTo(level: Level, test: TestCase, refLevel: Level | null, steps: number) {
-  const sim = new Simulation(level)
+function replayStart(snapshot: Simulation): Simulation {
+  const sim = new Simulation(snapshot.level)
+  sim.restore({ ...snapshot.circuitState(), tick: 0 })
+  return sim
+}
+
+/**
+ * 按测试事件跑到第 steps 个 tick，返回玩家电路和参考解两份仿真、各自的波形。
+ * 回放进入（steps = 0）和「上一刻」（回到前一个 tick）都走这里；
+ * 进回放时再跑一遍整组，拿到一次画满整条横轴要用的波形。
+ * `start` 给了就从这份仿真（测试快照）起跑，没给就从冷启动的电路起跑。
+ */
+function replayTo(
+  level: Level,
+  test: TestCase,
+  refLevel: Level | null,
+  steps: number,
+  start?: Simulation,
+) {
+  const sim = start ? start.fork() : new Simulation(level)
   const refSim = refSimOf(level, refLevel)
   const cap = steps + 2
   let history = [waveSample(level, sim)]
@@ -312,18 +332,19 @@ export default function App() {
    */
   const openTrace = () => {
     if (!run || run.result.passed || replay) return
-    // 回放按上一次测试时的那块电路重跑：改完电路再点开会放，看到的还是测过的那一版，
-    // 和结果图标对得上；退出回放时再把当前这块电路还回来
-    const tested = run.level
+    // 回放按「测试」那一刻的快照放：电路、输入和内部状态都是当时那份，
+    // 编辑器之后改了电路也不会影响它；退出回放时再把当前这块电路还回来
+    const tested = run.snapshot.level
     const index = run.result.outcomes.findIndex((outcome) => !outcome.passed)
     const test = tested.tests[Math.max(0, index)]
     if (!test) return
     const refLevel = refLevelOf(tested)
     const lastTick = testSpan(test)
-    // 从冷启动跑到测试结束，把玩家的输入 / 输出和参考解的输出一整条都存下来；
+    // 从快照起跑，把玩家的输入 / 输出和参考解的输出一整条都存下来；
     // 起点那份仿真单独跑一次（steps = 0），用来把地图停在第一刻
-    const cold = replayTo(tested, test, refLevel, 0)
-    const whole = replayTo(tested, test, refLevel, lastTick + 1)
+    const start = replayStart(run.snapshot)
+    const cold = replayTo(tested, test, refLevel, 0, start)
+    const whole = replayTo(tested, test, refLevel, lastTick + 1, start)
     setReplay({
       info: {
         name: test.name ?? '测试',
@@ -334,6 +355,7 @@ export default function App() {
       test,
       history: whole.history,
       refHistory: whole.refHistory,
+      start,
       lastTick,
       saved: { level, sim, history, inputs, paused },
     })
@@ -359,11 +381,12 @@ export default function App() {
     if (leaveTrace()) repaint()
   }
 
-  /** 上一刻：回放从冷启动重跑到前一个 tick；整组波形不动，只有红线往左退一格 */
+  /** 上一刻：从测试快照重跑到前一个 tick；整组波形不动，只有红线往左退一格 */
   const prevTick = () => {
     if (!replay) return
-    // 波形和参考解已经整组存下了，往后退只重跑玩家那份，把地图停到前一刻
-    const back = replayTo(level, replay.test, null, Math.max(0, sim.tick - 1))
+    // 波形和参考解已经整组存下了，往后退只重跑玩家那份，把地图停到前一刻；
+    // 和进回放一样从测试快照起跑，状态才和结果对得上
+    const back = replayTo(level, replay.test, null, Math.max(0, sim.tick - 1), replay.start)
     setEditing((prev) => ({ ...prev, sim: back.sim }))
     setInputs(back.sim.inputValues())
     repaint()
@@ -372,15 +395,16 @@ export default function App() {
   const togglePause = () => setPaused((value) => !value)
 
   /**
-   * 点「测试」：每次都用当前这块电路从冷启动重跑一遍全部测试。
-   * 不接着编辑器里那份已经跑热的仿真，也不复用上一次的结果——
-   * 改过电路就重新算，结果永远对得上眼前这块电路。
+   * 点「测试」：先把现场这块电路和它当前的仿真状态 fork 一份快照，再拿快照跑这一关的测试。
+   * 编辑器之后接着跑、接着改都影响不到这次结果；点和测之间也不会插进别的状态——
+   * 按一下就立刻拿眼前这一份去测。
    */
   const runTests = () => {
     // 回放中按「测试」：先退出回放，再拿回来那份电路重新测
     const saved = leaveTrace()
-    const target = saved?.level ?? level
-    setRun({ result: runLevel(target), level: target })
+    const live = saved?.sim ?? sim
+    const snapshot = live.fork()
+    setRun({ result: runLevel(snapshot.level, snapshot), snapshot })
     if (saved) repaint()
   }
 
