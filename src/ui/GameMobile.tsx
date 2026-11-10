@@ -3,7 +3,7 @@ import { hasDirection } from '../game/sim'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
-import { InfoIcon, MenuIcon, StepIcon } from './icons'
+import { CheckIcon, CrossIcon, DotsIcon, InfoIcon, MenuIcon, StepIcon } from './icons'
 import { Palette } from './Palette'
 import type { Tool } from './Palette'
 import { Waveform } from './Waveform'
@@ -167,15 +167,22 @@ export function GameMobile({
           />
 
           <div className="toolbar">
-            <div className={run?.passed ? 'result ok' : 'result'}>
-              <span>
-                {run === null
-                  ? '未运行'
+            {/* 只有未通过时可点，点开做什么之后再说 */}
+            <button
+              type="button"
+              className={run?.passed ? 'result ok' : !run ? 'result' : 'result fail'}
+              disabled={run === null || run.passed}
+              title={
+                run === null
+                  ? '还没运行测试'
                   : run.passed
-                    ? '全部测试通过'
-                    : '测试未通过'}
-              </span>
-            </div>
+                    ? '测试全部通过'
+                    : '测试未通过'
+              }
+            >
+              测试结果：
+              {run === null ? <DotsIcon /> : run.passed ? <CheckIcon /> : <CrossIcon />}
+            </button>
             <div className="actions">
               <button
                 type="button"

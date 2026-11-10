@@ -112,6 +112,48 @@ export function TrashIcon({ size = 16 }: IconProps) {
   )
 }
 
+/** 勾：测试全部通过 */
+export function CheckIcon({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M3.2 8.4 6.5 11.7 12.8 5.2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+/** 叉：测试未通过 */
+export function CrossIcon({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M4 4l8 8M12 4l-8 8"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+/** 省略号：测试还没运行 */
+export function DotsIcon({ size = 14 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+      <g fill="currentColor">
+        <circle cx="3.2" cy="10.6" r="1.15" />
+        <circle cx="8" cy="10.6" r="1.15" />
+        <circle cx="12.8" cy="10.6" r="1.15" />
+      </g>
+    </svg>
+  )
+}
+
 /** 菜单箭头：左边三个点、右边三条横线，和手机端顶栏的菜单键一致 */
 export function MenuIcon({ size = 18 }: IconProps) {
   return (

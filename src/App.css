@@ -927,24 +927,38 @@ button.wave-tag:hover:not(:disabled) {
   padding: 6px 14px 8px;
 }
 
+/* 「测试结果」跟右侧按钮同高、宽度包住内容的描边按钮；未通过时才可点 */
 .result {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 2px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  margin-right: auto;
+  align-items: center;
+  gap: 5px;
   min-width: 0;
+  height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
   color: var(--muted);
+  font-family: inherit;
   font-size: 13px;
-}
-
-.result span {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .result.ok {
+  border-color: rgba(23, 138, 85, 0.35);
   color: var(--ok);
+}
+
+.result.fail {
+  border-color: rgba(237, 43, 43, 0.4);
+  color: var(--redstone);
+  cursor: pointer;
+}
+
+.result:disabled {
+  cursor: default;
 }
 
 .actions {
