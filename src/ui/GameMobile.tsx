@@ -22,6 +22,8 @@ import type { TraceInfo } from './trace'
 
 interface Props {
   level: Level
+  /** 自由模式：没有关卡号、端口和测试，相关按钮收起来 */
+  free: boolean
   tool: Tool
   dir: Dir
   run: LevelRun | null
@@ -59,6 +61,7 @@ interface Props {
 /** 手机端游戏界面：原来的单列布局，地图占满中间，元件栏在底部 */
 export function GameMobile({
   level,
+  free,
   tool,
   dir,
   run,
@@ -114,7 +117,8 @@ export function GameMobile({
       <header className="top">
         <div className="head">
           <h1>
-            第 {level.no ?? 1} 关 · {level.name}
+            {level.no ? `第 ${level.no} 关 · ` : ''}
+            {level.name}
           </h1>
           <div className="head-keys">
             <button
@@ -171,7 +175,7 @@ export function GameMobile({
         // 只写本关目标：地图、工具栏、元件栏都不显示，顶栏保留
         <div className="info-screen">
           <div className="info-card">
-            <p className="info-label">本关目标</p>
+            <p className="info-label">{free ? '自由模式' : '本关目标'}</p>
             <p className="info-text">{level.brief?.trim() || '这一关还没写目标说明。'}</p>
             <button
               type="button"
@@ -199,27 +203,29 @@ export function GameMobile({
           />
 
           <div className="toolbar">
-            {/* 未通过时点它进入回放，再点一次回到元件栏 */}
-            <button
-              type="button"
-              className={run?.passed ? 'result ok' : !run ? 'result' : 'result fail'}
-              disabled={run === null || run.passed}
-              onClick={trace ? onCloseTrace : onOpenTrace}
-              title={
-                run === null
-                  ? '还没运行测试'
-                  : run.passed
-                    ? '测试全部通过'
-                    : trace
-                      ? '收起回放，回到元件栏'
-                      : '测试未通过，点这里看回放波形'
-              }
-            >
-              测试结果：
-              {run === null ? <DotsIcon /> : run.passed ? <CheckIcon /> : <CrossIcon />}
-            </button>
+            {/* 未通过时点它进入回放，再点一次回到元件栏；自由模式没有测试 */}
+            {free ? null : (
+              <button
+                type="button"
+                className={run?.passed ? 'result ok' : !run ? 'result' : 'result fail'}
+                disabled={run === null || run.passed}
+                onClick={trace ? onCloseTrace : onOpenTrace}
+                title={
+                  run === null
+                    ? '还没运行测试'
+                    : run.passed
+                      ? '测试全部通过'
+                      : trace
+                        ? '收起回放，回到元件栏'
+                        : '测试未通过，点这里看回放波形'
+                }
+              >
+                测试结果：
+                {run === null ? <DotsIcon /> : run.passed ? <CheckIcon /> : <CrossIcon />}
+              </button>
+            )}
             <div className="actions">
-              {trace ? (
+              {free ? null : trace ? (
                 // 回放时这一格换成「上一刻」：光标往前挪一个 tick
                 <button
                   type="button"
@@ -261,9 +267,11 @@ export function GameMobile({
               >
                 <StepIcon size={14} />
               </button>
-              <button type="button" className="run" onClick={onRun} title="运行测试">
-                测试
-              </button>
+              {free ? null : (
+                <button type="button" className="run" onClick={onRun} title="运行测试">
+                  测试
+                </button>
+              )}
             </div>
           </div>
 

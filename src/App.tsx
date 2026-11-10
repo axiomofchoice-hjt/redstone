@@ -2,6 +2,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { hasDirection, runLevel, Simulation, testSpan, type LevelRun } from './game/sim'
 import type { Cell, Dir, Level, TestCase } from './game/types'
 import { LEVELS } from './levels'
+import { freeLevel, isFreeLevel } from './levels/free'
 import { defaultTool } from './ui/tools'
 import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
@@ -85,6 +86,8 @@ export default function App() {
   const [version, repaint] = useReducer((n: number) => n + 1, 0)
   // 调试用：暂停自动 tick
   const [paused, setPaused] = useState(false)
+  // 自由模式没有关卡号、端口和测试，界面上要把这些入口收起来
+  const free = isFreeLevel(level)
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
   // 手机菜单只在手机布局里算数；拖到桌面宽度时不应该把仿真停住
   const mobileMenuOpen = menuOpen && !isDesktop
@@ -335,6 +338,9 @@ export default function App() {
     if (saved) repaint()
   }
 
+  /** 选关页的「自由模式」：20×20 空白沙盒，没有输入输出和测试 */
+  const startFree = () => startLevel(freeLevel)
+
   const goHome = () => {
     setMenuOpen(false)
     setScreen('start')
@@ -347,7 +353,7 @@ export default function App() {
 
   if (screen === 'start') {
     return (
-      <StartScreen onResume={() => setScreen('game')} onLevels={goLevels} />
+      <StartScreen onStart={goLevels} />
     )
   }
 
@@ -356,6 +362,7 @@ export default function App() {
       <LevelSelect
         levels={LEVELS}
         onSelect={startLevel}
+        onFree={startFree}
         onResume={() => setScreen('game')}
         onHome={goHome}
       />
@@ -367,6 +374,7 @@ export default function App() {
       <GameDesktop
         key={level.id}
         level={level}
+        free={free}
         tool={tool}
         dir={dir}
         inputs={inputs}
@@ -398,6 +406,7 @@ export default function App() {
   return (
     <GameMobile
       level={level}
+      free={free}
       tool={tool}
       dir={dir}
       run={run}

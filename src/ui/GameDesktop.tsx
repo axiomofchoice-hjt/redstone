@@ -12,6 +12,8 @@ import { padNo } from './levels-meta'
 
 interface Props {
   level: Level
+  /** 自由模式：没有关卡号、端口和测试，相关入口收起来 */
+  free: boolean
   tool: Tool
   dir: Dir
   inputs: Record<string, 0 | 1>
@@ -41,6 +43,7 @@ interface Props {
 /** 电脑端游戏界面：顶栏（右上角关卡信息 + 菜单键）+ 左侧检查器 + 右侧画布 */
 export function GameDesktop({
   level,
+  free,
   tool,
   dir,
   inputs,
@@ -138,7 +141,7 @@ export function GameDesktop({
         </button>
 
         <div className="crumb">
-          <span className="crumb-kicker">第 {padNo(level.no ?? 1)} 关</span>
+          {level.no ? <span className="crumb-kicker">第 {padNo(level.no)} 关</span> : null}
           <h1 className="crumb-title">{level.name}</h1>
         </div>
 
@@ -162,9 +165,11 @@ export function GameDesktop({
           >
             <StepIcon />
           </button>
-          <button type="button" className="btn primary" onClick={onRun} title="运行测试">
-            测试
-          </button>
+          {free ? null : (
+            <button type="button" className="btn primary" onClick={onRun} title="运行测试">
+              测试
+            </button>
+          )}
 
           <button
             type="button"
@@ -220,7 +225,7 @@ export function GameDesktop({
 
           {infoOpen ? (
             <section id="level-info" className="info-panel" aria-label="关卡信息">
-              <p className="info-label">本关目标</p>
+              <p className="info-label">{free ? '自由模式' : '本关目标'}</p>
               <p className="info-text">{level.brief?.trim() || '这一关还没写目标说明。'}</p>
             </section>
           ) : null}
@@ -230,6 +235,7 @@ export function GameDesktop({
       <div className="game-grid">
         <Inspector
           level={level}
+          free={free}
           tool={tool}
           dir={dir}
           zoom={camera.zoom}

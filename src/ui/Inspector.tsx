@@ -13,6 +13,8 @@ import type { Tool } from './Palette'
 
 interface Props {
   level: Level
+  /** 自由模式：没有端口和测试，相关的模式键与结果行收起来 */
+  free: boolean
   tool: Tool
   dir: Dir
   zoom: number
@@ -39,6 +41,7 @@ const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
 /** 电脑端左侧面板：只保留元件、朝向、信号和测试结果，能省的字都省掉 */
 export function Inspector({
   level,
+  free,
   tool,
   dir,
   zoom,
@@ -125,15 +128,17 @@ export function Inspector({
         </div>
 
         <div className="mode-switch">
-          <button
-            type="button"
-            className={tool === 'interact' ? 'mode-btn active' : 'mode-btn'}
-            aria-pressed={tool === 'interact'}
-            title="交互：点击输入元件切换 0 / 1"
-            onClick={() => onTool('interact')}
-          >
-            交互
-          </button>
+          {free ? null : (
+            <button
+              type="button"
+              className={tool === 'interact' ? 'mode-btn active' : 'mode-btn'}
+              aria-pressed={tool === 'interact'}
+              title="交互：点击输入元件切换 0 / 1"
+              onClick={() => onTool('interact')}
+            >
+              交互
+            </button>
+          )}
           <button
             type="button"
             className={tool === 'erase' ? 'mode-btn active' : 'mode-btn'}
@@ -177,12 +182,12 @@ export function Inspector({
         />
       ) : null}
 
-      <div className={`test-line${testState}`} role="status">
-        <span className="test-dot" aria-hidden="true" />
-        <span>
-          {run === null ? '未运行' : run.passed ? '全部通过' : '未通过'}
-        </span>
-      </div>
+      {free ? null : (
+        <div className={`test-line${testState}`} role="status">
+          <span className="test-dot" aria-hidden="true" />
+          <span>{run === null ? '未运行' : run.passed ? '全部通过' : '未通过'}</span>
+        </div>
+      )}
 
       <div className="inspector-hints">
         <p className="inspector-hint">滚轮换朝向 · WASD / 方向键移视野</p>

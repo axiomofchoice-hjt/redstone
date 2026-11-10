@@ -136,10 +136,6 @@ button:focus-visible,
   line-height: 0.95;
 }
 
-.landing-copy h1 .accent {
-  color: var(--accent);
-}
-
 .landing-copy p {
   max-width: 420px;
   margin: 24px 0 0;
@@ -285,6 +281,16 @@ button:focus-visible,
 .level-card:hover {
   border-color: var(--line-strong);
   background: #f1f4fa;
+}
+
+/* 自由模式：另起一行排在最后一关下面，用虚线边框和真正的关卡区分开 */
+.level-card-free {
+  grid-column: 1 / -1;
+  border-style: dashed;
+}
+
+.level-card-free:hover {
+  border-color: var(--accent);
 }
 
 .level-no {
@@ -958,7 +964,6 @@ button.wave-tag:hover:not(:disabled) {
 .result {
   display: inline-flex;
   flex: 0 0 auto;
-  margin-right: auto;
   align-items: center;
   gap: 5px;
   min-width: 0;
@@ -991,6 +996,7 @@ button.wave-tag:hover:not(:disabled) {
 .actions {
   display: flex;
   flex: 0 0 auto;
+  margin-left: auto;
   align-items: center;
   gap: 6px;
 }
@@ -1264,7 +1270,12 @@ button.wave-tag:hover:not(:disabled) {
   }
 
   .landing-art {
-    display: none;
+    width: min(100%, 320px);
+    margin: 26px auto 0;
+  }
+
+  .landing-art::before {
+    inset: -4%;
   }
 
   .landing-copy h1 {
