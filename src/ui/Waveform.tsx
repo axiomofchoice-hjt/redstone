@@ -144,71 +144,74 @@ export function Waveform({
           </span>
         )}
 
-        <svg
-          className="wave-lane"
-          viewBox={`0 0 ${domain} 10`}
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path
-            className="wave-grid"
-            d={[0.25, 0.5, 0.75].map((f) => `M${domain * f} 0v10`).join('')}
-            vectorEffect="non-scaling-stroke"
-          />
-          {bands.map((band) => (
-            <rect
-              key={`band-${band.key}`}
-              className={`trace-band${band.expected ? '' : ' low'}`}
-              x={band.from}
-              y={0}
-              width={band.to - band.from}
-              height={10}
-            />
-          ))}
-          {pairMarks.runs.map((run) => (
-            <rect
-              key={`pair-run-${run.from}`}
-              className="trace-band pair"
-              x={run.from}
-              y={0}
-              width={run.to - run.from}
-              height={10}
-            >
-              <title>
-                {`成对检查：第 ${run.from + start}–${run.to + start - 1} tick 要翻转或保持`}
-              </title>
-            </rect>
-          ))}
-          {pairMarks.marks.map((mark) => (
+        <div className="wave-lane">
+          <svg
+            className="wave-svg"
+            viewBox={`0 0 ${domain} 10`}
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
             <path
-              key={`pair-mark-${mark}`}
-              className="trace-pair-tick"
-              d={`M${mark} 0v10`}
+              className="wave-grid"
+              d={[0.25, 0.5, 0.75].map((f) => `M${domain * f} 0v10`).join('')}
               vectorEffect="non-scaling-stroke"
             />
-          ))}
-          {runs
-            .filter((run) => run.value === 1)
-            .map((run) => (
+            {bands.map((band) => (
               <rect
-                key={`hi-${run.from}`}
-                className="wave-fill"
-                x={run.from}
-                y={HIGH}
-                width={run.to - run.from}
-                height={LOW - HIGH}
+                key={`band-${band.key}`}
+                className={`trace-band${band.expected ? '' : ' low'}`}
+                x={band.from}
+                y={0}
+                width={band.to - band.from}
+                height={10}
               />
             ))}
-          <path className="wave-line" d={lanePath(runs)} vectorEffect="non-scaling-stroke" />
+            {pairMarks.runs.map((run) => (
+              <rect
+                key={`pair-run-${run.from}`}
+                className="trace-band pair"
+                x={run.from}
+                y={0}
+                width={run.to - run.from}
+                height={10}
+              >
+                <title>
+                  {`成对检查：第 ${run.from + start}–${run.to + start - 1} tick 要翻转或保持`}
+                </title>
+              </rect>
+            ))}
+            {pairMarks.marks.map((mark) => (
+              <path
+                key={`pair-mark-${mark}`}
+                className="trace-pair-tick"
+                d={`M${mark} 0v10`}
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+            {runs
+              .filter((run) => run.value === 1)
+              .map((run) => (
+                <rect
+                  key={`hi-${run.from}`}
+                  className="wave-fill"
+                  x={run.from}
+                  y={HIGH}
+                  width={run.to - run.from}
+                  height={LOW - HIGH}
+                />
+              ))}
+            <path className="wave-line" d={lanePath(runs)} vectorEffect="non-scaling-stroke" />
+          </svg>
           {full ? (
-            <path
+            <span
               className="wave-playhead"
-              // 画在当前这一格（tick）的右边：采样格是 [tick, tick + 1)
-              d={`M${Math.min(tick + 1, domain)} 0v10`}
-              vectorEffect="non-scaling-stroke"
+              // 右边缘正好压在当前这一格的右边（采样格是 [tick, tick + 1)），
+              // 用 HTML 覆盖层画，线身留在波形里，不会被 SVG 视口裁掉一半
+              style={{ left: `${(Math.min(tick + 1, domain) / domain) * 100}%` }}
+              aria-hidden="true"
             />
           ) : null}
-        </svg>
+        </div>
 
         <span className={`wave-now${value ? ' on' : ''}`}>{value}</span>
       </div>

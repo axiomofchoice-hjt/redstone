@@ -748,9 +748,16 @@ button.wave-tag:hover:not(:disabled) {
 }
 
 .wave-lane {
+  position: relative;
   flex: 1;
   min-width: 0;
   height: 20px;
+}
+
+.wave-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .wave-grid {
@@ -837,10 +844,15 @@ button.wave-tag:hover:not(:disabled) {
   stroke-width: 1.5;
 }
 
-/* 回放铺整组测试时，每行一条竖线标出当前走到哪个 tick */
+/* 回放铺整组测试时，每行一条竖线标出当前走到哪个 tick：
+   右边缘对齐当前格子的右边，线身向左留在波形里，最后一格也不会被裁 */
 .wave-playhead {
-  stroke: rgba(240, 86, 46, 0.7);
-  stroke-width: 1.5;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: rgba(240, 86, 46, 0.7);
+  transform: translateX(-100%);
 }
 
 .inspector-hints {
