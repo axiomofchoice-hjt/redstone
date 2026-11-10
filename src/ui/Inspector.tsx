@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { MAX_ZOOM, MIN_ZOOM } from './camera'
 import { usePaletteKeys } from './keyboard'
@@ -14,8 +13,6 @@ import type { Tool } from './Palette'
 
 interface Props {
   level: Level
-  /** 自由模式：没有端口和测试，相关的入口收起来 */
-  free: boolean
   tool: Tool
   /** 电脑端左键模式：按钮上显示的就是当前模式 */
   mode: EditMode
@@ -27,7 +24,6 @@ interface Props {
   /** 当前 tick，波形窗口的右端 */
   tick: number
   outputAt: (id: string) => boolean
-  run: LevelRun | null
   onTool: (tool: Tool) => void
   onMode: () => void
   onDir: (dir: Dir) => void
@@ -42,10 +38,9 @@ const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
   { dir: 1, label: '右', area: 'right' },
 ]
 
-/** 电脑端左侧面板：只保留元件、朝向、信号和测试结果，能省的字都省掉 */
+/** 电脑端左侧面板：只保留元件、朝向、信号和操作说明，能省的字都省掉 */
 export function Inspector({
   level,
-  free,
   tool,
   mode,
   dir,
@@ -54,7 +49,6 @@ export function Inspector({
   history,
   tick,
   outputAt,
-  run,
   onTool,
   onMode,
   onDir,
@@ -86,7 +80,6 @@ export function Inspector({
   // 波形把关卡声明的端口都列出来：没放到地图上的也占一行，输出按 0 画，输入按玩家设置
   const inputIds = level.inputs ?? []
   const outputIds = level.outputs ?? []
-  const testState = run === null ? '' : run.passed ? ' ok' : ' bad'
 
   return (
     <aside className="inspector" aria-label="工具与状态">
@@ -194,16 +187,8 @@ export function Inspector({
         />
       ) : null}
 
-      {free ? null : (
-        <div className={`test-line${testState}`} role="status">
-          <span className="test-dot" aria-hidden="true" />
-          <span>{run === null ? '未运行' : run.passed ? '全部通过' : '未通过'}</span>
-        </div>
-      )}
-
       <div className="inspector-hints">
-        <p className="inspector-hint">滚轮换朝向 · WASD / 方向键移视野</p>
-        <p className="inspector-hint">左键拖动连续放置 · 右键拖动连续删除</p>
+        <p className="inspector-hint">左键放置 · 右键删除 · 滚轮换朝向 · 方向键移动地图</p>
       </div>
     </aside>
   )

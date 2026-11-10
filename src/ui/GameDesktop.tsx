@@ -5,7 +5,17 @@ import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
 import { clampZoom, zoomAround, type Camera, type Viewport } from './camera'
 import { Inspector } from './Inspector'
-import { InfoIcon, Logo, MenuIcon, PauseIcon, PlayIcon, StepIcon } from './icons'
+import {
+  CheckIcon,
+  CrossIcon,
+  DotsIcon,
+  InfoIcon,
+  Logo,
+  MenuIcon,
+  PauseIcon,
+  PlayIcon,
+  StepIcon,
+} from './icons'
 import type { Tool } from './Palette'
 import type { EditMode } from './edit-mode'
 import type { WaveSample } from './waveform'
@@ -174,6 +184,22 @@ export function GameDesktop({
               测试
             </button>
           )}
+          {free ? null : (
+            <div
+              className={
+                run === null
+                  ? 'result topbar'
+                  : run.passed
+                    ? 'result topbar ok'
+                    : 'result topbar fail'
+              }
+              role="status"
+              title={run === null ? '还没运行测试' : run.passed ? '测试全部通过' : '测试未通过'}
+            >
+              测试结果：
+              {run === null ? <DotsIcon /> : run.passed ? <CheckIcon /> : <CrossIcon />}
+            </div>
+          )}
 
           <button
             type="button"
@@ -239,7 +265,6 @@ export function GameDesktop({
       <div className="game-grid">
         <Inspector
           level={level}
-          free={free}
           tool={tool}
           mode={mode}
           dir={dir}
@@ -248,7 +273,6 @@ export function GameDesktop({
           history={history}
           tick={tick}
           outputAt={outputAt}
-          run={run}
           onTool={onTool}
           onMode={onMode}
           onDir={onDir}

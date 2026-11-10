@@ -814,39 +814,6 @@ button.wave-tag:hover:not(:disabled) {
   fill: rgba(27, 34, 48, 0.045);
 }
 
-.test-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--line-soft);
-  border-radius: 7px;
-  background: var(--panel-2);
-  color: #7a8497;
-  font-size: 12.5px;
-}
-
-.test-dot {
-  width: 7px;
-  height: 7px;
-  margin: 0 1px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.test-line.ok {
-  border-color: rgba(23, 138, 85, 0.30);
-  background: rgba(23, 138, 85, 0.06);
-  color: var(--ok);
-}
-
-.test-line.bad {
-  border-color: rgba(192, 42, 36, 0.28);
-  background: rgba(192, 42, 36, 0.06);
-  color: #c02a24;
-}
-
 .inspector-hints {
   display: flex;
   flex-direction: column;
@@ -952,7 +919,7 @@ button.wave-tag:hover:not(:disabled) {
   padding: 6px 14px 8px;
 }
 
-/* 「测试结果」跟右侧按钮同高、宽度包住内容的描边按钮；未通过时才可点 */
+/* 「测试结果」：手机端在工具栏，电脑端在顶栏「测试」右边；宽度包住内容 */
 .result {
   display: inline-flex;
   flex: 0 0 auto;
@@ -982,6 +949,15 @@ button.wave-tag:hover:not(:disabled) {
 }
 
 .result:disabled {
+  cursor: default;
+}
+
+/* 电脑端顶栏里跟 .btn 一样高，只显示状态，不进入回放 */
+.result.topbar {
+  height: 38px;
+  padding: 0 13px;
+  border-radius: 9px;
+  font-size: 13.5px;
   cursor: default;
 }
 
