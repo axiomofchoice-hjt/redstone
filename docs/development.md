@@ -52,17 +52,17 @@ src/
     level-05.ts     第五关：异或门
     level-06.ts     第六关：半加器
     level-07.ts     第七关：三人投票器
-    level-08.ts     第八关：交叉
-    level-09.ts     第九关：时钟
-    level-10.ts     第十关：上升沿感应器
-    level-11.ts     第十一关：脉冲延长器
-    level-12.ts     第十二关：脉冲延迟器
-    level-13.ts     第十三关：脉冲过滤器
-    level-14.ts     第十四关：双边沿感应器
-    level-15.ts     第十五关：RS 锁存器
-    level-16.ts     第十六关：D 锁存器
+    level-08.ts     第八关：时钟
+    level-09.ts     第九关：脉冲延迟器
+    level-10.ts     第十关：脉冲延长器
+    level-11.ts     第十一关：上升沿感应器
+    level-12.ts     第十二关：脉冲过滤器
+    level-13.ts     第十三关：双边沿感应器
+    level-14.ts     第十四关：RS 锁存器
+    level-15.ts     第十五关：D 锁存器
+    level-16.ts     第十六关：T 触发器
     level-17.ts     第十七关：JK 触发器
-    level-18.ts     第十八关：T 触发器
+    level-18.ts     第十八关：交叉
     level-19.ts     第十九关：脉冲长度感应器
   App.tsx           关卡状态、工具选择、tick 循环、响应式切换
 ```

@@ -40,7 +40,7 @@ pnpm dev          # http://localhost:5173
 **关卡**
 
 - [关卡数据格式](docs/levels.md)：`Level` 字段、`pairs` 与测试写法、导出地图
-- [各关设计说明](docs/level-notes.md)：第八关的设计、参考解取的状态
+- [各关设计说明](docs/level-notes.md)：第十八关的设计、参考解取的状态
 
 **开发**
 

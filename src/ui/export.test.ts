@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { Simulation } from '../game/sim'
 import { level01 } from '../levels/level-01'
-import { level08 } from '../levels/level-08'
+import { level18 } from '../levels/level-18'
 import { mapFileName, mapJson } from './export'
 
 describe('导出地图', () => {
   it('文件名用关卡 id', () => {
-    expect(mapFileName(level08)).toBe('level-08-map.json')
+    expect(mapFileName(level18)).toBe('level-18-map.json')
   })
 
   it('带上 tick、端口取值和每格通电状态', () => {
@@ -49,11 +49,11 @@ describe('导出地图', () => {
   })
 
   it('玩家放的元件也会带上', () => {
-    const cells = level08.cells.slice()
-    cells[5 * level08.cols + 3] = { type: 'not', dir: 2 }
-    const level = { ...level08, cells }
+    const cells = level18.cells.slice()
+    cells[5 * level18.cols + 3] = { type: 'not', dir: 2 }
+    const level = { ...level18, cells }
     const parsed = JSON.parse(mapJson(level, new Simulation(level)))
-    expect(parsed.cells[5 * level08.cols + 3]).toEqual({ type: 'not', dir: 2 })
+    expect(parsed.cells[5 * level18.cols + 3]).toEqual({ type: 'not', dir: 2 })
     expect(parsed.state.inputs).toEqual({ A: 0, B: 0 })
   })
 })

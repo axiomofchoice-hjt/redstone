@@ -396,7 +396,6 @@ export default function App() {
         onPause={togglePause}
         onNextTick={nextTick}
         onRotate={(step) => setDir((value) => rotateDir(value, step))}
-        onHome={goHome}
         onLevels={goLevels}
       />
     )

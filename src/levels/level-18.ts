@@ -1,193 +1,125 @@
-import type { Cell, Level, PairCheck } from '../game/types'
-import { cellsFrom, stateFrom } from './solution-helpers'
+import type { Cell, Level } from '../game/types'
+import { stateFrom } from './solution-helpers'
 
-const cols = 10
+const cols = 20
 const rows = 10
-// 输入 T、输出 Y 都由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
-/**
- * 参考解：布局来自导出的地图。中继器把 T 晚几拍，上升沿那一拍按反馈回来的 Y 翻转。
- */
-const solution = cellsFrom(cols * rows, {
-  // 第 0 行
-  0: { type: 'input', id: 'T' },
-  2: { type: 'wire' },
-  3: { type: 'charger', dir: 1 },
-  4: { type: 'not', dir: 1 },
-  5: { type: 'wire' },
-  6: { type: 'wire' },
-  7: { type: 'wire' },
-  // 第 1 行
-  10: { type: 'charger', dir: 2 },
-  12: { type: 'wire' },
-  14: { type: 'charger', dir: 0 },
-  17: { type: 'charger', dir: 2 },
-  // 第 2 行
-  20: { type: 'not', dir: 2 },
-  21: { type: 'wire' },
-  22: { type: 'wire' },
-  24: { type: 'not', dir: 0 },
-  25: { type: 'charger', dir: 3 },
-  26: { type: 'wire' },
-  27: { type: 'not', dir: 0 },
-  // 第 3 行
-  30: { type: 'repeater', dir: 2 },
-  32: { type: 'wire' },
-  36: { type: 'charger', dir: 2 },
-  37: { type: 'charger', dir: 0 },
-  // 第 4 行
-  40: { type: 'repeater', dir: 2 },
-  42: { type: 'wire' },
-  44: { type: 'wire' },
-  45: { type: 'charger', dir: 1 },
-  46: { type: 'not', dir: 0 },
-  47: { type: 'wire' },
-  48: { type: 'output', id: 'Y' },
-  // 第 5 行
-  50: { type: 'not', dir: 2 },
-  51: { type: 'wire' },
-  52: { type: 'wire' },
-  54: { type: 'wire' },
-  57: { type: 'charger', dir: 2 },
-  // 第 6 行
-  62: { type: 'wire' },
-  63: { type: 'charger', dir: 1 },
-  64: { type: 'not', dir: 2 },
-  65: { type: 'charger', dir: 3 },
-  66: { type: 'wire' },
-  67: { type: 'not', dir: 0 },
-})
+const at = (x: number, y: number) => y * cols + x
 
-/** 导出时的一刻：T=0，Y=0（tick 219） */
+// 四个角预置端口：左边上下是输入，右边上下是输出
+cells[at(0, 0)] = { type: 'input', id: 'A', locked: true }
+cells[at(0, rows - 1)] = { type: 'input', id: 'B', locked: true }
+cells[at(cols - 1, 0)] = { type: 'output', id: 'C', locked: true }
+cells[at(cols - 1, rows - 1)] = { type: 'output', id: 'D', locked: true }
+
+/**
+ * 第十八关的设计意图：**用逻辑门做出交叉的效果，而不是用地形跨过去**。
+ *
+ * 导线只要贴边就连在一起，两条线在同一个平面上没法直穿过去；交叉元件正是为这种
+ * 情况准备的，所以这一关故意把它从 `tools` 里去掉。玩家要做的是「换位」而不是
+ * 「跨越」：A、B 在左边上下对角，C、D 在右边上下对角，要求 C = B、D = A 的稳态。
+ *
+ * 参考解用一次异或搭出中间量：X = A XOR B 走中间，C = A XOR X = B、D = B XOR X = A，
+ * 两条线谁都不用真的跨过谁。测试只看 4 种输入组合跑稳之后的输出（tick 10～20），
+ * 不限定延迟，所以任何等价电路都算过。
+ *
+ * 一行 20 格，`-` 导线、`>` 朝右的充能器、`!` 朝右的非门、`.` 空格，字母是四个角的端口。
+ */
+const SOLUTION_GRID = [
+  'A..................C',
+  '----------->!-->!..-',
+  '-...........->!.----',
+  '-->!-->!..->!-->!...',
+  '...->!.----.........',
+  '-->!-->!..->!-->!...',
+  '-...........->!.----',
+  '----------->!-->!..-',
+  '-..................-',
+  'B..................D',
+]
+
+const cellFromChar = (char: string): Cell | null => {
+  switch (char) {
+    case '-':
+      return { type: 'wire' }
+    case '>':
+      return { type: 'charger', dir: 1 }
+    case '!':
+      return { type: 'not', dir: 1 }
+    case 'A':
+      return { type: 'input', id: 'A', locked: true }
+    case 'B':
+      return { type: 'input', id: 'B', locked: true }
+    case 'C':
+      return { type: 'output', id: 'C', locked: true }
+    case 'D':
+      return { type: 'output', id: 'D', locked: true }
+    default:
+      return null
+  }
+}
+
+const parseGrid = (grid: string[]): (Cell | null)[] => {
+  const out: (Cell | null)[] = new Array(cols * rows).fill(null)
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) out[at(x, y)] = cellFromChar(grid[y][x])
+  }
+  return out
+}
+
+const solution = parseGrid(SOLUTION_GRID)
+
+/** 取 A=0、B=0 跑稳之后的状态，盖上去 C=0、D=0（tick 60）；每行一条，key 是行优先下标 */
 const solutionState = stateFrom(
-  { tick: 219, inputs: { T: 0 }, outputs: { Y: 0 } },
+  { tick: 60, inputs: { A: 0, B: 0 }, outputs: { C: 0, D: 0 } },
   {
-    2: 3,
-    3: 1,
-    12: 3,
-    20: 1,
-    21: 3,
-    22: 3,
-    25: 1,
-    26: 3,
-    27: 1,
-    30: 1,
-    32: 3,
-    36: 1,
-    40: 1,
-    42: 3,
-    51: 3,
-    52: 3,
-    62: 3,
-    63: 1,
-    65: 1,
-    66: 3,
-    67: 1,
+    32: 1, 33: 3, 34: 3, 35: 1,
+    52: 3, 53: 1,
+    63: 1, 64: 3, 65: 3, 66: 1, 72: 1, 73: 3, 74: 3, 75: 1,
+    83: 3, 84: 1,
+    103: 1, 104: 3, 105: 3, 106: 1, 112: 1, 113: 3, 114: 3, 115: 1,
+    132: 3, 133: 1,
+    152: 1, 153: 3, 154: 3, 155: 1,
   },
 )
 
-/** 每组都先把 T 设一遍，免得接上玩家当前开着的输入 */
-const reset = (values: { T: 0 | 1 }) => ({ tick: 0, values })
-
-/** 两个时刻必须相反：中间跨过一个上升沿，Y 应该翻一次 */
-const flip = (before: number, after: number): PairCheck => ({
-  output: 'Y',
-  ticks: [before, after],
-  allow: [
-    [0, 1],
-    [1, 0],
-  ],
-})
-
-/** 两个时刻必须相同：没跨上升沿，Y 应该保持 */
-const hold = (a: number, b: number): PairCheck => ({
-  output: 'Y',
-  ticks: [a, b],
-  allow: [
-    [0, 0],
-    [1, 1],
-  ],
-})
-
 /**
- * 第十八关：T 触发器。T 每来一个上升沿（0→1），Y 翻转一次；
- * 没有上升沿时就保持——T 一直高着不会连着翻，下降沿也不动。
- * 初始是 0 还是 1 不关心，所以整关都用成对检查，只看两个时刻是翻转还是保持。
- *
- * 每组都从 T=0 起、第一次上升沿放在第 20 tick，这样从编辑器里任意状态点
- * 「运行测试」，边沿前后该翻还是该保持都不受起点影响。
+ * 第十八关：交叉（20 列 × 10 行）。两条信号要交换到对角，只给导线、充能器、中继器、非门，
+ * 故意不给交叉元件——这一关考的是用逻辑门等价出「交叉」，不是让线真的穿过去。
  */
 export const level18: Level = {
   id: 'level-18',
   no: 18,
-  name: 'T 触发器',
-  brief: 'T 每来一个上升沿（0→1），Y 翻转一次；没有上升沿就保持。\nT 一直高着只翻一次，下降沿不动。\n输入 T 和输出 Y 的位置自己定。',
+  name: '交叉',
+  brief: '把左上、左下的 A、B 交换到右边对角：C = B，D = A。\n信号跑稳后检查，不限延迟。这关没有交叉导线，要用逻辑门做出交叉的效果。',
   cols,
   rows,
-  inputs: ['T'],
-  outputs: ['Y'],
+  inputs: ['A', 'B'],
+  outputs: ['C', 'D'],
+  tools: ['wire', 'charger', 'repeater', 'not'],
   cells,
   solution: { cells: solution, state: solutionState },
   tests: [
     {
-      name: '每个上升沿翻一次，T 一直高着也只翻一次',
-      events: [
-        reset({ T: 0 }),
-        { tick: 20, values: { T: 1 } },
-        { tick: 60, values: { T: 0 } },
-        { tick: 80, values: { T: 1 } },
-        { tick: 120, values: { T: 0 } },
-        { tick: 140, values: { T: 1 } },
-      ],
-      pairs: [
-        flip(10, 30),
-        // T 从第 20 tick 起一直高着
-        hold(30, 50),
-        flip(70, 90),
-        hold(90, 110),
-        flip(130, 150),
-        hold(150, 170),
-      ],
+      name: '0 0 → 0 0',
+      events: [{ tick: 0, values: { A: 0, B: 0 } }],
+      checks: [{ from: 10, to: 20, outputs: { C: 0, D: 0 } }],
     },
     {
-      name: 'T 一直是 0 就一直保持',
-      events: [reset({ T: 0 })],
-      pairs: [hold(10, 30), hold(30, 50), hold(50, 70), hold(70, 90), hold(90, 110), hold(110, 130)],
+      name: '1 0 → 0 1',
+      events: [{ tick: 0, values: { A: 1, B: 0 } }],
+      checks: [{ from: 10, to: 20, outputs: { C: 0, D: 1 } }],
     },
     {
-      name: '窄脉冲也只翻一次，下降沿不动',
-      events: [
-        reset({ T: 0 }),
-        { tick: 20, values: { T: 1 } },
-        { tick: 30, values: { T: 0 } },
-        { tick: 40, values: { T: 1 } },
-        { tick: 50, values: { T: 0 } },
-        { tick: 80, values: { T: 1 } },
-      ],
-      pairs: [
-        // 第 20 tick 的窄脉冲：上升沿翻一次
-        flip(10, 25),
-        // 第 30 tick 的下降沿不动
-        hold(25, 35),
-        // 第 40 tick 的上升沿再翻一次
-        flip(35, 45),
-        // 第 50 tick 之后 T 一直是 0
-        hold(45, 75),
-        flip(75, 95),
-        hold(95, 115),
-      ],
+      name: '0 1 → 1 0',
+      events: [{ tick: 0, values: { A: 0, B: 1 } }],
+      checks: [{ from: 10, to: 20, outputs: { C: 1, D: 0 } }],
     },
     {
-      name: 'T 一直高着，隔多久也只翻一次',
-      events: [reset({ T: 0 }), { tick: 20, values: { T: 1 } }, { tick: 140, values: { T: 0 } }],
-      pairs: [
-        flip(10, 30),
-        hold(30, 100),
-        hold(100, 130),
-        // 第 140 tick 的下降沿不动
-        hold(130, 150),
-      ],
+      name: '1 1 → 1 1',
+      events: [{ tick: 0, values: { A: 1, B: 1 } }],
+      checks: [{ from: 10, to: 20, outputs: { C: 1, D: 1 } }],
     },
   ],
 }

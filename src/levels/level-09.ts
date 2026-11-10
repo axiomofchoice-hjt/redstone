@@ -1,72 +1,83 @@
-import type { Cell, Level, PairCheck } from '../game/types'
+import type { Cell, Level } from '../game/types'
 import { cellsFrom, stateFrom } from './solution-helpers'
 
 const cols = 10
 const rows = 10
-// 一个输出 Y 由玩家自己放，没有输入
+// 输入 A、输出 Y 都由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
-/**
- * 参考解：中继器读左边的导线、往右把非门翻一下，非门再往右送 Y，
- * 同时从下面把结果灌回左边那条导线，绕一圈正好 2 tick，所以导线 2 tick 高、2 tick 低。
- */
+/** 参考解：五个中继器串起来，每个晚 1 tick，整个脉冲晚 5 tick、宽度不变 */
 const solution = cellsFrom(cols * rows, {
-  // 第 0 行：左边导线 → 中继器 → 非门 → 右边导线接 Y
-  0: { type: 'wire' },
+  0: { type: 'input', id: 'A' },
   1: { type: 'repeater', dir: 1 },
-  2: { type: 'not', dir: 1 },
-  3: { type: 'wire' },
-  4: { type: 'output', id: 'Y' },
-  // 第 1 行：导线把非门的输出接回左边那条导线
-  10: { type: 'wire' },
-  11: { type: 'wire' },
-  12: { type: 'wire' },
+  2: { type: 'repeater', dir: 1 },
+  3: { type: 'repeater', dir: 1 },
+  4: { type: 'repeater', dir: 1 },
+  5: { type: 'repeater', dir: 1 },
+  6: { type: 'output', id: 'Y' },
 })
 
-/** 导出时的一刻：时钟正在低电平，全灭（tick 39） */
-const solutionState = stateFrom({ tick: 39, inputs: {}, outputs: { Y: 0 } })
+/** 导出时的一刻：A=0，Y=0 */
+const solutionState = stateFrom({ tick: 9, inputs: { A: 0 }, outputs: { Y: 0 } })
 
 /**
- * 时钟：同一条输出隔 2 tick 必须相反，隔 4 tick 必须相同。
- * 两种相位（先高或先低）都算对，所以不写死每个 tick 的电平。
+ * 第九关：脉冲延迟器。整个脉冲往后挪 5 tick，宽度不变。
  */
-const opposite = (t: number): PairCheck => ({
-  output: 'Y',
-  ticks: [t, t + 2],
-  allow: [
-    [0, 1],
-    [1, 0],
-  ],
-})
-
-const same = (t: number): PairCheck => ({
-  output: 'Y',
-  ticks: [t, t + 4],
-  allow: [
-    [0, 0],
-    [1, 1],
-  ],
-})
-
-const range = (from: number, to: number) =>
-  Array.from({ length: to - from + 1 }, (_, i) => from + i)
-
-/** 从第 10 tick 起振荡器已经进入稳态，之后逐个间隔写死要检查的时刻对 */
-const pairs: PairCheck[] = [
-  ...range(10, 18).map(opposite),
-  ...range(10, 16).map(same),
-]
-
-/** 第九关：时钟，2 tick 高、2 tick 低，循环 */
 export const level09: Level = {
   id: 'level-09',
   no: 9,
-  name: '时钟',
-  brief: '没有输入，让 Y 自己振荡：2 tick 高、2 tick 低，一直循环。\n输出 Y 的位置自己定，先高先低都可以。',
+  name: '脉冲延迟器',
+  brief: '把 A 的脉冲整体延后 5 tick，宽度不变。\n1 tick 的脉冲晚 5 tick 出现，3 tick 的还是 3 tick。\n输入 A 和输出 Y 的位置自己定。',
   cols,
   rows,
+  inputs: ['A'],
   outputs: ['Y'],
   cells,
   solution: { cells: solution, state: solutionState },
-  tests: [{ name: '2 tick 高、2 tick 低，循环', pairs }],
+  tests: [
+    {
+      name: '1 tick 脉冲晚 5 tick',
+      // 前 10 tick 保持 A=0，把五级中继器里可能残留的 1 先冲掉；玩家带着 A=1 点测试也能过
+      events: [
+        { tick: 0, values: { A: 0 } },
+        { tick: 15, values: { A: 1 } },
+        { tick: 16, values: { A: 0 } },
+      ],
+      checks: [
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 20, outputs: { Y: 1 } },
+        { from: 21, to: 28, outputs: { Y: 0 } },
+      ],
+    },
+    {
+      name: '3 tick 脉冲宽度不变',
+      events: [
+        { tick: 0, values: { A: 0 } },
+        { tick: 15, values: { A: 1 } },
+        { tick: 18, values: { A: 0 } },
+      ],
+      checks: [
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 20, to: 22, outputs: { Y: 1 } },
+        { from: 23, to: 30, outputs: { Y: 0 } },
+      ],
+    },
+    {
+      name: '两个脉冲各晚 5 tick',
+      events: [
+        { tick: 0, values: { A: 0 } },
+        { tick: 15, values: { A: 1 } },
+        { tick: 16, values: { A: 0 } },
+        { tick: 22, values: { A: 1 } },
+        { tick: 23, values: { A: 0 } },
+      ],
+      checks: [
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 20, outputs: { Y: 1 } },
+        { from: 21, to: 26, outputs: { Y: 0 } },
+        { from: 27, outputs: { Y: 1 } },
+        { from: 28, to: 32, outputs: { Y: 0 } },
+      ],
+    },
+  ],
 }

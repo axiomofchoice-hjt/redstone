@@ -9,35 +9,84 @@ const build = (entries: [number, number, Cell][]) => {
   return cells
 }
 
-/** 已知解法：5 个中继器串起来 */
+const wires = (pts: [number, number][]): [number, number, Cell][] =>
+  pts.map(([x, y]) => [x, y, { type: 'wire' }])
+
+/**
+ * 已知解法：P = A(t-2) ∧ A(t-3) ∧ A(t-4)，再用三次复制把被截掉的头补回 2 tick。
+ */
 const solution = build([
   [0, 0, { type: 'input', id: 'A' }],
-  [1, 0, { type: 'wire' }],
-  [2, 0, { type: 'repeater', dir: 1 }],
-  [3, 0, { type: 'repeater', dir: 1 }],
-  [4, 0, { type: 'repeater', dir: 1 }],
-  [5, 0, { type: 'repeater', dir: 1 }],
-  [6, 0, { type: 'repeater', dir: 1 }],
-  [7, 0, { type: 'output', id: 'Y' }],
+  ...wires([
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [6, 0],
+    [2, 2],
+    [2, 4],
+    [4, 3],
+    [5, 3],
+    [6, 3],
+    [6, 2],
+    [5, 4],
+    [5, 5],
+    [4, 5],
+    [5, 8],
+    [3, 8],
+    [3, 9],
+    [4, 9],
+    [6, 9],
+    [8, 9],
+    [9, 9],
+    [9, 8],
+    [7, 8],
+    [7, 6],
+    [8, 6],
+    [9, 6],
+    [9, 7],
+  ]),
+  [2, 1, { type: 'repeater', dir: 2 }],
+  [2, 3, { type: 'repeater', dir: 2 }],
+  [5, 1, { type: 'charger', dir: 2 }],
+  [3, 2, { type: 'charger', dir: 1 }],
+  [3, 4, { type: 'charger', dir: 1 }],
+  [5, 2, { type: 'not', dir: 2 }],
+  [4, 2, { type: 'not', dir: 2 }],
+  [4, 4, { type: 'not', dir: 2 }],
+  [5, 6, { type: 'charger', dir: 2 }],
+  [5, 7, { type: 'not', dir: 2 }],
+  [4, 8, { type: 'charger', dir: 3 }],
+  [6, 8, { type: 'repeater', dir: 1 }],
+  [7, 7, { type: 'charger', dir: 0 }],
+  [8, 8, { type: 'repeater', dir: 1 }],
+  [7, 9, { type: 'cross' }],
+  [5, 9, { type: 'cross' }],
+  [8, 5, { type: 'repeater', dir: 0 }],
+  [8, 4, { type: 'output', id: 'Y' }],
 ])
 
-/** 只延迟 3 tick，早了 */
+/** 直连：什么脉冲都放过去 */
 const wrong = build([
   [0, 0, { type: 'input', id: 'A' }],
   [1, 0, { type: 'wire' }],
-  [2, 0, { type: 'repeater', dir: 1 }],
-  [3, 0, { type: 'repeater', dir: 1 }],
-  [4, 0, { type: 'repeater', dir: 1 }],
-  [5, 0, { type: 'output', id: 'Y' }],
+  [2, 0, { type: 'output', id: 'Y' }],
 ])
 
-describe('第十二关 脉冲延迟器', () => {
+describe('第十二关 脉冲过滤器', () => {
   it('10×10，端口玩家自己放', () => {
     expect(level12.cols).toBe(10)
     expect(level12.rows).toBe(10)
     expect(level12.inputs).toEqual(['A'])
     expect(level12.outputs).toEqual(['Y'])
     expect(level12.cells.filter(Boolean)).toHaveLength(0)
+    expect(level12.tests.map((t) => t.name)).toEqual([
+      '1 tick 脉冲不输出',
+      '2 tick 脉冲不输出',
+      '3 tick 脉冲通过',
+      '5 tick 脉冲宽度不变',
+    ])
   })
 
   it('空地图通不过', () => {
@@ -48,9 +97,11 @@ describe('第十二关 脉冲延迟器', () => {
     expect(runLevel({ ...level12, cells: solution }).passed).toBe(true)
   })
 
-  it('延迟不够通不过', () => {
+  it('直连通不过（窄脉冲漏过去了）', () => {
     const run = runLevel({ ...level12, cells: wrong })
     expect(run.passed).toBe(false)
-    expect(run.outcomes[0].failures.some((f) => f.tick === 20)).toBe(true)
+    const [short1, short2] = run.outcomes
+    expect(short1.passed).toBe(false)
+    expect(short2.passed).toBe(false)
   })
 })

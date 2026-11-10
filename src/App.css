@@ -6,9 +6,6 @@
   flex: 0 0 auto;
   width: 34px;
   height: 34px;
-  border: 1px solid rgba(240, 86, 46, 0.35);
-  border-radius: 8px;
-  background: rgba(240, 86, 46, 0.10);
   color: var(--accent);
 }
 
@@ -322,18 +319,10 @@ button:focus-visible,
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 4px 6px 4px 4px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: none;
   color: var(--text);
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.brand:hover {
-  border-color: var(--line);
-  background: var(--panel);
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
 }
 
 .brand-name {

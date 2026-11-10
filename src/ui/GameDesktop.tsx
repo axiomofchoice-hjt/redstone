@@ -36,7 +36,6 @@ interface Props {
   onPause: () => void
   onNextTick: () => void
   onRotate: (step: 1 | -1) => void
-  onHome: () => void
   onLevels: () => void
 }
 
@@ -66,7 +65,6 @@ export function GameDesktop({
   onPause,
   onNextTick,
   onRotate,
-  onHome,
   onLevels,
 }: Props) {
   // 相机放在工作台这一层：画布负责平移，左侧滑轨直接改缩放。
@@ -133,12 +131,12 @@ export function GameDesktop({
   return (
     <div className="game-desktop">
       <header className="appbar">
-        <button type="button" className="brand" onClick={onHome} title="返回首页">
+        <div className="brand">
           <span className="brand-mark">
             <Logo size={20} />
           </span>
           <span className="brand-name">红石电路</span>
-        </button>
+        </div>
 
         <div className="crumb">
           {level.no ? <span className="crumb-kicker">第 {padNo(level.no)} 关</span> : null}

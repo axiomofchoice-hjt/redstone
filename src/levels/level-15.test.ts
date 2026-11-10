@@ -12,34 +12,29 @@ const build = (entries: [number, number, Cell][]) => {
 const wires = (pts: [number, number][]): [number, number, Cell][] =>
   pts.map(([x, y]) => [x, y, { type: 'wire' }])
 
-/** 只会跟着 S / R 走、没有记忆的电路 */
+/** 把 D 直接接到 Y 上：E 开着时看着对，E 一关就不记得了 */
 const follower = build([
-  [9, 1, { type: 'input', id: 'R' }],
-  [9, 3, { type: 'input', id: 'S' }],
+  [0, 0, { type: 'input', id: 'D' }],
+  [5, 5, { type: 'input', id: 'E' }],
   ...wires([
-    [8, 1],
-    [7, 1],
-    [6, 1],
-    [5, 1],
-    [8, 3],
-    [7, 3],
-    [7, 2],
+    [1, 0],
+    [2, 0],
   ]),
-  [7, 4, { type: 'output', id: 'Y' }],
+  [3, 0, { type: 'output', id: 'Y' }],
 ])
 
-describe('第十五关 RS 锁存器', () => {
+describe('第十五关 D 锁存器', () => {
   it('10×10，端口玩家自己放', () => {
     expect(level15.cols).toBe(10)
     expect(level15.rows).toBe(10)
-    expect(level15.inputs).toEqual(['S', 'R'])
+    expect(level15.inputs).toEqual(['D', 'E'])
     expect(level15.outputs).toEqual(['Y'])
     expect(level15.cells.filter(Boolean)).toHaveLength(0)
     expect(level15.tests.map((t) => t.name)).toEqual([
-      'R 复位后保持 0',
-      'S 置位后保持 1',
-      'R 再清 0 后保持',
-      '来回翻，各认一次',
+      'E 开着，Y 跟着 D 变',
+      'E 关着，D 怎么变都保持 1',
+      'E 关着，D 怎么变都保持 0',
+      '锁住以后再开 E，跟上当下的 D',
     ])
   })
 
@@ -47,15 +42,10 @@ describe('第十五关 RS 锁存器', () => {
     expect(runLevel(level15).passed).toBe(false)
   })
 
-  it('参考解能过', () => {
-    const run = runLevel({ ...level15, cells: level15.solution!.cells })
-    expect(run.outcomes.map((o) => [o.name, o.passed])).toEqual(
-      level15.tests.map((t) => [t.name, true]),
-    )
-  })
-
-  it('没有记忆的电路通不过', () => {
+  it('只会跟着 D 走的电路通不过（记不住）', () => {
     const run = runLevel({ ...level15, cells: follower })
     expect(run.passed).toBe(false)
+    expect(run.outcomes[0].passed).toBe(true)
+    expect(run.outcomes[1].passed).toBe(false)
   })
 })

@@ -8,11 +8,10 @@ export interface Chapter {
 }
 
 export const CHAPTERS: Chapter[] = [
-  { title: '逻辑门', from: 1, to: 5 },
-  { title: '组合逻辑', from: 6, to: 8 },
-  { title: '时序', from: 9, to: 14 },
-  { title: '触发器', from: 15, to: 18 },
-  { title: '进阶', from: 19, to: 19 },
+  { title: '逻辑电路', from: 1, to: 7 },
+  { title: '脉冲电路', from: 8, to: 13 },
+  { title: '记忆电路', from: 14, to: 17 },
+  { title: '进阶', from: 18, to: 19 },
 ]
 
 export function chapterOf(level: Level): Chapter {

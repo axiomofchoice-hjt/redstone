@@ -1,142 +1,122 @@
 import type { Cell, Level } from '../game/types'
-import { stateFrom } from './solution-helpers'
+import { cellsFrom, stateFrom } from './solution-helpers'
 
 const cols = 10
 const rows = 10
-// 输入 A、输出 Y 都由玩家自己放
+// 输入 S / R、输出 Y 都由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
-const build = (entries: [number, number, Cell][]) => {
-  const out: (Cell | null)[] = new Array(cols * rows).fill(null)
-  for (const [x, y, cell] of entries) out[y * cols + x] = cell
-  return out
-}
+/**
+ * 参考解：两个非门交叉反馈的 NOR 锁存器。
+ * Y = ¬R ∧ (S ∨ Y)：S 拉一下置 1、R 拉一下清 0，都不拉时保持。
+ */
+const solution = cellsFrom(cols * rows, {
+  // 第 0 行：S 进来，充能器读它、非门往左下反馈
+  0: { type: 'input', id: 'S' },
+  1: { type: 'wire' },
+  2: { type: 'charger', dir: 1 },
+  3: { type: 'not', dir: 3 },
+  // 第 1 行：R 并进这条导线，另一个非门把结果送回 Y 和 S 那条线
+  11: { type: 'not', dir: 3 },
+  12: { type: 'charger', dir: 3 },
+  13: { type: 'wire' },
+  14: { type: 'input', id: 'R' },
+  // 第 2 行
+  21: { type: 'output', id: 'Y' },
+})
 
-const wires = (pts: [number, number][]): [number, number, Cell][] =>
-  pts.map(([x, y]) => [x, y, { type: 'wire' }])
-
-/** 参考解：上升沿、下降沿各一套感应，合流后接 Y */
-const solution = build([
-  [0, 0, { type: 'input', id: 'A' }],
-  ...wires([
-    [3, 0],
-    [0, 1],
-    [3, 1],
-    [5, 2],
-    [3, 3],
-    [0, 4],
-    [3, 4],
-  ]),
-  [1, 0, { type: 'charger', dir: 1 }],
-  [2, 0, { type: 'not', dir: 1 }],
-  [4, 0, { type: 'charger', dir: 1 }],
-  [5, 0, { type: 'not', dir: 1 }],
-  [1, 1, { type: 'repeater', dir: 1 }],
-  [2, 1, { type: 'repeater', dir: 1 }],
-  [5, 1, { type: 'repeater', dir: 2 }],
-  [0, 2, { type: 'charger', dir: 2 }],
-  [6, 2, { type: 'repeater', dir: 1 }],
-  [7, 2, { type: 'repeater', dir: 1 }],
-  [8, 2, { type: 'output', id: 'Y' }],
-  [0, 3, { type: 'not', dir: 2 }],
-  [1, 3, { type: 'charger', dir: 1 }],
-  [2, 3, { type: 'not', dir: 1 }],
-  [4, 3, { type: 'charger', dir: 1 }],
-  [5, 3, { type: 'not', dir: 1 }],
-  [1, 4, { type: 'repeater', dir: 1 }],
-  [2, 4, { type: 'repeater', dir: 1 }],
-])
-
-/** 导出时的一刻：A=0、Y=0（tick 84） */
+/** 导出时的一刻：S=0、R=0，Y=0（tick 82） */
 const solutionState = stateFrom(
-  { tick: 84, inputs: { A: 0 }, outputs: { Y: 0 } },
+  { tick: 82, inputs: { S: 0, R: 0 }, outputs: { Y: 0 } },
   {
-    2: 1,
-    3: 3,
-    4: 1,
+    3: 1,
+    12: 1,
     13: 3,
-    30: 1,
-    31: 1,
-    33: 3,
-    34: 1,
-    40: 3,
-    41: 1,
-    42: 1,
-    43: 3,
   },
 )
 
+/** 每组都先把 S、R 都设一遍，免得接上玩家当前开着的输入 */
+const reset = (values: { S: 0 | 1; R: 0 | 1 }) => ({ tick: 0, values })
+
 /**
- * 第十四关：双边沿感应器。A 不管是变高还是变低，之后第 5 tick 出 1 tick 脉冲，其余时候 Y = 0。
+ * 第十四关：RS 锁存器。S 拉一下 Y 变成 1，R 拉一下 Y 变成 0，
+ * 两个都不拉时保持上一次的状态。S、R 同时为 1 不测。
  */
 export const level14: Level = {
   id: 'level-14',
   no: 14,
-  name: '双边沿感应器',
-  brief: 'A 每次翻转（0→1 或 1→0）之后第 5 tick，让 Y 出 1 tick 的脉冲；其余时候 Y = 0。\n输入 A 和输出 Y 的位置自己定。',
+  name: 'RS 锁存器',
+  brief: 'S 拉一下让 Y 变 1，R 拉一下让 Y 变 0；S、R 都不拉时保持上一次的值。\nS、R 同时为 1 的情况不用管。\n输入 S、R 和输出 Y 的位置自己定。',
   cols,
   rows,
-  inputs: ['A'],
+  inputs: ['S', 'R'],
   outputs: ['Y'],
   cells,
   solution: { cells: solution, state: solutionState },
   tests: [
     {
-      name: '上升沿出脉冲',
-      // 先 A=0 空跑几拍，电路预热好再给上升沿
+      name: 'R 复位后保持 0',
+      // 每次输入变化后都等 10 tick 再查，慢一点的锁存器也不会被误判
       events: [
-        { tick: 0, values: { A: 0 } },
-        { tick: 12, values: { A: 1 } },
+        reset({ S: 0, R: 1 }),
+        { tick: 20, values: { R: 0 } },
       ],
       checks: [
-        { from: 8, to: 16, outputs: { Y: 0 } },
-        { from: 17, outputs: { Y: 1 } },
-        { from: 18, to: 26, outputs: { Y: 0 } },
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 30, to: 50, outputs: { Y: 0 } },
       ],
     },
     {
-      name: '下降沿也出脉冲',
+      name: 'S 置位后保持 1',
       events: [
-        { tick: 0, values: { A: 0 } },
-        { tick: 12, values: { A: 1 } },
-        { tick: 18, values: { A: 0 } },
+        reset({ S: 0, R: 1 }),
+        { tick: 20, values: { R: 0 } },
+        { tick: 40, values: { S: 1 } },
+        { tick: 60, values: { S: 0 } },
       ],
       checks: [
-        { from: 8, to: 16, outputs: { Y: 0 } },
-        { from: 17, outputs: { Y: 1 } },
-        { from: 18, to: 22, outputs: { Y: 0 } },
-        { from: 23, outputs: { Y: 1 } },
-        { from: 24, to: 30, outputs: { Y: 0 } },
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 30, to: 39, outputs: { Y: 0 } },
+        { from: 50, to: 59, outputs: { Y: 1 } },
+        { from: 70, to: 90, outputs: { Y: 1 } },
       ],
     },
     {
-      name: '连续翻转各出一次',
+      name: 'R 再清 0 后保持',
       events: [
-        { tick: 0, values: { A: 0 } },
-        { tick: 12, values: { A: 1 } },
-        { tick: 18, values: { A: 0 } },
-        { tick: 24, values: { A: 1 } },
+        reset({ S: 1, R: 0 }),
+        { tick: 20, values: { S: 0 } },
+        { tick: 40, values: { R: 1 } },
+        { tick: 60, values: { R: 0 } },
       ],
       checks: [
-        { from: 8, to: 16, outputs: { Y: 0 } },
-        { from: 17, outputs: { Y: 1 } },
-        { from: 18, to: 22, outputs: { Y: 0 } },
-        { from: 23, outputs: { Y: 1 } },
-        { from: 24, to: 28, outputs: { Y: 0 } },
-        { from: 29, outputs: { Y: 1 } },
-        { from: 30, to: 36, outputs: { Y: 0 } },
+        { from: 10, to: 19, outputs: { Y: 1 } },
+        { from: 30, to: 39, outputs: { Y: 1 } },
+        { from: 50, to: 59, outputs: { Y: 0 } },
+        { from: 70, to: 90, outputs: { Y: 0 } },
       ],
     },
     {
-      name: '一直高电平只出一次',
+      name: '来回翻，各认一次',
       events: [
-        { tick: 0, values: { A: 0 } },
-        { tick: 12, values: { A: 1 } },
+        reset({ S: 0, R: 1 }),
+        { tick: 20, values: { R: 0 } },
+        { tick: 40, values: { S: 1 } },
+        { tick: 60, values: { S: 0 } },
+        { tick: 80, values: { R: 1 } },
+        { tick: 100, values: { R: 0 } },
+        { tick: 120, values: { S: 1 } },
+        { tick: 140, values: { S: 0 } },
       ],
       checks: [
-        { from: 8, to: 16, outputs: { Y: 0 } },
-        { from: 17, outputs: { Y: 1 } },
-        { from: 18, to: 32, outputs: { Y: 0 } },
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 30, to: 39, outputs: { Y: 0 } },
+        { from: 50, to: 59, outputs: { Y: 1 } },
+        { from: 70, to: 79, outputs: { Y: 1 } },
+        { from: 90, to: 99, outputs: { Y: 0 } },
+        { from: 110, to: 119, outputs: { Y: 0 } },
+        { from: 130, to: 139, outputs: { Y: 1 } },
+        { from: 150, to: 160, outputs: { Y: 1 } },
       ],
     },
   ],

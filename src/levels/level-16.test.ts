@@ -12,10 +12,9 @@ const build = (entries: [number, number, Cell][]) => {
 const wires = (pts: [number, number][]): [number, number, Cell][] =>
   pts.map(([x, y]) => [x, y, { type: 'wire' }])
 
-/** 把 D 直接接到 Y 上：E 开着时看着对，E 一关就不记得了 */
+/** 把 T 直接接到 Y 上：T 是 1 时就一直 1，不记状态也不翻转 */
 const follower = build([
-  [0, 0, { type: 'input', id: 'D' }],
-  [5, 5, { type: 'input', id: 'E' }],
+  [0, 0, { type: 'input', id: 'T' }],
   ...wires([
     [1, 0],
     [2, 0],
@@ -23,18 +22,18 @@ const follower = build([
   [3, 0, { type: 'output', id: 'Y' }],
 ])
 
-describe('第十六关 D 锁存器', () => {
+describe('第十六关 T 触发器', () => {
   it('10×10，端口玩家自己放', () => {
     expect(level16.cols).toBe(10)
     expect(level16.rows).toBe(10)
-    expect(level16.inputs).toEqual(['D', 'E'])
+    expect(level16.inputs).toEqual(['T'])
     expect(level16.outputs).toEqual(['Y'])
     expect(level16.cells.filter(Boolean)).toHaveLength(0)
     expect(level16.tests.map((t) => t.name)).toEqual([
-      'E 开着，Y 跟着 D 变',
-      'E 关着，D 怎么变都保持 1',
-      'E 关着，D 怎么变都保持 0',
-      '锁住以后再开 E，跟上当下的 D',
+      '每个上升沿翻一次，T 一直高着也只翻一次',
+      'T 一直是 0 就一直保持',
+      '窄脉冲也只翻一次，下降沿不动',
+      'T 一直高着，隔多久也只翻一次',
     ])
   })
 
@@ -42,10 +41,10 @@ describe('第十六关 D 锁存器', () => {
     expect(runLevel(level16).passed).toBe(false)
   })
 
-  it('只会跟着 D 走的电路通不过（记不住）', () => {
+  it('只跟着 T 走的电路通不过（不记状态、也不翻转）', () => {
     const run = runLevel({ ...level16, cells: follower })
     expect(run.passed).toBe(false)
-    expect(run.outcomes[0].passed).toBe(true)
-    expect(run.outcomes[1].passed).toBe(false)
+    // T 还是 1 的时候 Y 不该掉下来
+    expect(run.outcomes[2].passed).toBe(false)
   })
 })

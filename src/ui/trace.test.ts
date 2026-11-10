@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { level13 } from '../levels/level-13'
+import { level12 } from '../levels/level-12'
 import { Simulation, testSpan } from '../game/sim'
 import { waveSample } from './waveform'
 import { checksOf, eventsAt, refLevelOf, replayStep } from './trace'
 
 describe('测试回放', () => {
-  const test = level13.tests[2]
+  const test = level12.tests[2]
 
   it('算出一组测试跑到第几个 tick', () => {
     expect(testSpan(test)).toBe(33)
@@ -30,18 +30,18 @@ describe('测试回放', () => {
   })
 
   it('参考解的元件铺到关卡上，端口不变', () => {
-    const ref = refLevelOf(level13)!
+    const ref = refLevelOf(level12)!
     expect(ref.cells.some((cell) => cell?.type === 'repeater')).toBe(true)
     expect(ref.outputs).toEqual(['Y'])
-    expect(level13.cells.every((cell) => cell === null)).toBe(true)
+    expect(level12.cells.every((cell) => cell === null)).toBe(true)
   })
 })
 
 describe('回放推进', () => {
   it('按测试事件驱动输入，参考解走完正好对上每个检查区间', () => {
-    const test = level13.tests[2]
-    const refLevel = refLevelOf(level13)!
-    const mine = new Simulation(level13)
+    const test = level12.tests[2]
+    const refLevel = refLevelOf(level12)!
+    const mine = new Simulation(level12)
     const ref = new Simulation(refLevel)
     const samples: { tick: number; mine: boolean; ref: boolean }[] = []
     for (let i = 0; i <= testSpan(test); i++) {
@@ -54,6 +54,6 @@ describe('回放推进', () => {
     // 空电路一直没有输出；参考解冷启动前几 tick 有个抖动，之后在 20–23 出脉冲
     expect(samples.every((s) => !s.mine)).toBe(true)
     expect(samples.filter((s) => s.ref).map((s) => s.tick)).toEqual([1, 2, 3, 4, 21, 22, 23])
-    expect(waveSample(level13, ref).outputs.Y).toBe(0)
+    expect(waveSample(level12, ref).outputs.Y).toBe(0)
   })
 })

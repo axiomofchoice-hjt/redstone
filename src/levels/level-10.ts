@@ -7,45 +7,39 @@ const rows = 10
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
 /**
- * 参考解：A 分两路——一路经非门晚 1 tick，另一路经两个中继器晚 2 tick，两路在导线上相或。
- * 上升沿后第 1 tick 两路都还是 0，导线上空出 1 tick 的低电平，第二个非门把它翻成高电平，
- * 再经三个中继器送到 Y，正好是上升沿后第 5 tick 的 1 tick 脉冲。
+ * 参考解：A 自己、晚 1 tick 的中继器、晚 2 tick 的两级中继器三路并到输出导线上相或，
+ * 下降沿因此被拖后 2 tick，脉冲前沿不变、尾巴晚 2 tick。
  */
 const solution = cellsFrom(cols * rows, {
-  // 第 0 行：晚 1 tick 的那一路，缺口从这里进非门
+  // 第 0 行：输出导线接 Y
   0: { type: 'input', id: 'A' },
-  1: { type: 'charger', dir: 1 },
-  2: { type: 'not', dir: 1 },
+  1: { type: 'wire' },
+  2: { type: 'wire' },
   3: { type: 'wire' },
-  4: { type: 'charger', dir: 1 },
-  5: { type: 'not', dir: 1 },
-  6: { type: 'repeater', dir: 1 },
-  7: { type: 'repeater', dir: 1 },
-  8: { type: 'repeater', dir: 1 },
-  9: { type: 'output', id: 'Y' },
-  // 第 1 行：A 慢 2 tick 的那一支，也并到导线上
+  4: { type: 'output', id: 'Y' },
+  // 第 1 行：晚 1 tick 的那一路
   10: { type: 'wire' },
   11: { type: 'repeater', dir: 1 },
-  12: { type: 'repeater', dir: 1 },
+  12: { type: 'charger', dir: 1 },
   13: { type: 'wire' },
+  // 第 2 行：晚 2 tick 的那一路
+  20: { type: 'wire' },
+  21: { type: 'repeater', dir: 1 },
+  22: { type: 'repeater', dir: 1 },
+  23: { type: 'wire' },
 })
 
-/** 导出时的一刻：A=0、Y=0（tick 104） */
-const solutionState = stateFrom({ tick: 104, inputs: { A: 0 }, outputs: { Y: 0 } }, {
-  2: 1,
-  3: 3,
-  4: 1,
-  13: 3,
-})
+/** 导出时的一刻：A=0，Y=0 */
+const solutionState = stateFrom({ tick: 55, inputs: { A: 0 }, outputs: { Y: 0 } })
 
 /**
- * 第十关：上升沿感应器。A 从 0 变 1 的那一拍之后第 5 tick，Y 出 1 tick 脉冲，其余时候 Y = 0。
+ * 第十关：脉冲延长器。每个脉冲宽度加 2 tick：前沿跟输入同拍，尾巴晚 2 tick。
  */
 export const level10: Level = {
   id: 'level-10',
   no: 10,
-  name: '上升沿感应器',
-  brief: 'A 从 0 变 1 之后第 5 tick，让 Y 出 1 tick 的脉冲；其余时候 Y = 0，下降沿不出脉冲。\n输入 A 和输出 Y 的位置自己定。',
+  name: '脉冲延长器',
+  brief: '把 A 的每个脉冲延长 2 tick：前沿跟输入同一 tick，后沿晚 2 tick 落下。\n1 tick 的脉冲变成 3 tick，两个靠得近的脉冲也不能粘成一个。\n输入 A 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['A'],
@@ -54,45 +48,47 @@ export const level10: Level = {
   solution: { cells: solution, state: solutionState },
   tests: [
     {
-      name: '上升沿 → 1 tick 脉冲',
-      // 先 A=0 空跑几拍，电路预热好再给上升沿
+      name: '1 tick 脉冲变 3 tick',
+      // 前 10 tick 保持 A=0，把中继器里可能残留的 1 先冲掉；玩家带着 A=1 点测试也能过
       events: [
         { tick: 0, values: { A: 0 } },
-        { tick: 12, values: { A: 1 } },
+        { tick: 15, values: { A: 1 } },
+        { tick: 16, values: { A: 0 } },
       ],
       checks: [
-        { from: 8, to: 16, outputs: { Y: 0 } },
-        { from: 17, outputs: { Y: 1 } },
-        { from: 18, to: 26, outputs: { Y: 0 } },
+        { from: 10, to: 14, outputs: { Y: 0 } },
+        { from: 15, to: 17, outputs: { Y: 1 } },
+        { from: 18, to: 25, outputs: { Y: 0 } },
       ],
     },
     {
-      name: '下降沿不出脉冲',
+      name: '3 tick 脉冲变 5 tick',
       events: [
         { tick: 0, values: { A: 0 } },
-        { tick: 12, values: { A: 1 } },
+        { tick: 15, values: { A: 1 } },
         { tick: 18, values: { A: 0 } },
       ],
       checks: [
-        { from: 8, to: 16, outputs: { Y: 0 } },
-        { from: 17, outputs: { Y: 1 } },
-        { from: 18, to: 30, outputs: { Y: 0 } },
+        { from: 10, to: 14, outputs: { Y: 0 } },
+        { from: 15, to: 19, outputs: { Y: 1 } },
+        { from: 20, to: 30, outputs: { Y: 0 } },
       ],
     },
     {
-      name: '两个上升沿各出一个脉冲',
+      name: '两个脉冲不会粘成一个',
       events: [
         { tick: 0, values: { A: 0 } },
-        { tick: 12, values: { A: 1 } },
+        { tick: 15, values: { A: 1 } },
         { tick: 16, values: { A: 0 } },
-        { tick: 20, values: { A: 1 } },
+        { tick: 19, values: { A: 1 } },
+        { tick: 20, values: { A: 0 } },
       ],
       checks: [
-        { from: 8, to: 16, outputs: { Y: 0 } },
-        { from: 17, outputs: { Y: 1 } },
-        { from: 18, to: 24, outputs: { Y: 0 } },
-        { from: 25, outputs: { Y: 1 } },
-        { from: 26, to: 32, outputs: { Y: 0 } },
+        { from: 10, to: 14, outputs: { Y: 0 } },
+        { from: 15, to: 17, outputs: { Y: 1 } },
+        { from: 18, outputs: { Y: 0 } },
+        { from: 19, to: 21, outputs: { Y: 1 } },
+        { from: 22, to: 30, outputs: { Y: 0 } },
       ],
     },
   ],
