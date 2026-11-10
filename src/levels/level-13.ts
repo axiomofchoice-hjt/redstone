@@ -8,15 +8,15 @@ const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
 /**
  * 参考解：A 一路经非门，另一路经两个中继器再经非门，两路相或后翻回来接 Y；
- * 宽度不足 3 tick 的脉冲在相或里被吞掉，够宽的脉冲原样通过（晚 4 tick、宽度不变）。
+ * 宽度不足 3 tick 的脉冲在相或里被吞掉，够宽的脉冲原样通过（晚 5 tick、宽度不变）。
  */
 const solution = cellsFrom(cols * rows, {
-  // 第 0 行：A、两路非门，右边导线接 Y
+  // 第 0 行：A 这一路经非门、中继器、非门，右边导线接 Y
   0: { type: 'input', id: 'A' },
   1: { type: 'charger', dir: 1 },
   2: { type: 'not', dir: 1 },
   3: { type: 'wire' },
-  4: { type: 'charger', dir: 1 },
+  4: { type: 'repeater', dir: 1 },
   5: { type: 'not', dir: 1 },
   6: { type: 'wire' },
   7: { type: 'wire' },
@@ -51,13 +51,13 @@ const solutionState = stateFrom(
 
 /**
  * 第十三关：脉冲过滤器。宽度 1～2 tick 的脉冲被吃掉，3 tick 及以上的原样通过，
- * 只是整体晚 4 tick（前沿晚 4，宽度不变）。
+ * 只是整体晚 5 tick（前沿晚 5，宽度不变）。
  */
 export const level13: Level = {
   id: 'level-13',
   no: 13,
   name: '脉冲过滤器',
-  brief: '只放行宽度 3 tick 及以上的脉冲：1、2 tick 的窄脉冲直接吞掉。\n通过的脉冲晚 4 tick 出现，宽度不变。\n输入 A 和输出 Y 的位置自己定。',
+  brief: '只放行宽度 3 tick 及以上的脉冲：1、2 tick 的窄脉冲直接吞掉。\n通过的脉冲晚 5 tick 出现，宽度不变。\n输入 A 和输出 Y 的位置自己定。',
   cols,
   rows,
   inputs: ['A'],
@@ -92,9 +92,9 @@ export const level13: Level = {
         { tick: 18, values: { A: 0 } },
       ],
       checks: [
-        { from: 10, to: 18, outputs: { Y: 0 } },
-        { from: 19, to: 21, outputs: { Y: 1 } },
-        { from: 22, to: 32, outputs: { Y: 0 } },
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 20, to: 22, outputs: { Y: 1 } },
+        { from: 23, to: 33, outputs: { Y: 0 } },
       ],
     },
     {
@@ -105,9 +105,9 @@ export const level13: Level = {
         { tick: 20, values: { A: 0 } },
       ],
       checks: [
-        { from: 10, to: 18, outputs: { Y: 0 } },
-        { from: 19, to: 23, outputs: { Y: 1 } },
-        { from: 24, to: 34, outputs: { Y: 0 } },
+        { from: 10, to: 19, outputs: { Y: 0 } },
+        { from: 20, to: 24, outputs: { Y: 1 } },
+        { from: 25, to: 35, outputs: { Y: 0 } },
       ],
     },
   ],

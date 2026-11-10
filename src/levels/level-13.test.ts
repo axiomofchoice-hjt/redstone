@@ -63,7 +63,8 @@ const solution = build([
   [8, 8, { type: 'repeater', dir: 1 }],
   [7, 9, { type: 'cross' }],
   [5, 9, { type: 'cross' }],
-  [8, 5, { type: 'output', id: 'Y' }],
+  [8, 5, { type: 'repeater', dir: 0 }],
+  [8, 4, { type: 'output', id: 'Y' }],
 ])
 
 /** 直连：什么脉冲都放过去 */
