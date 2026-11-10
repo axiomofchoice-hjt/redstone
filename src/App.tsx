@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { hasDirection, runLevel, Simulation, type LevelRun } from './game/sim'
-import type { Cell, Dir, Level } from './game/types'
+import type { Cell, Dir, Level, TestCase } from './game/types'
 import { LEVELS } from './levels'
 import { defaultTool } from './ui/tools'
 import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
 import { pushSample, waveSample, type WaveSample } from './ui/waveform'
+import { checksOf, lastTickOf, refLevelOf, replayStep, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/Palette'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
 import { StartScreen } from './ui/StartScreen'
@@ -29,6 +30,19 @@ interface Editing {
   history: WaveSample[]
 }
 
+/**
+ * 测试没通过后的回放：从冷启动重跑这一组测试，输入由测试事件驱动，
+ * 玩家电路和参考解一起走；退出时把进来前的编辑状态原样还回去。
+ */
+interface Replay {
+  info: TraceInfo
+  test: TestCase
+  refLevel: Level | null
+  refSim: Simulation | null
+  saved: Editing & { inputs: Record<string, 0 | 1>; paused: boolean }
+  lastTick: number
+}
+
 const initial = (): Editing => {
   const level = { ...LEVELS[0], cells: LEVELS[0].cells.slice() }
   const sim = new Simulation(level)
@@ -42,6 +56,10 @@ export default function App() {
   const lastTool = useRef<Tool>({ type: 'wire' })
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   const [run, setRun] = useState<LevelRun | null>(null)
+  // 测试没通过后点结果按钮进入的回放：元件栏换成波形图，电路从冷启动重跑
+  const [replay, setReplay] = useState<Replay | null>(null)
+  // 参考解那几条输出线的采样
+  const [refHistory, setRefHistory] = useState<WaveSample[]>([])
   // 编辑器里手动开关的输入
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   const [menuOpen, setMenuOpen] = useState(false)
@@ -72,16 +90,44 @@ export default function App() {
     }))
   }, [])
 
+  /** 走一个 tick：回放时先把这一 tick 的测试事件拨上，玩家电路和参考解一起走 */
+  const stepOnce = () => {
+    if (replay) {
+      // 这组测试已经跑完，回放停在最后
+      if (sim.tick > replay.lastTick) {
+        setPaused(true)
+        return
+      }
+      replayStep(replay.test, replay.refSim ? [sim, replay.refSim] : [sim])
+      record()
+      if (replay.refSim && replay.refLevel) {
+        const refSim = replay.refSim
+        const refLevel = replay.refLevel
+        setRefHistory((prev) => pushSample(prev, waveSample(refLevel, refSim)))
+      }
+      setInputs(sim.inputValues())
+      repaint()
+      // 这组测试跑完就停住
+      if (sim.tick > replay.lastTick) setPaused(true)
+      return
+    }
+    // step() 直接返回画面有没有变化，不用前后各拍一次快照
+    const changed = simRef.current.step()
+    record()
+    if (changed) repaint()
+  }
+
+  // 定时器只建一次，每帧读最新的 stepOnce，换关 / 改元件都不会打断节拍
+  const stepRef = useRef(stepOnce)
+  useEffect(() => {
+    stepRef.current = stepOnce
+  })
+
   useEffect(() => {
     if (paused || mobileMenuOpen || screen !== 'game') return
-    const timer = setInterval(() => {
-      // step() 直接返回画面有没有变化，不用前后各拍一次快照
-      const changed = simRef.current.step()
-      record()
-      if (changed) repaint()
-    }, TICK_MS)
+    const timer = setInterval(() => stepRef.current(), TICK_MS)
     return () => clearInterval(timer)
-  }, [paused, mobileMenuOpen, screen, record])
+  }, [paused, mobileMenuOpen, screen])
 
   // 鼠标点完按钮别留下焦点：焦点在按钮上时再按键盘，浏览器会描一圈焦点框
   useEffect(() => {
@@ -106,9 +152,7 @@ export default function App() {
 
   const nextTick = () => {
     if (!paused) return
-    sim.step()
-    record()
-    repaint()
+    stepOnce()
   }
 
   // 画布只按需取可见格子的状态，不再每帧生成整张 powers
@@ -132,6 +176,7 @@ export default function App() {
       return { level, sim, history: pushSample(prev.history, waveSample(level, sim)) }
     })
     setRun(null)
+    setReplay(null)
   }
 
   /** 切换一个输入元件的 0 / 1；桌面端左侧面板和「交互」工具都走这里 */
@@ -150,11 +195,14 @@ export default function App() {
     setInputs(next)
     sim.setInputs(next)
     setRun(null)
+    setReplay(null)
     record()
     repaint()
   }
 
   const handleCell = (index: number) => {
+    // 回放时地图只是旁观，别把回放的电路改了
+    if (replay) return
     // 交互：点输入元件开关它
     if (tool === 'interact') {
       const cell = level.cells[index]
@@ -171,7 +219,10 @@ export default function App() {
   }
 
   /** 右键删除：只删格子，元件栏选中的元件不变 */
-  const handleErase = (index: number) => writeCell(index, null)
+  const handleErase = (index: number) => {
+    if (replay) return
+    writeCell(index, null)
+  }
 
   /** 参考答案：把布局和保存时的电路状态一起盖上去，玩家当前搭的会被冲掉 */
   const applySolution = () => {
@@ -184,6 +235,7 @@ export default function App() {
     setEditing({ level: next, sim, history: [waveSample(next, sim)] })
     setInputs(solution.state.inputs)
     setRun(null)
+    setReplay(null)
     setMenuOpen(false)
   }
 
@@ -197,9 +249,90 @@ export default function App() {
     setDir(INITIAL_DIR)
     setInputs({})
     setRun(null)
+    setReplay(null)
+    setRefHistory([])
     setPaused(false)
     setMenuOpen(false)
     setScreen('game')
+  }
+
+  /**
+   * 点「测试结果：×」进入回放：电路从冷启动重跑第一组没通过的测试，
+   * 输入全 0、由测试事件驱动，元件栏换成波形图，地图和波形一起往前走。
+   */
+  const openTrace = () => {
+    if (!run || run.passed || replay) return
+    const index = run.outcomes.findIndex((outcome) => !outcome.passed)
+    const test = level.tests[index < 0 ? 0 : index]
+    if (!test) return
+    const refLevel = refLevelOf(level)
+    const fresh = new Simulation(level)
+    const refSim = refLevel ? new Simulation(refLevel) : null
+    setReplay({
+      info: { name: test.name ?? '测试', checks: checksOf(test) },
+      test,
+      refLevel,
+      refSim,
+      lastTick: lastTickOf(test),
+      saved: { level, sim, history, inputs, paused },
+    })
+    setEditing({ level, sim: fresh, history: [waveSample(level, fresh)] })
+    setInputs({})
+    setRefHistory(refLevel && refSim ? [waveSample(refLevel, refSim)] : [])
+    setPaused(true)
+    repaint()
+  }
+
+  /** 再点一次结果按钮：把进来之前的电路、输入和暂停状态原样还回去 */
+  const closeTrace = () => {
+    if (!replay) return
+    const { saved } = replay
+    setEditing({ level: saved.level, sim: saved.sim, history: saved.history })
+    setInputs(saved.inputs)
+    setPaused(saved.paused)
+    setReplay(null)
+    setRefHistory([])
+    repaint()
+  }
+
+  /** 上一刻：回放从冷启动重跑到前一个 tick，地图和波形一起退 */
+  const prevTick = () => {
+    if (!replay) return
+    const target = Math.max(0, sim.tick - 1)
+    const fresh = new Simulation(level)
+    const refSim = replay.refLevel ? new Simulation(replay.refLevel) : null
+    let historyNext = [waveSample(level, fresh)]
+    let refNext = refSim && replay.refLevel ? [waveSample(replay.refLevel, refSim)] : []
+    for (let t = 0; t < target; t++) {
+      replayStep(replay.test, refSim ? [fresh, refSim] : [fresh])
+      historyNext = pushSample(historyNext, waveSample(level, fresh))
+      if (refSim && replay.refLevel) {
+        const refLevel = replay.refLevel
+        refNext = pushSample(refNext, waveSample(refLevel, refSim))
+      }
+    }
+    setReplay({ ...replay, refSim })
+    setEditing({ level, sim: fresh, history: historyNext })
+    setRefHistory(refNext)
+    setInputs(fresh.inputValues())
+    repaint()
+  }
+
+  const togglePause = () => setPaused((value) => !value)
+
+  const runTests = () => {
+    if (replay) {
+      const { saved } = replay
+      setEditing({ level: saved.level, sim: saved.sim, history: saved.history })
+      setInputs(saved.inputs)
+      setPaused(saved.paused)
+      setReplay(null)
+      setRefHistory([])
+      setRun(runLevel(saved.level, saved.sim))
+      repaint()
+      return
+    }
+    setRun(runLevel(level, sim))
   }
 
   const goHome = () => {
@@ -252,8 +385,8 @@ export default function App() {
         onToggleInput={toggleInput}
         onSolution={applySolution}
         onExport={() => download(mapFileName(level), mapJson(level, sim))}
-        onRun={() => setRun(runLevel(level, sim))}
-        onPause={() => setPaused((value) => !value)}
+        onRun={runTests}
+        onPause={togglePause}
         onNextTick={nextTick}
         onRotate={(step) => setDir((value) => rotateDir(value, step))}
         onHome={goHome}
@@ -277,14 +410,19 @@ export default function App() {
       powerAt={powerAt}
       lockedAt={lockedAt}
       outputAt={outputAt}
+      trace={replay?.info ?? null}
+      refHistory={refHistory}
       onTool={pickTool}
       onDir={setDir}
       onCell={handleCell}
       onErase={handleErase}
       onToggleInput={toggleInput}
-      onRun={() => setRun(runLevel(level, sim))}
-      onPause={() => setPaused((value) => !value)}
+      onRun={runTests}
+      onOpenTrace={openTrace}
+      onCloseTrace={closeTrace}
+      onPause={togglePause}
       onNextTick={nextTick}
+      onPrevTick={prevTick}
       onMenuToggle={() => setMenuOpen((open) => !open)}
       onContinue={() => setMenuOpen(false)}
       onSolution={applySolution}

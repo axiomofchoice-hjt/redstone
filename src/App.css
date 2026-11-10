@@ -789,6 +789,33 @@ button.wave-tag:hover:not(:disabled) {
   transform: translateX(-50%);
 }
 
+/* 测试回放波形：分组标题、检查区间底色、未通过标记和回放光标 */
+.wave-note {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+.wave-head {
+  margin: 4px 0 0 2px;
+  color: #97a0b1;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+}
+
+.wave-tag.ref {
+  border-style: dashed;
+  color: #9aa4b6;
+}
+
+.trace-band {
+  fill: rgba(23, 138, 85, 0.13);
+}
+
+.trace-band.low {
+  fill: rgba(27, 34, 48, 0.045);
+}
+
 .test-line {
   display: flex;
   align-items: center;

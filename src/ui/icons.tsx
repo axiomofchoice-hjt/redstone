@@ -74,6 +74,16 @@ export function StepIcon({ size = 16 }: IconProps) {
   )
 }
 
+/** 上一刻：单步图标的镜像，一条竖线加一个朝左的三角形 */
+export function PrevIcon({ size = 16 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+      <rect x="2.5" y="3" width="2" height="10" rx="0.8" fill="currentColor" />
+      <path d="M13 3.2 5.5 8 13 12.8z" fill="currentColor" />
+    </svg>
+  )
+}
+
 /** 信息：圆圈里一个 i，和手机端顶栏的 ⓘ 键一致 */
 export function InfoIcon({ size = 18 }: IconProps) {
   return (

@@ -3,11 +3,12 @@ import { hasDirection } from '../game/sim'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
-import { CheckIcon, CrossIcon, DotsIcon, InfoIcon, MenuIcon, StepIcon } from './icons'
+import { CheckIcon, CrossIcon, DotsIcon, InfoIcon, MenuIcon, PrevIcon, StepIcon } from './icons'
 import { Palette } from './Palette'
 import type { Tool } from './Palette'
 import { Waveform } from './Waveform'
 import type { WaveSample } from './waveform'
+import type { TraceInfo } from './trace'
 
 interface Props {
   level: Level
@@ -23,6 +24,10 @@ interface Props {
   powerAt: (index: number) => number
   outputAt: (id: string) => boolean
   lockedAt: (index: number) => boolean
+  /** 测试没通过后的回放；有值时元件栏换成回放波形 */
+  trace: TraceInfo | null
+  /** 参考解那几条输出线的采样 */
+  refHistory: WaveSample[]
   onTool: (tool: Tool) => void
   onDir: (dir: Dir) => void
   onCell: (index: number) => void
@@ -31,6 +36,9 @@ interface Props {
   onRun: () => void
   onPause: () => void
   onNextTick: () => void
+  onPrevTick: () => void
+  onOpenTrace: () => void
+  onCloseTrace: () => void
   onMenuToggle: () => void
   onContinue: () => void
   onSolution: () => void
@@ -53,6 +61,8 @@ export function GameMobile({
   powerAt,
   lockedAt,
   outputAt,
+  trace,
+  refHistory,
   onTool,
   onDir,
   onCell,
@@ -61,6 +71,9 @@ export function GameMobile({
   onRun,
   onPause,
   onNextTick,
+  onPrevTick,
+  onOpenTrace,
+  onCloseTrace,
   onMenuToggle,
   onContinue,
   onSolution,
@@ -167,32 +180,49 @@ export function GameMobile({
           />
 
           <div className="toolbar">
-            {/* 只有未通过时可点，点开做什么之后再说 */}
+            {/* 未通过时点它进入回放，再点一次回到元件栏 */}
             <button
               type="button"
               className={run?.passed ? 'result ok' : !run ? 'result' : 'result fail'}
               disabled={run === null || run.passed}
+              onClick={trace ? onCloseTrace : onOpenTrace}
               title={
                 run === null
                   ? '还没运行测试'
                   : run.passed
                     ? '测试全部通过'
-                    : '测试未通过'
+                    : trace
+                      ? '收起回放，回到元件栏'
+                      : '测试未通过，点这里看回放波形'
               }
             >
               测试结果：
               {run === null ? <DotsIcon /> : run.passed ? <CheckIcon /> : <CrossIcon />}
             </button>
             <div className="actions">
-              <button
-                type="button"
-                className={tool === 'interact' ? 'debug active' : 'debug'}
-                aria-pressed={tool === 'interact'}
-                title="交互：点输入元件切换 0 / 1"
-                onClick={() => onTool('interact')}
-              >
-                交互
-              </button>
+              {trace ? (
+                // 回放时这一格换成「上一刻」：光标往前挪一个 tick
+                <button
+                  type="button"
+                  className="debug icon"
+                  onClick={onPrevTick}
+                  disabled={tick <= 0}
+                  aria-label="上一刻"
+                  title="上一刻：回放往前退一个 tick"
+                >
+                  <PrevIcon size={14} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={tool === 'interact' ? 'debug active' : 'debug'}
+                  aria-pressed={tool === 'interact'}
+                  title="交互：点输入元件切换 0 / 1"
+                  onClick={() => onTool('interact')}
+                >
+                  交互
+                </button>
+              )}
               <button
                 type="button"
                 className="debug icon"
@@ -218,8 +248,8 @@ export function GameMobile({
                 className="debug icon"
                 onClick={onNextTick}
                 disabled={!paused}
-                aria-label="推进一个 tick"
-                title="推进一个 tick"
+                aria-label={trace ? '下一刻回放' : '推进一个 tick'}
+                title={trace ? '下一刻：回放往后走一个 tick' : '推进一个 tick'}
               >
                 <StepIcon size={14} />
               </button>
@@ -229,7 +259,24 @@ export function GameMobile({
             </div>
           </div>
 
-          {tool === 'interact' ? (
+          {trace ? (
+            // 回放模式：元件栏换成波形图，测试事件驱动输入，再并几条参考解的输出
+            <div className="wave-panel">
+              <p className="wave-note">回放：{trace.name}</p>
+              <Waveform
+                history={history}
+                tick={tick}
+                inputIds={level.inputs ?? []}
+                outputIds={level.outputs ?? []}
+                inputs={inputs}
+                outputAt={outputAt}
+                onToggleInput={onToggleInput}
+                interactive={false}
+                refHistory={refHistory}
+                checks={trace.checks}
+              />
+            </div>
+          ) : tool === 'interact' ? (
             // 交互模式：元件栏换成波形图，点行首的字母就能拨输入
             <div className="wave-panel">
               <Waveform
