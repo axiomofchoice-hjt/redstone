@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { TraceCheck, TracePair } from './trace'
 import { waveRuns, waveRunsBetween, WAVE_TICKS, type WaveRun, type WaveSample } from './waveform'
 
@@ -72,6 +73,37 @@ export function Waveform({
   const full = span !== undefined && span > 0
   const domain = full ? span : WAVE_TICKS
   const start = full ? 0 : tick - WAVE_TICKS + 1
+
+  // 红线按设备像素取整，宽度固定 2px：不然落在半个像素上时会被抗锯齿摊成 3px，
+  // 看起来一会儿粗一会儿细
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const [laneWidth, setLaneWidth] = useState(0)
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const measure = () => {
+      const lane = root.querySelector<HTMLElement>('.wave-lane')
+      setLaneWidth(lane ? lane.clientWidth : 0)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(root)
+    return () => observer.disconnect()
+  }, [])
+  const dpr = window.devicePixelRatio || 1
+  // 线宽也取整到设备像素：2px 在 1.25 / 1.5 倍缩放下会变成 2.5 / 3 个设备像素，
+  // 竖边同样会被抗锯齿，粗细还是会变
+  const playheadWidth = Math.max(1, Math.round(2 * dpr)) / dpr
+  const playheadLeft =
+    laneWidth > 0
+      ? Math.max(
+          playheadWidth,
+          Math.min(
+            Math.round(((Math.min(tick + 1, domain) / domain) * laneWidth * dpr)) / dpr,
+            laneWidth,
+          ),
+        )
+      : null
   const bandsFor = (id: string) =>
     (checks ?? [])
       .filter((check) => id in check.outputs)
@@ -202,12 +234,12 @@ export function Waveform({
               ))}
             <path className="wave-line" d={lanePath(runs)} vectorEffect="non-scaling-stroke" />
           </svg>
-          {full ? (
+          {full && playheadLeft !== null ? (
             <span
               className="wave-playhead"
               // 右边缘正好压在当前这一格的右边（采样格是 [tick, tick + 1)），
               // 用 HTML 覆盖层画，线身留在波形里，不会被 SVG 视口裁掉一半
-              style={{ left: `${(Math.min(tick + 1, domain) / domain) * 100}%` }}
+              style={{ left: playheadLeft, width: playheadWidth }}
               aria-hidden="true"
             />
           ) : null}
@@ -219,7 +251,7 @@ export function Waveform({
   }
 
   return (
-    <div className="wave" role="group" aria-label="输入输出波形">
+    <div ref={rootRef} className="wave" role="group" aria-label="输入输出波形">
       {inputIds.map((id) => renderRow(history, id, 'input'))}
       {outputIds.map((id) => renderRow(history, id, 'output'))}
 

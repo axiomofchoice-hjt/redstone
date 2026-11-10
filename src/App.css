@@ -850,8 +850,8 @@ button.wave-tag:hover:not(:disabled) {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 1.5px;
-  background: rgba(240, 86, 46, 0.7);
+  width: 2px;
+  background: var(--accent);
   transform: translateX(-100%);
 }
 
