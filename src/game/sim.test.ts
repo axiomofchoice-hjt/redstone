@@ -16,7 +16,7 @@ function makeLevel(
 const onAt = (tick: number, values: Record<string, 0 | 1>): TestCase['events'] => [{ tick, values }]
 const checkAt = (tick: number, outputs: Record<string, 0 | 1>): OutputCheck[] => [{ from: tick, outputs }]
 
-describe('从编辑器当前状态接着测', () => {
+describe('从一份现成的仿真接着测', () => {
   const lv = makeLevel(
     4,
     1,
@@ -36,13 +36,13 @@ describe('从编辑器当前状态接着测', () => {
     return live
   }
 
-  it('拿当前状态当第 0 tick，不重置电路', () => {
+  it('拿传进来的状态当第 0 tick，不重置电路', () => {
     expect(runLevel(lv, settled()).passed).toBe(true)
     // 冷启动时中继器链还没跑起来，第 0 tick 是 0
     expect(runLevel(lv).passed).toBe(false)
   })
 
-  it('测完不动编辑器那份仿真', () => {
+  it('测完不动传进来的那份仿真', () => {
     const live = settled()
     const tick = live.tick
     const before = live.output('L')

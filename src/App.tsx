@@ -53,6 +53,16 @@ const initial = (): Editing => {
 }
 
 /**
+ * 上一次「运行测试」的结果，连同它测的那份电路。
+ * 改元件会换一份新的 level 对象，旧结果自然就不再算数（见 activeRun），
+ * 不用在每条编辑路径上手动清一遍；拨输入不换 level，在 toggleInput 里单独清。
+ */
+interface RunState {
+  result: LevelRun
+  level: Level
+}
+
+/**
  * 从冷启动按测试事件跑到第 steps 个 tick，返回玩家电路和参考解两份仿真、各自的波形。
  * 回放进入（steps = 0）和「上一刻」（从冷启动重跑到前一个 tick）都走这里；
  * 进回放时再跑一遍整组，拿到一次画满整条横轴要用的波形。
@@ -79,7 +89,8 @@ export default function App() {
   // 电脑端左键模式：默认放置（只填空格、不覆盖已有元件），切到覆盖才会替换
   const [mode, setMode] = useState<EditMode>('place')
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
-  const [run, setRun] = useState<LevelRun | null>(null)
+  // 最近一次「运行测试」的结果：跟着它测的那份电路走，电路一改就不再显示
+  const [run, setRun] = useState<RunState | null>(null)
   // 测试没通过后点结果按钮进入的回放：元件栏换成波形图，电路从冷启动重跑
   const [replay, setReplay] = useState<Replay | null>(null)
   // 编辑器里手动开关的输入
@@ -97,6 +108,9 @@ export default function App() {
   const mobileMenuOpen = menuOpen && !isDesktop
   // 回放已经走到最后一刻：仿真多走了一步才停，所以是 > lastTick
   const traceEnd = replay !== null && sim.tick > replay.lastTick
+  // 电路换过（改了元件、换了关、盖了参考解）就回到「还没运行测试」：
+  // 结果只对它自己测的那块电路有效，改过之后不能拿来当缓存
+  const activeRun = run !== null && run.level === level ? run.result : null
 
   // 手机端的「交互」是元件栏里的工具；拖到电脑端后换成模式按钮，
   // 别留下一个电脑端没有入口再退出的交互工具
@@ -203,7 +217,6 @@ export default function App() {
       // 只改最后一格的画面没用：过一刻它就成了历史，又会显示回旧电平
       return { level, sim, history: pushSample(prev.history, waveSample(level, sim)) }
     })
-    setRun(null)
     setReplay(null)
   }
 
@@ -222,6 +235,7 @@ export default function App() {
     const next: Record<string, 0 | 1> = { ...inputs, [id]: inputs[id] ? 0 : 1 }
     setInputs(next)
     sim.setInputs(next)
+    // 拨输入不换 level 对象，结果得在这里自己作废（改元件由 activeRun 按 level 身份自动作废）
     setRun(null)
     setReplay(null)
     record()
@@ -274,7 +288,6 @@ export default function App() {
     // 参考解把 tick 拨回去了，旧波形接不上，从这个 tick 重新记
     setEditing({ level: next, sim, history: [waveSample(next, sim)] })
     setInputs(solution.state.inputs)
-    setRun(null)
     setReplay(null)
     setMenuOpen(false)
   }
@@ -289,7 +302,6 @@ export default function App() {
     setMode('place')
     setDir(INITIAL_DIR)
     setInputs({})
-    setRun(null)
     setReplay(null)
     setPaused(false)
     setMenuOpen(false)
@@ -302,8 +314,8 @@ export default function App() {
    * 红线只当播放头，地图跟着「继续」/「下一刻」走。
    */
   const openTrace = () => {
-    if (!run || run.passed || replay) return
-    const index = run.outcomes.findIndex((outcome) => !outcome.passed)
+    if (!activeRun || activeRun.passed || replay) return
+    const index = activeRun.outcomes.findIndex((outcome) => !outcome.passed)
     const test = level.tests[Math.max(0, index)]
     if (!test) return
     const refLevel = refLevelOf(level)
@@ -359,10 +371,16 @@ export default function App() {
 
   const togglePause = () => setPaused((value) => !value)
 
+  /**
+   * 点「测试」：每次都用当前这块电路从冷启动重跑一遍全部测试。
+   * 不接着编辑器里那份已经跑热的仿真，也不复用上一次的结果——
+   * 改过电路就重新算，结果永远对得上眼前这块电路。
+   */
   const runTests = () => {
     // 回放中按「测试」：先退出回放，再拿回来那份电路重新测
     const saved = leaveTrace()
-    setRun(runLevel(saved?.level ?? level, saved?.sim ?? sim))
+    const target = saved?.level ?? level
+    setRun({ result: runLevel(target), level: target })
     if (saved) repaint()
   }
 
@@ -408,7 +426,7 @@ export default function App() {
         inputs={inputs}
         history={replay ? replay.history : history}
         tick={sim.tick}
-        run={run}
+        run={activeRun}
         trace={replay?.info ?? null}
         refHistory={replay ? replay.refHistory : []}
         traceEnd={traceEnd}
@@ -445,7 +463,7 @@ export default function App() {
       free={free}
       tool={tool}
       dir={dir}
-      run={run}
+      run={activeRun}
       paused={paused}
       revision={version}
       menuOpen={mobileMenuOpen}
