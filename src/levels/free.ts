@@ -2,7 +2,7 @@ import type { Level } from '../game/types'
 
 /**
  * 自由模式：20×20 的空白沙盒，元件全开，没有输入 / 输出元件，也没有测试和目标。
- * 不在 `LEVELS` 里，选关页在最后一关下面单独给一张卡片。
+ * 不在 `LEVELS` 里，选关页顶栏的「自由模式」按钮直接进入。
  */
 export const freeLevel: Level = {
   id: 'free',

@@ -283,16 +283,6 @@ button:focus-visible,
   background: #f1f4fa;
 }
 
-/* 自由模式：另起一行排在最后一关下面，用虚线边框和真正的关卡区分开 */
-.level-card-free {
-  grid-column: 1 / -1;
-  border-style: dashed;
-}
-
-.level-card-free:hover {
-  border-color: var(--accent);
-}
-
 .level-no {
   color: var(--accent-strong);
   font-family: var(--mono);

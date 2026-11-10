@@ -363,7 +363,6 @@ export default function App() {
         levels={LEVELS}
         onSelect={startLevel}
         onFree={startFree}
-        onResume={() => setScreen('game')}
         onHome={goHome}
       />
     )

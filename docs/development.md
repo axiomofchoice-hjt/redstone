@@ -43,7 +43,7 @@ src/
     icons.tsx       品牌、方向、测试等小图标
   levels/
     index.ts        关卡列表（按顺序导出）
-    free.ts         自由模式：20×20 空白沙盒（选关页最后一关下面那张卡片）
+    free.ts         自由模式：20×20 空白沙盒（选关页顶栏「自由模式」按钮进入）
     solution-helpers.ts 从稀疏数据展开参考解的 cells 和 state
     level-01.ts     第一关：导线
     level-02.ts     第二关：或门
