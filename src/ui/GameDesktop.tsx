@@ -6,6 +6,7 @@ import { Board } from './Board'
 import { clampZoom, zoomAround, type Camera, type Viewport } from './camera'
 import { Inspector } from './Inspector'
 import {
+  ExitIcon,
   CheckIcon,
   CrossIcon,
   DotsIcon,
@@ -292,14 +293,18 @@ export function GameDesktop({
               >
                 导出地图
               </button>
-
-              <div className="menu-sep" role="none" />
-
-              <button type="button" role="menuitem" className="menu-item" onClick={pick(onLevels)}>
-                返回选关
-              </button>
             </div>
           ) : null}
+
+          <button
+            type="button"
+            className="btn icon"
+            onClick={onLevels}
+            aria-label="返回选关"
+            title="返回选关"
+          >
+            <ExitIcon />
+          </button>
 
           {infoOpen ? (
             <section id="level-info" className="info-panel" aria-label="关卡信息">

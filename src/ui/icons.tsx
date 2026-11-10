@@ -34,6 +34,26 @@ export function ArrowRight({ size = 16 }: IconProps) {
   )
 }
 
+export function ExitIcon({ size = 16 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M10 2.5H4.5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1H10"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 5.5 14.5 8 12 10.5M8 8h6.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export function ArrowUp({ size = 14 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">

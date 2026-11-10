@@ -34,7 +34,7 @@ src/
     trace.ts        回放要显示的检查区间，以及带参考解电路状态并排跑同一组测试
     export.ts       导出地图：稀疏化 cells / powers 并下载 JSON
     solution.ts     把参考解的布局和电路状态复制出来盖到地图上
-    GameDesktop.tsx 电脑端两栏布局与顶栏
+    GameDesktop.tsx 电脑端两栏布局与顶栏（菜单、返回选关）
     GameMobile.tsx  手机端单列布局
     LevelSelect.tsx 选关页（按章节分组的卡片）
     StartScreen.tsx 首页
