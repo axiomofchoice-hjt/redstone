@@ -25,9 +25,9 @@ src/
     glyph.ts        各个元件的绘制函数（画布和按钮共用）
     Palette.tsx     手机端底部元件栏
     ports.ts        元件栏里还有哪些输入 / 输出按钮
-    tools.ts        可用元件、元件栏顺序和换关时的默认元件
+    tools.ts        元件栏按钮列表、选中判断、换关时的默认元件和预览朝向
     edit-mode.ts    电脑端放置 / 覆盖模式下点一格该做什么
-    keyboard.ts     数字键选元件、方向键 / WASD 换朝向
+    keyboard.ts     方向按钮顺序、数字键选元件、手机端 WASD 换朝向
     Inspector.tsx   电脑端左侧面板：元件、朝向、放置 / 覆盖模式、删除、缩放滑轨、信号
     Waveform.tsx    输入 / 输出波形图（电脑端检查器和回放、手机端交互和回放共用）
     waveform.ts     波形采样：每 tick 取一帧、滚动窗口、切成电平段
@@ -35,7 +35,7 @@ src/
     export.ts       导出地图：稀疏化 cells / powers 并下载 JSON
     solution.ts     把参考解的布局和电路状态复制出来盖到地图上
     GameDesktop.tsx 电脑端两栏布局与顶栏（菜单、返回选关）
-    GameMobile.tsx  手机端单列布局
+    GameMobile.tsx  手机端单列布局、整屏菜单和回放
     LevelSelect.tsx 选关页（按章节分组的卡片）
     StartScreen.tsx 首页
     levels-meta.ts  关卡章节分组
@@ -67,6 +67,22 @@ src/
     level-19.ts     第十九关：脉冲长度感应器
   App.tsx           关卡状态、工具选择、tick 循环、响应式切换
 ```
+
+## 文档
+
+改到对应行为时顺手更新对应的页：
+
+| 文档 | 管什么 |
+| --- | --- |
+| `docs/controls.md` | 两套布局、放置删除、平移缩放、快捷键、菜单、自由模式 |
+| `docs/waveform.md` | 交互模式和波形图、采样规则 |
+| `docs/testing.md` | 测试按钮、结果状态、回放 |
+| `docs/rules.md` | 五种元件、输入 / 输出端口、中继器侧面锁存和充能器断路 |
+| `docs/simulation.md` | tick 延迟、增量更新、绘制策略 |
+| `docs/levels.md` | `Level` 字段、测试写法、导出地图 |
+| `docs/level-notes.md` | 各关设计说明、参考解取的状态 |
+
+玩家能感知的改动记进 `CHANGELOG.md`，纯内部整理可以不记。
 
 ## 约定
 

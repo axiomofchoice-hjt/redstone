@@ -44,7 +44,7 @@ pnpm dev          # http://localhost:5173
 
 **开发**
 
-- [开发](docs/development.md)：技术栈、目录结构、约定
+- [开发](docs/development.md)：技术栈、目录结构、文档对应表、约定
 
 ## 更新日志
 
