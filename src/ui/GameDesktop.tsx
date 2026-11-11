@@ -4,6 +4,7 @@ import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
 import { clampZoom, zoomAround, type Camera, type Viewport } from './camera'
 import { Inspector } from './Inspector'
+import { Handbook } from './Handbook'
 import {
   CheckIcon,
   CrossIcon,
@@ -109,6 +110,7 @@ export function GameDesktop({
   const viewport = useRef<Viewport | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
+  const [handbookOpen, setHandbookOpen] = useState(false)
 
   const zoomTo = (zoom: number) => {
     const view = viewport.current
@@ -294,6 +296,14 @@ export function GameDesktop({
               >
                 导出地图
               </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="menu-item"
+                onClick={pick(() => setHandbookOpen(true))}
+              >
+                查看教程
+              </button>
             </div>
           ) : null}
 
@@ -355,6 +365,8 @@ export function GameDesktop({
           />
         </main>
       </div>
+
+      {handbookOpen ? <Handbook onClose={() => setHandbookOpen(false)} /> : null}
     </div>
   )
 }

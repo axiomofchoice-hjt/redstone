@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
+import { Handbook } from './Handbook'
 import {
   CheckIcon,
   CrossIcon,
@@ -100,6 +101,8 @@ export function GameMobile({
 }: Props) {
   // 信息页只盖住地图和操控区，顶栏不动；再点一次 ⓘ 或「返回地图」就退出来
   const [infoOpen, setInfoOpen] = useState(false)
+  // 查看教程盖在整屏上面，和菜单、目标页互不影响
+  const [handbookOpen, setHandbookOpen] = useState(false)
 
   const toggleInfo = () => {
     if (menuOpen) onContinue()
@@ -171,6 +174,16 @@ export function GameMobile({
             </button>
             <button type="button" className="btn menu-btn" onClick={onExport}>
               导出地图
+            </button>
+            <button
+              type="button"
+              className="btn menu-btn"
+              onClick={() => {
+                setHandbookOpen(true)
+                onContinue()
+              }}
+            >
+              查看教程
             </button>
             <button type="button" className="btn menu-btn" onClick={onLevels}>
               返回选关界面
@@ -302,6 +315,8 @@ export function GameMobile({
           )}
         </>
       )}
+
+      {handbookOpen ? <Handbook onClose={() => setHandbookOpen(false)} /> : null}
     </div>
   )
 }
