@@ -39,6 +39,17 @@ export function pushSample(
   return next.length > cap ? next.slice(next.length - cap) : next
 }
 
+/**
+ * 点波形上的横坐标要跳到第几个 tick：横轴按 domain 等分成格，一格一个 tick，
+ * 点在第 c 格就停到第 c 刻——这一格画的就是第 c 刻的采样，右边界是「现在」。
+ * 点在两端外面时夹住：最左是 0，最右是回放走完的 domain。
+ */
+export function tickAtX(domain: number, x: number, laneWidth: number): number {
+  if (domain <= 0 || laneWidth <= 0) return 0
+  const cell = Math.floor((x / laneWidth) * domain)
+  return Math.min(Math.max(cell, 0), domain)
+}
+
 /** 回放播放头的宽度：固定 2 CSS px，但按设备像素取整，竖边才不会糊成 3px */
 export function playheadWidth(dpr = 1): number {
   return Math.max(1, Math.round(2 * dpr)) / dpr

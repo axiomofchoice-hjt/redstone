@@ -754,6 +754,13 @@ button.wave-tag:hover:not(:disabled) {
   height: 20px;
 }
 
+/* 回放时整块波形都能点：横坐标落在图里就跳到对应 tick，行与行之间的空隙也算。
+   touch-action 让手机上点空隙时不用先等双击缩放 */
+.wave.seekable {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
 .wave-svg {
   display: block;
   width: 100%;

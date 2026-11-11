@@ -101,6 +101,16 @@ function replayTo(
   return { sim, refSim, history, refHistory }
 }
 
+/**
+ * 从测试快照跑到第 steps 个 tick，只要仿真本身。
+ * 回放的「上一刻」和点波形跳转都走这里：波形已经整组存下了，不用再采样。
+ */
+function replaySimTo(test: TestCase, steps: number, start: Simulation): Simulation {
+  const sim = start.fork()
+  for (let t = 0; t < steps; t++) replayStep(test, sim)
+  return sim
+}
+
 export default function App() {
   const [{ level, sim, history }, setEditing] = useState<Editing>(initial)
   const [tool, setTool] = useState<Tool>({ type: 'wire' })
@@ -386,9 +396,28 @@ export default function App() {
     if (!replay) return
     // 波形和参考解已经整组存下了，往后退只重跑玩家那份，把地图停到前一刻；
     // 和进回放一样从测试快照起跑，状态才和结果对得上
-    const back = replayTo(level, replay.test, null, Math.max(0, sim.tick - 1), replay.start)
-    setEditing((prev) => ({ ...prev, sim: back.sim }))
-    setInputs(back.sim.inputValues())
+    const back = replaySimTo(replay.test, Math.max(0, sim.tick - 1), replay.start)
+    setEditing((prev) => ({ ...prev, sim: back }))
+    setInputs(back.inputValues())
+    repaint()
+  }
+
+  /**
+   * 点回放波形：从测试快照重跑到点到的那一格，地图、输入 / 输出和参考解的当前值
+   * 一起停到那一刻。点完就暂停，方便对照着看；波形本身不动，只挪红线。
+   * 最后一格右边是测试走完，夹在 0–lastTick + 1 之间。
+   */
+  const seekTick = (target: number) => {
+    if (!replay) return
+    const to = Math.max(0, Math.min(target, replay.lastTick + 1))
+    if (to === sim.tick) {
+      setPaused(true)
+      return
+    }
+    const next = replaySimTo(replay.test, to, replay.start)
+    setEditing((prev) => ({ ...prev, sim: next }))
+    setInputs(next.inputValues())
+    setPaused(true)
     repaint()
   }
 
@@ -473,6 +502,7 @@ export default function App() {
         onPause={togglePause}
         onNextTick={nextTick}
         onPrevTick={prevTick}
+        onSeekTick={seekTick}
         onRotate={(step) => {
           if (!replay) setDir((value) => rotateDir(value, step))
         }}
@@ -511,6 +541,7 @@ export default function App() {
       onPause={togglePause}
       onNextTick={nextTick}
       onPrevTick={prevTick}
+      onSeekTick={seekTick}
       onMenuToggle={() => setMenuOpen((open) => !open)}
       onContinue={() => setMenuOpen(false)}
       onSolution={applySolution}

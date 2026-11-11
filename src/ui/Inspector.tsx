@@ -33,6 +33,8 @@ interface Props {
   onDir: (dir: Dir) => void
   onZoom: (zoom: number) => void
   onToggleInput: (id: string) => void
+  /** 回放时点波形跳到这一刻 */
+  onSeek: (tick: number) => void
 }
 
 /** 电脑端左侧面板：只保留元件、朝向、信号和测试结果，能省的字都省掉 */
@@ -53,6 +55,7 @@ export function Inspector({
   onDir,
   onZoom,
   onToggleInput,
+  onSeek,
 }: Props) {
   const ports = useMemo(() => portsFor(level), [level])
   const replay = trace !== null
@@ -160,7 +163,7 @@ export function Inspector({
         <span className="zoom-value">{Math.round(zoom * 100)}%</span>
       </div>
 
-      {trace ? <p className="wave-note">回放：{trace.name}</p> : null}
+      {trace ? <p className="wave-note">回放：{trace.name} · 点波形跳转</p> : null}
       {inputIds.length > 0 || outputIds.length > 0 ? (
         <Waveform
           history={history}
@@ -175,6 +178,7 @@ export function Inspector({
           checks={trace?.checks}
           pairs={trace?.pairs}
           span={trace ? trace.lastTick + 1 : undefined}
+          onSeek={onSeek}
         />
       ) : null}
 

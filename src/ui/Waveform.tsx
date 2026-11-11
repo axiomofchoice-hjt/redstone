@@ -1,8 +1,14 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react'
 import type { TraceCheck, TracePair } from './trace'
 import {
   playheadLeft,
   playheadWidth,
+  tickAtX,
   waveRuns,
   waveRunsBetween,
   WAVE_TICKS,
@@ -29,6 +35,8 @@ interface Props {
   pairs?: TracePair[]
   /** 回放时铺整组测试：横轴从 0 到测试结束，整组波形和检查区间一次画满 */
   span?: number
+  /** 回放时点波形跳到这一刻；只在铺整组测试时生效，平时的 32 tick 窗口不能点 */
+  onSeek?: (tick: number) => void
 }
 
 /** svg 的纵坐标：高电平在上、低电平在下，上下各留一点给描边 */
@@ -64,7 +72,7 @@ const AXIS = [
  * 信号波形（电脑端检查器、手机端交互和回放共用）：横轴是最近 WAVE_TICKS 个 tick，
  * 右端是现在，高电平画在上沿。输入点左边的字母就能切换 0 / 1，每行右边写当前取值。
  * 回放时横轴换成整组测试：波形、参考解输出和检查区间一次全画出来，红线只当播放头，
- * 输入行不能点。
+ * 点面板任意位置（横坐标在图里就行）都能跳到那一刻，输入行不能点。
  */
 export function Waveform({
   history,
@@ -79,11 +87,14 @@ export function Waveform({
   checks,
   pairs,
   span,
+  onSeek,
 }: Props) {
   // 回放铺整组测试，横轴 0–span；平时仍只画最近 WAVE_TICKS 个 tick，右端是现在
   const full = span !== undefined && span > 0
   const domain = full ? span : WAVE_TICKS
   const start = full ? 0 : tick - WAVE_TICKS + 1
+  // 点波形跳转只在回放里给：编辑 / 交互时那 32 tick 的窗口不是一个进度条
+  const seekable = full && onSeek !== undefined
 
   // 红线按设备像素取整，宽度固定 2px：不然落在半个像素上时会被抗锯齿摊成 3px，
   // 看起来一会儿粗一会儿细
@@ -106,6 +117,22 @@ export function Waveform({
   const dpr = window.devicePixelRatio || 1
   const headWidth = playheadWidth(dpr)
   const headLeft = laneWidth > 0 ? playheadLeft(domain, tick, laneWidth, dpr) : null
+
+  /**
+   * 整块面板都能点，跳到点到的那一格：横轴就是整组测试的 domain 格，
+   * 用一行的实际宽度换算，鼠标和手指走同一条路（click 在触屏上也会带坐标）。
+   * 只有横向落在图上才跳——行首字母、行尾数字和面板留白不算。
+   */
+  const seekTo = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!onSeek) return
+    const lane = rootRef.current?.querySelector<HTMLElement>('.wave-lane')
+    if (!lane) return
+    const rect = lane.getBoundingClientRect()
+    if (rect.width <= 0) return
+    const x = event.clientX - rect.left
+    if (x < 0 || x > rect.width) return
+    onSeek(tickAtX(domain, x, rect.width))
+  }
   const bandsFor = (id: string) =>
     (checks ?? [])
       .filter((check) => id in check.outputs)
@@ -255,7 +282,13 @@ export function Waveform({
   }
 
   return (
-    <div ref={rootRef} className="wave" role="group" aria-label="输入输出波形">
+    <div
+      ref={rootRef}
+      className={seekable ? 'wave seekable' : 'wave'}
+      role="group"
+      aria-label="输入输出波形"
+      onClick={seekable ? seekTo : undefined}
+    >
       {inputIds.map((id) => renderRow(history, id, 'input'))}
       {outputIds.map((id) => renderRow(history, id, 'output'))}
 

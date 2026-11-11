@@ -60,6 +60,8 @@ interface Props {
   onPause: () => void
   onNextTick: () => void
   onPrevTick: () => void
+  /** 回放时点波形跳到这一刻 */
+  onSeekTick: (tick: number) => void
   onRotate: (step: 1 | -1) => void
   onLevels: () => void
 }
@@ -97,6 +99,7 @@ export function GameDesktop({
   onPause,
   onNextTick,
   onPrevTick,
+  onSeekTick,
   onRotate,
   onLevels,
 }: Props) {
@@ -331,6 +334,7 @@ export function GameDesktop({
           onDir={onDir}
           onZoom={zoomTo}
           onToggleInput={onToggleInput}
+          onSeek={onSeekTick}
         />
 
         <main className="stage">

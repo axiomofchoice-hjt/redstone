@@ -50,6 +50,8 @@ interface Props {
   onPause: () => void
   onNextTick: () => void
   onPrevTick: () => void
+  /** 回放时点波形跳到这一刻 */
+  onSeekTick: (tick: number) => void
   onOpenTrace: () => void
   onCloseTrace: () => void
   onMenuToggle: () => void
@@ -87,6 +89,7 @@ export function GameMobile({
   onPause,
   onNextTick,
   onPrevTick,
+  onSeekTick,
   onOpenTrace,
   onCloseTrace,
   onMenuToggle,
@@ -112,6 +115,7 @@ export function GameMobile({
     inputs,
     outputAt,
     onToggleInput,
+    onSeek: onSeekTick,
   }
 
   return (
@@ -278,7 +282,7 @@ export function GameMobile({
           {trace ? (
             // 回放模式：元件栏换成波形图，测试事件驱动输入，再并几条参考解的输出
             <div className="wave-panel">
-              <p className="wave-note">回放：{trace.name}</p>
+              <p className="wave-note">回放：{trace.name} · 点波形跳转</p>
               <Waveform
                 {...wave}
                 interactive={false}

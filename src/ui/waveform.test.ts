@@ -5,6 +5,7 @@ import {
   playheadLeft,
   playheadWidth,
   pushSample,
+  tickAtX,
   waveRuns,
   waveRunsBetween,
   waveSample,
@@ -182,5 +183,35 @@ describe('回放播放头', () => {
       expect(last + width).toBeCloseTo(lane, 6)
       expect(playheadLeft(21, 30, lane, dpr) + width).toBeCloseTo(lane, 6)
     }
+  })
+})
+
+describe('点波形跳转', () => {
+  it('点在哪一格就跳到那一格，左右两端夹住', () => {
+    // 21 格铺满 210px：每格 10px，x 落在 [20, 30) 就是第 2 格
+    expect(tickAtX(21, 0, 210)).toBe(0)
+    expect(tickAtX(21, 9.9, 210)).toBe(0)
+    expect(tickAtX(21, 20, 210)).toBe(2)
+    expect(tickAtX(21, 29.9, 210)).toBe(2)
+    expect(tickAtX(21, 30, 210)).toBe(3)
+    // 最后一格右边是测试走完，点出去夹在 domain
+    expect(tickAtX(21, 209, 210)).toBe(20)
+    expect(tickAtX(21, 210, 210)).toBe(21)
+    expect(tickAtX(21, 999, 210)).toBe(21)
+    expect(tickAtX(21, -5, 210)).toBe(0)
+  })
+
+  it('宽度还没量出来时不跳', () => {
+    expect(tickAtX(21, 50, 0)).toBe(0)
+    expect(tickAtX(0, 50, 210)).toBe(0)
+  })
+
+  it('格子很窄的整组测试也不会跳过头', () => {
+    // 第 18 关这类整组两百多 tick 的测试，手机上一格不到 2px
+    const domain = 220
+    const lane = 280
+    expect(tickAtX(domain, 0, lane)).toBe(0)
+    expect(tickAtX(domain, lane - 0.01, lane)).toBe(domain - 1)
+    expect(tickAtX(domain, lane, lane)).toBe(domain)
   })
 })
