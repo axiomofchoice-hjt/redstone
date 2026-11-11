@@ -68,6 +68,13 @@ src/
   App.tsx           关卡状态、工具选择、tick 循环、响应式切换
 ```
 
+## 部署
+
+- 线上地址：`https://axiomofchoice-hjt.github.io/redstone/`。
+- 推送到 `main`（或手动触发）后，`.github/workflows/deploy.yml` 跑 `pnpm test`、`pnpm build`，把 `dist/` 发到 `gh-pages` 分支。
+- 项目站点在子路径 `/redstone/` 下，workflow 用环境变量 `BASE_PATH` 注入 Vite 的 `base`；本地想验证子路径构建：`BASE_PATH=/redstone/ pnpm build:only`。
+- 仓库第一次部署要在 Settings → Pages 把来源设成 `gh-pages` 分支。
+
 ## 文档
 
 改到对应行为时顺手更新对应的页：

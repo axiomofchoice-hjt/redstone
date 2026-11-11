@@ -117,6 +117,7 @@
 
 ### 变更
 
+- 新增 GitHub Actions workflow（`.github/workflows/deploy.yml`）：推送 `main` 后跑测试、构建，把 `dist/` 发到 `gh-pages` 分支；`vite.config.ts` 的 `base` 改由 `BASE_PATH` 注入，线上改为放在 `https://axiomofchoice-hjt.github.io/redstone/`
 - 文档按当前代码校对：触屏长按不删格、数字键两端都能选元件、没有参考解时回放不画参考解波形；补齐 `Level` 字段说明、参考解保存的 tick、开发目录说明，并加了一张「文档管什么」的对应表
 - 文档从 README 拆到 `docs/`：README 只留简介、快速开始、文档索引和协议；按主题分成界面与操作、交互与波形、测试与回放、元件规则、时间模型、关卡格式、各关设计、开发八页，原来堆在「玩法」里的界面和菜单说明拆进操作页
 - 电脑端不再使用手机的全屏菜单：参考答案、导出地图放进左侧关卡栏底部，切换关卡走左侧列表；手机端菜单保留

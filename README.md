@@ -4,6 +4,8 @@
 
 关卡制，判定依据是**按 tick 的时间轴**检查输出，而不只是最终状态。
 
+线上版本：<https://axiomofchoice-hjt.github.io/redstone/>（`main` 推送后自动发布）。
+
 ## 快速开始
 
 需要 Node.js 20.19+ 和 pnpm。
