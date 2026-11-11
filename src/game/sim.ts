@@ -3,14 +3,10 @@ import type { Cell, CellType, CircuitState, Dir, Level, TestCase } from './types
 export const DX = [0, 1, 0, -1] as const
 export const DY = [-1, 0, 1, 0] as const
 
-export const DIR_N: Dir = 0
-export const DIR_E: Dir = 1
-export const DIR_S: Dir = 2
-export const DIR_W: Dir = 3
-
 export const opposite = (d: Dir): Dir => ((d + 2) % 4) as Dir
 
-export const dirOf = (cell: Cell): Dir => cell.dir ?? DIR_E
+/** 没写朝向的元件一律朝右（东） */
+export const dirOf = (cell: Cell): Dir => cell.dir ?? 1
 
 export const isConductor = (cell: Cell | null | undefined): boolean =>
   cell?.type === 'wire' || cell?.type === 'cross'

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CellType, Level } from '../game/types'
-import { dirForKey, rotateDir, toolForKey, type PalettePort } from './keyboard'
+import { dirForKey, rotateDir, toolForKey } from './keyboard'
+import type { Port } from './ports'
 
 const level: Level = {
   id: 't',
@@ -13,7 +14,7 @@ const level: Level = {
   tests: [],
 }
 
-const ports: PalettePort[] = [
+const ports: Port[] = [
   { type: 'input', id: 'A' },
   { type: 'output', id: 'Y' },
 ]

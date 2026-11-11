@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { hasDirection } from '../game/sim'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
 import { clampZoom, zoomAround, type Camera, type Viewport } from './camera'
 import { Inspector } from './Inspector'
 import {
-  ExitIcon,
   CheckIcon,
   CrossIcon,
   DotsIcon,
+  ExitIcon,
   InfoIcon,
   Logo,
   MenuIcon,
@@ -18,7 +17,7 @@ import {
   PrevIcon,
   StepIcon,
 } from './icons'
-import type { Tool } from './Palette'
+import { previewDirOf, type Tool } from './tools'
 import type { EditMode } from './edit-mode'
 import type { TraceInfo } from './trace'
 import type { WaveSample } from './waveform'
@@ -107,7 +106,6 @@ export function GameDesktop({
   const viewport = useRef<Viewport | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
 
   const zoomTo = (zoom: number) => {
     const view = viewport.current
@@ -177,7 +175,7 @@ export function GameDesktop({
           <h1 className="crumb-title">{level.name}</h1>
         </div>
 
-        <div className="appbar-actions" ref={menuRef}>
+        <div className="appbar-actions">
           {trace ? (
             <button
               type="button"
@@ -346,9 +344,7 @@ export function GameDesktop({
             onCell={onCell}
             onErase={onErase}
             preview={trace ? null : tool}
-            previewDir={
-              tool !== 'erase' && tool !== 'interact' && hasDirection(tool.type) ? dir : undefined
-            }
+            previewDir={previewDirOf(tool, dir)}
             placeMode={mode === 'place' && trace === null}
             workbench={{ camera, onCamera: setCamera, onRotate: trace ? () => {} : onRotate }}
             viewportRef={viewport}

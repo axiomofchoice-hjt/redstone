@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { hasDirection } from '../game/sim'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
@@ -15,7 +14,7 @@ import {
   StepIcon,
 } from './icons'
 import { Palette } from './Palette'
-import type { Tool } from './Palette'
+import { previewDirOf, type Tool } from './tools'
 import { Waveform } from './Waveform'
 import type { WaveSample } from './waveform'
 import type { TraceInfo } from './trace'
@@ -200,9 +199,7 @@ export function GameMobile({
             onCell={onCell}
             onErase={onErase}
             preview={trace ? null : tool}
-            previewDir={
-              tool !== 'erase' && tool !== 'interact' && hasDirection(tool.type) ? dir : undefined
-            }
+            previewDir={previewDirOf(tool, dir)}
           />
 
           <div className="toolbar">

@@ -1,18 +1,19 @@
 import { useEffect } from 'react'
-import type { CellType, Dir, Level } from '../game/types'
-import { TOOLS, toolEnabled } from './tools'
+import type { Dir, Level } from '../game/types'
+import type { Port } from './ports'
+import { toolItems, toolSpec, type ToolSpec } from './tools'
 
-const KEY_DIRS: Record<string, Dir> = { w: 0, a: 3, s: 2, d: 1 }
+/** 方向按钮的排列：上和下、左和右分居两侧，电脑端和手机端共用 */
+export const DIRECTIONS: { dir: Dir; key: string; label: string; area: string }[] = [
+  { dir: 0, key: 'W', label: '上', area: 'up' },
+  { dir: 3, key: 'A', label: '左', area: 'left' },
+  { dir: 2, key: 'S', label: '下', area: 'down' },
+  { dir: 1, key: 'D', label: '右', area: 'right' },
+]
 
-export interface PaletteTool {
-  type: CellType
-  id?: string
-}
-
-export interface PalettePort {
-  type: CellType
-  id: string
-}
+const KEY_DIRS: Record<string, Dir> = Object.fromEntries(
+  DIRECTIONS.map(({ key, dir }) => [key.toLowerCase(), dir]),
+)
 
 /** WASD 对应的方向；不认识的键返回 null */
 export const dirForKey = (key: string): Dir | null => KEY_DIRS[key.toLowerCase()] ?? null
@@ -22,26 +23,18 @@ export const rotateDir = (dir: Dir, step: number): Dir =>
   ((((dir + step) % 4) + 4) % 4) as Dir
 
 /** 1～9 对应的元件栏位置；其他键返回 null */
-export const toolIndexForKey = (key: string): number | null =>
+const toolIndexForKey = (key: string): number | null =>
   /^[1-9]$/.test(key) ? Number(key) - 1 : null
 
 /**
  * 数字键对应的元件：1～5 是基础元件，6 起依次是元件栏里剩下的输入 / 输出。
  * 这关不让用的元件返回 null。
  */
-export const toolForKey = (
-  key: string,
-  level: Level,
-  ports: PalettePort[],
-): PaletteTool | null => {
+export const toolForKey = (key: string, level: Level, ports: Port[]): ToolSpec | null => {
   const index = toolIndexForKey(key)
   if (index === null) return null
-  if (index < TOOLS.length) {
-    const item = TOOLS[index]
-    return toolEnabled(level, item.type) ? { type: item.type } : null
-  }
-  const port = ports[index - TOOLS.length]
-  return port ? { type: port.type, id: port.id } : null
+  const item = toolItems(level, ports)[index]
+  return item && !item.disabled ? toolSpec(item) : null
 }
 
 export const isTypingTarget = (target: EventTarget | null): boolean => {
@@ -61,9 +54,9 @@ export const isTypingTarget = (target: EventTarget | null): boolean => {
  */
 export function usePaletteKeys(
   level: Level,
-  ports: PalettePort[],
+  ports: Port[],
   onDir: ((dir: Dir) => void) | null,
-  onTool: (tool: PaletteTool) => void,
+  onTool: (tool: ToolSpec) => void,
   disabled = false,
 ): void {
   useEffect(() => {

@@ -36,6 +36,8 @@ const HIGH = 3
 const LOW = 7
 const yOf = (value: 0 | 1) => (value ? HIGH : LOW)
 
+type RowKind = 'input' | 'output' | 'ref'
+
 /** 阶梯线：每段横着走完，再在分段处竖着跳 */
 function lanePath(runs: WaveRun[]): string {
   if (runs.length === 0) return ''
@@ -136,18 +138,17 @@ export function Waveform({
     return { runs, marks }
   }
 
-  const renderRow = (samples: WaveSample[], id: string, kind: 'input' | 'output' | 'ref') => {
+  /** 行尾的当前取值：输入看玩家设的值，输出问仿真，参考解取当前 tick 的采样 */
+  const currentValue = (samples: WaveSample[], id: string, kind: RowKind): 0 | 1 => {
+    if (kind !== 'ref') return kind === 'input' ? (inputs[id] ?? 0) : outputAt(id) ? 1 : 0
     // 参考解那一行没有活的仿真，取当前 tick 的那一帧；整组波形里不能拿最后一帧
     // （那是测试跑完时的值，回放到一半就会显示成最终结果）
     const current = full ? samples.find((item) => item.tick === tick) : samples[samples.length - 1]
-    const value: 0 | 1 =
-      kind === 'ref'
-        ? (current?.outputs[id] ?? 0)
-        : kind === 'input'
-          ? (inputs[id] ?? 0)
-          : outputAt(id)
-            ? 1
-            : 0
+    return current?.outputs[id] ?? 0
+  }
+
+  const renderRow = (samples: WaveSample[], id: string, kind: RowKind) => {
+    const value = currentValue(samples, id, kind)
     // 当前这一格的采样由 App 在改元件 / 拨输入时覆盖，画出来和右边的数字是同一份数据
     const field = kind === 'input' ? 'inputs' : 'outputs'
     // 回放把整组测试一次画满（横轴就是 0 到测试结束），不用等播放到才长出来

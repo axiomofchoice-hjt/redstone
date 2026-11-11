@@ -1,16 +1,15 @@
 import { useMemo } from 'react'
 import type { Dir, Level } from '../game/types'
 import { MAX_ZOOM, MIN_ZOOM } from './camera'
-import { usePaletteKeys } from './keyboard'
+import { DIRECTIONS, usePaletteKeys } from './keyboard'
 import { portsFor } from './ports'
-import { TOOLS, toolEnabled } from './tools'
+import { isToolActive, toolItems, toolSpec, type Tool } from './tools'
 import { ToolIcon } from './ToolIcon'
 import { Waveform } from './Waveform'
 import type { WaveSample } from './waveform'
 import type { EditMode } from './edit-mode'
 import type { TraceInfo } from './trace'
 import { ArrowUp } from './icons'
-import type { Tool } from './Palette'
 
 interface Props {
   level: Level
@@ -36,14 +35,7 @@ interface Props {
   onToggleInput: (id: string) => void
 }
 
-const DIR_BUTTONS: { dir: Dir; label: string; area: string }[] = [
-  { dir: 0, label: '上', area: 'up' },
-  { dir: 3, label: '左', area: 'left' },
-  { dir: 2, label: '下', area: 'down' },
-  { dir: 1, label: '右', area: 'right' },
-]
-
-/** 电脑端左侧面板：只保留元件、朝向、信号和操作说明，能省的字都省掉 */
+/** 电脑端左侧面板：只保留元件、朝向、信号和测试结果，能省的字都省掉 */
 export function Inspector({
   level,
   tool,
@@ -67,23 +59,7 @@ export function Inspector({
   // WASD / 方向键在电脑端留给画布平移，这里只认数字键
   usePaletteKeys(level, ports, null, onTool, replay)
 
-  const tools = useMemo(
-    () => [
-      ...TOOLS.map((item) => ({
-        type: item.type,
-        id: undefined as string | undefined,
-        label: item.label,
-        disabled: !toolEnabled(level, item.type),
-      })),
-      ...ports.map((item) => ({
-        type: item.type,
-        id: item.id as string | undefined,
-        label: item.label,
-        disabled: false,
-      })),
-    ],
-    [level, ports],
-  )
+  const tools = useMemo(() => toolItems(level, ports), [level, ports])
 
   // 波形把关卡声明的端口都列出来：没放到地图上的也占一行，输出按 0 画，输入按玩家设置
   const inputIds = level.inputs ?? []
@@ -93,7 +69,7 @@ export function Inspector({
     <aside className="inspector" aria-label="工具与状态">
       <div className="tool-grid">
         {tools.map((item) => {
-          const active = typeof tool === 'object' && tool.type === item.type && tool.id === item.id
+          const active = isToolActive(tool, item)
           return (
             <button
               key={`${item.type}-${item.id ?? ''}`}
@@ -101,9 +77,7 @@ export function Inspector({
               className={active ? 'tool-tile active' : 'tool-tile'}
               disabled={item.disabled || replay}
               title={item.label}
-              onClick={() =>
-                onTool(item.id ? { type: item.type, id: item.id } : { type: item.type })
-              }
+              onClick={() => onTool(toolSpec(item))}
             >
               <ToolIcon type={item.type} id={item.id} dir={dir} size={38} />
               <span className="tool-label">{item.label}</span>
@@ -114,9 +88,9 @@ export function Inspector({
 
       <div className="control-row">
         <div className="dir-pad" role="group" aria-label="朝向">
-          {DIR_BUTTONS.map((item) => (
+          {DIRECTIONS.map((item) => (
             <button
-              key={item.label}
+              key={item.key}
               type="button"
               className={dir === item.dir ? 'dir-btn active' : 'dir-btn'}
               style={{ gridArea: item.area }}
@@ -127,7 +101,7 @@ export function Inspector({
             >
               <span
                 className="dir-arrow"
-                style={{ transform: `rotate(${[0, 90, 180, -90][item.dir]}deg)` }}
+                style={{ transform: `rotate(${item.dir * 90}deg)` }}
               >
                 <ArrowUp size={15} />
               </span>

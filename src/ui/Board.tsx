@@ -8,7 +8,7 @@ import { drawComponent, linkedDirs } from './glyph'
 import { advanceFade, tweenValue, type Fade } from './fade'
 import { isTypingTarget } from './keyboard'
 import { useMediaQuery } from './useMediaQuery'
-import type { Tool } from './Palette'
+import type { Tool } from './tools'
 
 interface Props {
   level: Level
@@ -439,31 +439,24 @@ export function Board({
     if (event.pointerType === 'mouse') {
       setHover(cellIndexAtPointer(event, event.currentTarget))
     }
-    // 电脑端：右键按下就删一格，按住拖过去一路删
-    if (workbench && event.pointerType === 'mouse' && event.button === 2) {
+    // 电脑端：左键按下就放一格、右键删一格，按住拖过去都连续执行
+    if (workbench && event.pointerType === 'mouse' && (event.button === 0 || event.button === 2)) {
       const index = cellIndexAtPointer(event, event.currentTarget)
       if (index < 0) return
-      event.preventDefault()
+      const erase = event.button === 2
+      // 右键要挡一下浏览器菜单
+      if (erase) event.preventDefault()
       event.currentTarget.setPointerCapture(event.pointerId)
-      onErase(index)
-      stroke.current = { id: event.pointerId, last: index, erase: true }
-      return
-    }
-
-    // 右键留给删除，不参与拖动和放置
-    if (event.button !== 0) return
-
-    // 电脑端：左键按下就放一格，按住拖过去一路放
-    if (workbench && event.pointerType === 'mouse') {
-      const index = cellIndexAtPointer(event, event.currentTarget)
-      if (index < 0) return
-      event.currentTarget.setPointerCapture(event.pointerId)
-      onCell(index)
+      if (erase) onErase(index)
+      else onCell(index)
       // 交互是开关，拖过去会反复切，不跟着拖动走
-      stroke.current =
-        preview === 'interact' ? null : { id: event.pointerId, last: index, erase: false }
+      const toggle = !erase && preview === 'interact'
+      stroke.current = toggle ? null : { id: event.pointerId, last: index, erase }
       return
     }
+
+    // 右键留给上面的删除和 contextmenu，不参与拖动、放置
+    if (event.button !== 0) return
 
     event.currentTarget.setPointerCapture(event.pointerId)
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
@@ -575,9 +568,14 @@ export function Board({
     onErase(index)
   }
 
-  const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    pointers.current.delete(event.pointerId)
+  /** 一根手指离开：松开的手指收掉，双指剩一根就不再缩放 */
+  const releasePointer = (id: number) => {
+    pointers.current.delete(id)
     if (pointers.current.size < 2) pinch.current = null
+  }
+
+  const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    releasePointer(event.pointerId)
 
     // 电脑端按下时已经放 / 删过了，松手不用再来一次
     if (stroke.current?.id === event.pointerId) {
@@ -605,8 +603,7 @@ export function Board({
         onPointerLeave={() => setHover(-1)}
         onContextMenu={handleContextMenu}
         onPointerCancel={(event) => {
-          pointers.current.delete(event.pointerId)
-          if (pointers.current.size < 2) pinch.current = null
+          releasePointer(event.pointerId)
           drag.current = null
           stroke.current = null
           setHover(-1)
