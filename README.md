@@ -1,10 +1,6 @@
 # 红石电路
 
-一个 2D 红石电路解谜游戏。电脑端是左侧检查器 + 右侧画布，手机端单列、地图占中间。
-
-关卡制，判定依据是**按 tick 的时间轴**检查输出，而不只是最终状态。
-
-线上版本：<https://axiomofchoice-hjt.github.io/redstone/>（`main` 推送后自动发布）。
+线上版本：<https://axiomofchoice-hjt.github.io/redstone/>
 
 ## 快速开始
 
