@@ -35,7 +35,16 @@ export function Handbook({ onClose }: Props) {
   }, [onClose])
 
   return (
-    <div className="handbook-screen" role="dialog" aria-modal="true" aria-label="查看教程">
+    <div
+      className="handbook-screen"
+      role="dialog"
+      aria-modal="true"
+      aria-label="查看教程"
+      // 点卡片外面那层遮罩收起；点卡片里的内容（冒泡上来）不算
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+    >
       <div className="handbook-card">
         <header className="handbook-head">
           <h2>查看教程</h2>
