@@ -154,6 +154,7 @@ export function Inspector({
           step={0.05}
           value={zoom}
           aria-label="地图缩放"
+          title="缩放地图（也可以按 + / -）"
           onChange={(event) => onZoom(Number(event.target.value))}
           // 鼠标松开后放掉焦点，WASD / 方向键才能直接接着平移地图
           onPointerUp={(event) => {
@@ -183,7 +184,8 @@ export function Inspector({
       ) : null}
 
       <div className="inspector-hints">
-        <p className="inspector-hint">左键放置 · 右键删除 · 滚轮换朝向 · 方向键移动地图</p>
+        <p className="inspector-hint">左键放置 · 右键删除 · 滚轮换朝向</p>
+        <p className="inspector-hint">方向键移动地图 · + / - 缩放</p>
       </div>
     </aside>
   )

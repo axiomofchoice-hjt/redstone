@@ -3,7 +3,14 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent }
 import type { Cell, Dir, Level } from '../game/types'
 import { baseCell } from './board-layout'
 import { cellIndexAt, gridLine } from './board-hit'
-import { clampCamera, clampZoom, type Camera, type Viewport } from './camera'
+import {
+  clampCamera,
+  clampZoom,
+  zoomAround,
+  zoomFactorForKey,
+  type Camera,
+  type Viewport,
+} from './camera'
 import { drawComponent, linkedDirs } from './glyph'
 import { advanceFade, tweenValue, type Fade } from './fade'
 import { isTypingTarget } from './keyboard'
@@ -325,6 +332,25 @@ export function Board({
 
     canvas.addEventListener('wheel', onWheel, { passive: false })
     return () => canvas.removeEventListener('wheel', onWheel)
+  }, [updateCamera])
+
+  // + / - 缩放地图：电脑端和手机端都认，以视口中心为锚点。
+  // Ctrl / Cmd + + / - 还是留给浏览器，输入框里也不抢。
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return
+      if (isTypingTarget(event.target)) return
+      const factor = zoomFactorForKey(event.key)
+      if (factor === null) return
+      const g = geom.current
+      if (g.cell <= 0) return
+      event.preventDefault()
+      const current = camRef.current
+      const next = zoomAround(current, g, current.zoom * factor)
+      if (next !== current) updateCamera(next)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [updateCamera])
 
   // 电脑端 WASD / 方向键平移地图：按住就一直走，不等系统的按键重复延迟；

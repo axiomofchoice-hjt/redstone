@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { clampCamera, clampZoom, MAX_ZOOM, MIN_ZOOM, zoomAround } from './camera'
+import {
+  clampCamera,
+  clampZoom,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  zoomAround,
+  zoomFactorForKey,
+  ZOOM_KEY_STEP,
+} from './camera'
 
 describe('相机夹取', () => {
   it('缩放限制在 0.5 到 3 之间', () => {
@@ -39,5 +47,20 @@ describe('以视口中心缩放', () => {
     // 缩放没变时原样返回，不白改一次相机
     const cam = { x: 10, y: 20, zoom: 2 }
     expect(zoomAround(cam, view, 2)).toBe(cam)
+  })
+})
+
+describe('缩放按键', () => {
+  it('+ / = 放大，- / _ 缩小', () => {
+    expect(zoomFactorForKey('+')).toBe(ZOOM_KEY_STEP)
+    expect(zoomFactorForKey('=')).toBe(ZOOM_KEY_STEP)
+    expect(zoomFactorForKey('-')).toBe(1 / ZOOM_KEY_STEP)
+    expect(zoomFactorForKey('_')).toBe(1 / ZOOM_KEY_STEP)
+  })
+
+  it('其他键不处理', () => {
+    expect(zoomFactorForKey('0')).toBeNull()
+    expect(zoomFactorForKey('ArrowUp')).toBeNull()
+    expect(zoomFactorForKey('+1')).toBeNull()
   })
 })

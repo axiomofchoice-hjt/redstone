@@ -22,7 +22,20 @@ const EDGE = 12
 export const MIN_ZOOM = 0.5
 export const MAX_ZOOM = 3
 
+/** 键盘每按一下缩放键的倍率（缩小就是它的倒数） */
+export const ZOOM_KEY_STEP = 1.25
+
 export const clampZoom = (zoom: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom))
+
+/**
+ * 缩放按键对应的倍率：+ / = 放大，- / _ 缩小。
+ * 主键盘的 + 要按 Shift，很多键盘布局上不按 Shift 的 = 更顺手，所以两个都认。
+ */
+export const zoomFactorForKey = (key: string): number | null => {
+  if (key === '+' || key === '=') return ZOOM_KEY_STEP
+  if (key === '-' || key === '_') return 1 / ZOOM_KEY_STEP
+  return null
+}
 
 /** 地图比视口小就居中摆；比视口大就把相机的活动范围夹在 EDGE 以内 */
 export function clampCamera(
