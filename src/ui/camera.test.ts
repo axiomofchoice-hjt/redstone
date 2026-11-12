@@ -5,8 +5,8 @@ import {
   MAX_ZOOM,
   MIN_ZOOM,
   zoomAround,
-  zoomFactorForKey,
-  ZOOM_KEY_STEP,
+  zoomForKey,
+  ZOOM_PRESETS,
 } from './camera'
 
 describe('相机夹取', () => {
@@ -51,16 +51,39 @@ describe('以视口中心缩放', () => {
 })
 
 describe('缩放按键', () => {
-  it('+ / = 放大，- / _ 缩小', () => {
-    expect(zoomFactorForKey('+')).toBe(ZOOM_KEY_STEP)
-    expect(zoomFactorForKey('=')).toBe(ZOOM_KEY_STEP)
-    expect(zoomFactorForKey('-')).toBe(1 / ZOOM_KEY_STEP)
-    expect(zoomFactorForKey('_')).toBe(1 / ZOOM_KEY_STEP)
+  it('档位是 50 67 75 80 90 100 110 125 150 175 200 250 300', () => {
+    expect(ZOOM_PRESETS.map((zoom) => Math.round(zoom * 100))).toEqual([
+      50, 67, 75, 80, 90, 100, 110, 125, 150, 175, 200, 250, 300,
+    ])
+  })
+
+  it('+ / = 往上跳一档，- / _ 往下跳一档', () => {
+    expect(zoomForKey(1, '+')).toBe(1.1)
+    expect(zoomForKey(1, '=')).toBe(1.1)
+    expect(zoomForKey(1, '-')).toBe(0.9)
+    expect(zoomForKey(1, '_')).toBe(0.9)
+    // 正好落在档位上时往下走，不会因为浮点误差原地不动
+    expect(zoomForKey(0.67, '+')).toBe(0.75)
+    expect(zoomForKey(0.67, '-')).toBe(0.5)
+  })
+
+  it('当前不在档位上时跳到相邻的一档', () => {
+    expect(zoomForKey(0.83, '+')).toBe(0.9)
+    expect(zoomForKey(0.83, '-')).toBe(0.8)
+    expect(zoomForKey(0.66, '+')).toBe(0.67)
+    expect(zoomForKey(0.66, '-')).toBe(0.5)
+  })
+
+  it('到头就停在 50% / 300%，超出范围先夹回来', () => {
+    expect(zoomForKey(3, '+')).toBe(3)
+    expect(zoomForKey(0.5, '-')).toBe(0.5)
+    expect(zoomForKey(9, '-')).toBe(2.5)
+    expect(zoomForKey(0.1, '+')).toBe(0.67)
   })
 
   it('其他键不处理', () => {
-    expect(zoomFactorForKey('0')).toBeNull()
-    expect(zoomFactorForKey('ArrowUp')).toBeNull()
-    expect(zoomFactorForKey('+1')).toBeNull()
+    expect(zoomForKey(1, '0')).toBeNull()
+    expect(zoomForKey(1, 'ArrowUp')).toBeNull()
+    expect(zoomForKey(1, '+1')).toBeNull()
   })
 })

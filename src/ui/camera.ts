@@ -22,19 +22,32 @@ const EDGE = 12
 export const MIN_ZOOM = 0.5
 export const MAX_ZOOM = 3
 
-/** 键盘每按一下缩放键的倍率（缩小就是它的倒数） */
-export const ZOOM_KEY_STEP = 1.25
+/** 键盘缩放的档位：50% 67% 75% 80% 90% 100% 110% 125% 150% 175% 200% 250% 300% */
+export const ZOOM_PRESETS = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3] as const
+
+/** 浮点误差容忍：捏合和滑轨得到的值可能差一丁点，别当成还没到这一档 */
+const ZOOM_EPSILON = 1e-4
 
 export const clampZoom = (zoom: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom))
 
 /**
- * 缩放按键对应的倍率：+ / = 放大，- / _ 缩小。
+ * 缩放按键落到哪一档：+ / = 往上跳一档，- / _ 往下跳一档，到头就停在 50% / 300%。
  * 主键盘的 + 要按 Shift，很多键盘布局上不按 Shift 的 = 更顺手，所以两个都认。
+ * 当前缩放不在档位上（滑轨或捏合停在 83% 这种）时，跳到相邻的那一档。
  */
-export const zoomFactorForKey = (key: string): number | null => {
-  if (key === '+' || key === '=') return ZOOM_KEY_STEP
-  if (key === '-' || key === '_') return 1 / ZOOM_KEY_STEP
-  return null
+export const zoomForKey = (zoom: number, key: string): number | null => {
+  const up = key === '+' || key === '='
+  const down = key === '-' || key === '_'
+  if (!up && !down) return null
+
+  const current = clampZoom(zoom)
+  if (up) {
+    return ZOOM_PRESETS.find((step) => step > current + ZOOM_EPSILON) ?? current
+  }
+  for (let i = ZOOM_PRESETS.length - 1; i >= 0; i--) {
+    if (ZOOM_PRESETS[i] < current - ZOOM_EPSILON) return ZOOM_PRESETS[i]
+  }
+  return current
 }
 
 /** 地图比视口小就居中摆；比视口大就把相机的活动范围夹在 EDGE 以内 */

@@ -7,7 +7,7 @@ import {
   clampCamera,
   clampZoom,
   zoomAround,
-  zoomFactorForKey,
+  zoomForKey,
   type Camera,
   type Viewport,
 } from './camera'
@@ -340,14 +340,14 @@ export function Board({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return
       if (isTypingTarget(event.target)) return
-      const factor = zoomFactorForKey(event.key)
-      if (factor === null) return
+      const current = camRef.current
+      const target = zoomForKey(current.zoom, event.key)
+      if (target === null) return
       const g = geom.current
       if (g.cell <= 0) return
       event.preventDefault()
-      const current = camRef.current
-      const next = zoomAround(current, g, current.zoom * factor)
-      if (next !== current) updateCamera(next)
+      if (target === current.zoom) return
+      updateCamera(zoomAround(current, g, target))
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
