@@ -1362,6 +1362,53 @@ button.wave-tag:hover:not(:disabled) {
   text-align: center;
 }
 
+/* 第二页四张状态图：每张都是真实引擎画出的小地图 */
+.handbook-sim {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.handbook-sim-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.handbook-sim-title {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.handbook-sim-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.handbook-sim-panel {
+  min-width: 0;
+  margin: 0;
+}
+
+.handbook-sim-panel canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.handbook-sim-panel figcaption {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 12.5px;
+  text-align: center;
+}
+
 .handbook-copy {
   min-width: 0;
 }
@@ -1438,6 +1485,11 @@ button.wave-tag:hover:not(:disabled) {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-top: 20px;
+}
+
+/* 三种有源元件那页：卡片别被宽屏拉得太散 */
+.handbook-parts.compact {
+  max-width: 760px;
 }
 
 .handbook-part {

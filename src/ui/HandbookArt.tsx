@@ -178,7 +178,7 @@ function Art({
   )
 }
 
-/** 第 3 页：左边输入朝四个方向发信号，右边输出把四周的信号收进来 */
+/** 第 4 页：左边输入朝四个方向发信号，右边输出把四周的信号收进来 */
 export function PortsArt() {
   return (
     <Art label="输入 P 朝上下左右发信号，输出 Y 收集四周的信号" viewBox="0 0 440 220">
@@ -218,7 +218,7 @@ export function PortsArt() {
   )
 }
 
-/** 第 4 页：D 接到中继器前方，E 从下面顶住它的侧面，三角形填实表示输出被按住 */
+/** 第 5 页：D 接到中继器前方，E 从下面顶住它的侧面，三角形填实表示输出被按住 */
 export function LatchArt() {
   return (
     <Art label="D 经过中继器送到输出 Y，E 驱动另一个中继器顶住它的侧面，输出被锁住" viewBox="0 0 220 132">
@@ -235,7 +235,7 @@ export function LatchArt() {
   )
 }
 
-/** 第 5 页：E 的充能器顶住中继器侧面时，输出的那一段是断的，Y 收不到 1 */
+/** 第 6 页：E 的充能器顶住中继器侧面时，输出的那一段是断的，Y 收不到 1 */
 export function BreakArt() {
   return (
     <Art label="D 经过中继器送到输出 Y，E 的充能器顶住中继器侧面，输出被掐断、Y 为 0" viewBox="0 0 220 132">

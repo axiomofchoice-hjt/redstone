@@ -3,19 +3,14 @@ import type { CellType } from '../game/types'
 import { ToolIcon } from './ToolIcon'
 import { ChevronLeft, ChevronRight, CrossIcon } from './icons'
 import { BreakArt, LatchArt, PortsArt } from './HandbookArt'
+import { WireCrossSim } from './HandbookSim'
 
 interface Props {
   onClose: () => void
 }
 
-/** 五种元件的速查条目，和元件栏用同一套图标 */
-const PARTS: { type: CellType; name: string; desc: string }[] = [
-  { type: 'wire', name: '导线', desc: '连成一片的导体，同一个网络一起带电。' },
-  {
-    type: 'cross',
-    name: '交叉导线',
-    desc: '上下、左右两条独立通道，各走各的，互不导通。',
-  },
+/** 剩下三种元件的速查条目，和元件栏用同一套图标 */
+const ACTIVE_PARTS: { type: CellType; name: string; desc: string }[] = [
   { type: 'charger', name: '充能器', desc: '朝正面一个方向给相邻元件供能。' },
   {
     type: 'repeater',
@@ -38,7 +33,7 @@ const ROSTER: { type: CellType; id?: string; name: string }[] = [
 
 interface Page {
   title: string
-  /** 左栏示意图；没有就整页单栏排（例如简介和五种元件那页） */
+  /** 左栏示意图；没有就整页单栏排（例如简介和元件卡片那页） */
   art?: ReactNode
   /** 示意图下面的小字 */
   figureNote?: string
@@ -57,7 +52,8 @@ const PAGES: Page[] = [
     body: (
       <>
         <p className="handbook-lead">
-          一个简化的 Minecraft 红石电路模拟器：用 5 种基本元件和输入 / 输出元件搭建数字电路，信号只有 0 和 1。
+          这是一款简化的 Minecraft 红石电路模拟器，仅由 5 种基本元件和输入 / 输出端口构成。电路整体按 tick
+          同步运行：每个 tick 所有元件一起更新，彼此传递 0 / 1 信号，从而可以搭建具备计算、存储和脉冲处理能力的电路。
         </p>
         <div className="handbook-roster">
           {ROSTER.map((part) => (
@@ -71,25 +67,39 @@ const PAGES: Page[] = [
         </div>
       </>
     ),
-    note: '导线传输无延迟；中继器和非门晚 1 tick 生效，其余元件在同一个 tick 内稳定。',
   },
   {
-    title: '五种元件',
+    title: '导线与交叉导线',
+    art: <WireCrossSim />,
+    body: (
+      <ul className="handbook-list">
+        <li>导线连成一片就是同一个网络，一起带电；传输在同一个 tick 内完成，没有延迟。</li>
+        <li>交叉导线在一个格子里放横、竖两条独立通道，各走各的，互不导通。</li>
+        <li>A 走横线、B 走竖线时，两条信号在交叉处只是穿过，不会混在一起。</li>
+      </ul>
+    ),
+    note: '交叉处的横线向下绕半圈跨过竖线，表示两条线没有接上。',
+  },
+  {
+    title: '充能器、中继器、非门',
     wide: true,
     body: (
-      <div className="handbook-parts">
-        {PARTS.map((part) => (
-          <div className="handbook-part" key={part.type}>
-            <span className="handbook-glyph">
-              <ToolIcon type={part.type} dir={0} size={30} />
-            </span>
-            <p>
-              <b>{part.name}</b>
-              {part.desc}
-            </p>
-          </div>
-        ))}
-      </div>
+      <>
+        <p className="handbook-lead">三种元件都只朝正面输出；中继器和非门还要晚 1 tick 才生效。</p>
+        <div className="handbook-parts compact">
+          {ACTIVE_PARTS.map((part) => (
+            <div className="handbook-part" key={part.type}>
+              <span className="handbook-glyph">
+                <ToolIcon type={part.type} dir={0} size={30} />
+              </span>
+              <p>
+                <b>{part.name}</b>
+                {part.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </>
     ),
   },
   {
@@ -128,7 +138,7 @@ const PAGES: Page[] = [
     body: (
       <ul className="handbook-list">
         <li>充能器正面顶住中继器的侧面并且输出 1 时，中继器的输出被掐断，相当于 Y = D ∧ ¬E。</li>
-        <li>断路那一拍按 0 采样，所以断开和恢复都跟着中继器晚 1 tick。</li>
+        <li>断路那个 tick 按 0 采样，所以断开和恢复都跟着中继器晚 1 tick。</li>
       </ul>
     ),
     note: '断路期间按 0 采样，不是保持。',
