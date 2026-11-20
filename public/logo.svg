@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef1f6"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#111111" stop-opacity="0.0"/>
+      <stop offset="1" stop-color="#111111" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="26.87"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="174.08" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="174.08" fill="url(#halo)"/>
+  
+  <g filter="url(#glow)" opacity="0.75"><path d="M 512.00 344.06 L 595.97 344.06 M 512.00 344.06 L 512.00 428.03 M 679.94 344.06 L 763.90 344.06 M 679.94 344.06 L 595.97 344.06 M 344.06 512.00 L 428.03 512.00 M 344.06 512.00 L 260.10 512.00 M 512.00 512.00 L 512.00 428.03 M 512.00 512.00 L 512.00 595.97 M 512.00 512.00 L 428.03 512.00 M 512.00 679.94 L 512.00 595.97 M 512.00 679.94 L 595.97 679.94 M 679.94 679.94 L 763.90 679.94 M 679.94 679.94 L 595.97 679.94" fill="none" stroke="#111111" stroke-width="14.27" stroke-linecap="round"/></g>
+  <path d="M 512.00 344.06 L 595.97 344.06 M 512.00 344.06 L 512.00 428.03 M 679.94 344.06 L 763.90 344.06 M 679.94 344.06 L 595.97 344.06 M 344.06 512.00 L 428.03 512.00 M 344.06 512.00 L 260.10 512.00 M 512.00 512.00 L 512.00 428.03 M 512.00 512.00 L 512.00 595.97 M 512.00 512.00 L 428.03 512.00 M 512.00 679.94 L 512.00 595.97 M 512.00 679.94 L 595.97 679.94 M 679.94 679.94 L 763.90 679.94 M 679.94 679.94 L 595.97 679.94" fill="none" stroke="#111111" stroke-width="14.27" stroke-linecap="round"/>
+  <rect x="804.21" y="300.40" width="87.33" height="87.33" rx="20.15" fill="none" stroke="#111111" stroke-width="9.24"/><text x="847.87" y="344.06" fill="#111111" font-family="DejaVu Sans" font-weight="bold" font-size="50.38" text-anchor="middle" dominant-baseline="central">1</text><rect x="132.46" y="468.34" width="87.33" height="87.33" rx="20.15" fill="#111111"/><text x="176.13" y="512.00" fill="#ffffff" font-family="DejaVu Sans" font-weight="bold" font-size="50.38" text-anchor="middle" dominant-baseline="central">P</text><rect x="804.21" y="636.27" width="87.33" height="87.33" rx="20.15" fill="none" stroke="#111111" stroke-width="9.24"/><text x="847.87" y="679.94" fill="#111111" font-family="DejaVu Sans" font-weight="bold" font-size="50.38" text-anchor="middle" dominant-baseline="central">2</text>
+  <rect x="4.10" y="4.10" width="1015.81" height="1015.81"
+        rx="174.08" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="2.05"/>
+</svg>

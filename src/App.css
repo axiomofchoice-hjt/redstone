@@ -151,47 +151,14 @@ button:focus-visible,
   position: relative;
 }
 
-.landing-art::before {
-  position: absolute;
-  inset: -8%;
-  background: radial-gradient(circle at 50% 50%, rgba(240, 86, 46, 0.10), transparent 65%);
-  content: '';
-  filter: blur(24px);
-}
-
-.hero-art {
+.landing-logo {
   position: relative;
   display: block;
   width: 100%;
+  max-width: 440px;
   height: auto;
+  margin: 0 auto;
   filter: drop-shadow(0 30px 60px rgba(23, 32, 48, 0.16));
-}
-
-.hero-flow {
-  animation: hero-flow 3.2s linear infinite;
-}
-
-.hero-lamp {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: hero-lamp 1.6s ease-in-out infinite;
-}
-
-@keyframes hero-flow {
-  to {
-    stroke-dashoffset: -224;
-  }
-}
-
-@keyframes hero-lamp {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.45;
-  }
 }
 
 /* ────────────────────────── 选关 ────────────────────────── */
@@ -1417,10 +1384,6 @@ button.wave-tag:hover:not(:disabled) {
     margin: 26px auto 0;
   }
 
-  .landing-art::before {
-    inset: -4%;
-  }
-
   .landing-copy h1 {
     font-size: clamp(44px, 13vw, 62px);
   }
@@ -1468,11 +1431,6 @@ button.wave-tag:hover:not(:disabled) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-flow,
-  .hero-lamp {
-    animation: none;
-  }
-
   .level-card,
   .btn,
   .tool-tile,
