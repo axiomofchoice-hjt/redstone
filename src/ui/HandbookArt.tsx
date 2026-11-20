@@ -178,20 +178,6 @@ function Art({
   )
 }
 
-/** 第 1 页：一个输入从上面接进导线，和另一个输入并到同一根总线上，再送到输出 */
-export function BasicsArt() {
-  return (
-    <Art label="两个输入并到同一根导线上，一起送到输出" viewBox="0 0 220 88">
-      <Grid id="hb-grid-basics" width={220} height={88} />
-      <Wire x1={c(0)} y1={c(0)} x2={c(4) - 13} y2={c(0)} />
-      <Wire x1={c(2)} y1={c(1)} x2={c(2)} y2={c(0)} />
-      <In x={c(0)} y={c(0)} id="P" />
-      <In x={c(2)} y={c(1)} id="Q" />
-      <Out x={c(4)} y={c(0)} id="Y" />
-    </Art>
-  )
-}
-
 /** 第 3 页：左边输入朝四个方向发信号，右边输出把四周的信号收进来 */
 export function PortsArt() {
   return (

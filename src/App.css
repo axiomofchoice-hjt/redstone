@@ -1374,6 +1374,39 @@ button.wave-tag:hover:not(:disabled) {
   line-height: 1.2;
 }
 
+.handbook-lead {
+  max-width: 640px;
+  margin: 16px 0 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+.handbook-roster {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.handbook-roster-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.handbook-roster-name {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .handbook-list {
   margin: 16px 0 0;
   padding-left: 18px;
@@ -1521,6 +1554,12 @@ button.wave-tag:hover:not(:disabled) {
 
   .handbook-copy h3 {
     font-size: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .handbook-roster {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

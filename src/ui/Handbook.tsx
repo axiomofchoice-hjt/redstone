@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { CellType } from '../game/types'
 import { ToolIcon } from './ToolIcon'
 import { ChevronLeft, ChevronRight, CrossIcon } from './icons'
-import { BasicsArt, BreakArt, LatchArt, PortsArt } from './HandbookArt'
+import { BreakArt, LatchArt, PortsArt } from './HandbookArt'
 
 interface Props {
   onClose: () => void
@@ -25,9 +25,20 @@ const PARTS: { type: CellType; name: string; desc: string }[] = [
   { type: 'not', name: '非门', desc: '读后方，延迟 1 tick 输出反相。' },
 ]
 
+/** 第一页的全家福：5 种基本元件 + 输入 / 输出 */
+const ROSTER: { type: CellType; id?: string; name: string }[] = [
+  { type: 'wire', name: '导线' },
+  { type: 'cross', name: '交叉导线' },
+  { type: 'charger', name: '充能器' },
+  { type: 'repeater', name: '中继器' },
+  { type: 'not', name: '非门' },
+  { type: 'input', id: 'P', name: '输入' },
+  { type: 'output', id: 'Y', name: '输出' },
+]
+
 interface Page {
   title: string
-  /** 左栏示意图；没有就整页只排文字（例如五种元件那页） */
+  /** 左栏示意图；没有就整页单栏排（例如简介和五种元件那页） */
   art?: ReactNode
   /** 示意图下面的小字 */
   figureNote?: string
@@ -41,16 +52,26 @@ interface Page {
 
 const PAGES: Page[] = [
   {
-    title: '基本规则',
-    art: <BasicsArt />,
-    figureNote: '同一个网络一起带电，导线本身不产生延迟。',
+    title: '简介',
+    wide: true,
     body: (
-      <ul className="handbook-list">
-        <li>导线传输无延迟、无衰减、无距离限制；贴边就相连。</li>
-        <li>中继器和非门延迟 1 tick 生效，其余元件在同一个 tick 内稳定。</li>
-      </ul>
+      <>
+        <p className="handbook-lead">
+          一个简化的 Minecraft 红石电路模拟器：用 5 种基本元件和输入 / 输出元件搭建数字电路，信号只有 0 和 1。
+        </p>
+        <div className="handbook-roster">
+          {ROSTER.map((part) => (
+            <div className="handbook-roster-item" key={`${part.type}-${part.id ?? ''}`}>
+              <span className="handbook-glyph">
+                <ToolIcon type={part.type} id={part.id} dir={0} size={30} />
+              </span>
+              <span className="handbook-roster-name">{part.name}</span>
+            </div>
+          ))}
+        </div>
+      </>
     ),
-    note: '导线 = 同一个网络；中继器 / 非门 = 晚 1 tick。',
+    note: '导线传输无延迟；中继器和非门晚 1 tick 生效，其余元件在同一个 tick 内稳定。',
   },
   {
     title: '五种元件',
