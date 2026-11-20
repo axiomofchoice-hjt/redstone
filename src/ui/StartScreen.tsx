@@ -4,6 +4,8 @@ import { useMediaQuery } from './useMediaQuery'
 interface Props {
   /** 进入游戏：直接打开选关界面 */
   onStart: () => void
+  /** 打开教程速查页，和游戏内菜单里的「查看教程」是同一个页面 */
+  onHandbook: () => void
 }
 
 /**
@@ -16,7 +18,7 @@ const LOGO_SRC = `${import.meta.env.BASE_URL}logo.svg`
 const NARROW_QUERY = '(max-width: 960px)'
 
 /** 首页。桌面端是左右分栏；窄屏单列，装饰图夹在说明和按钮之间 */
-export function StartScreen({ onStart }: Props) {
+export function StartScreen({ onStart, onHandbook }: Props) {
   const narrow = useMediaQuery(NARROW_QUERY)
 
   return (
@@ -37,6 +39,9 @@ export function StartScreen({ onStart }: Props) {
               <button type="button" className="btn primary large" onClick={onStart}>
                 进入游戏
                 <ArrowRight />
+              </button>
+              <button type="button" className="btn large" onClick={onHandbook}>
+                查看教程
               </button>
             </div>
           </div>

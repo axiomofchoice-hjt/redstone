@@ -13,6 +13,7 @@ import type { Tool } from './ui/tools'
 import { editAction, type EditMode } from './ui/edit-mode'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
 import { StartScreen } from './ui/StartScreen'
+import { Handbook } from './ui/Handbook'
 import { LevelSelect } from './ui/LevelSelect'
 import { GameDesktop } from './ui/GameDesktop'
 import { GameMobile } from './ui/GameMobile'
@@ -127,6 +128,8 @@ export default function App() {
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   const [menuOpen, setMenuOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('start')
+  // 首页的「查看教程」：教程页和游戏内菜单里的是同一个，进游戏前也能先看一眼规则
+  const [handbookOpen, setHandbookOpen] = useState(false)
   // 仿真在后台推进，只在画面有变化时重绘
   const [version, repaint] = useReducer((n: number) => n + 1, 0)
   // 调试用：暂停自动 tick
@@ -442,17 +445,22 @@ export default function App() {
 
   const goHome = () => {
     setMenuOpen(false)
+    setHandbookOpen(false)
     setScreen('start')
   }
 
   const goLevels = () => {
     setMenuOpen(false)
+    setHandbookOpen(false)
     setScreen('levels')
   }
 
   if (screen === 'start') {
     return (
-      <StartScreen onStart={goLevels} />
+      <>
+        <StartScreen onStart={goLevels} onHandbook={() => setHandbookOpen(true)} />
+        {handbookOpen ? <Handbook onClose={() => setHandbookOpen(false)} /> : null}
+      </>
     )
   }
 

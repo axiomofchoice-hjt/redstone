@@ -1215,123 +1215,324 @@ button.wave-tag:hover:not(:disabled) {
   font-size: 15px;
 }
 
-/* ── 查看教程：盖在游戏上的规则速查页 ── */
+/* ── 查看教程：占满全屏的图文教程，一页讲一件事 ── */
 
 .handbook-screen {
   position: fixed;
   inset: 0;
   z-index: 60;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgb(18 20 26 / 42%);
-}
-
-.handbook-card {
-  display: flex;
   flex-direction: column;
-  width: min(560px, 100%);
-  max-height: 100%;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--panel);
-  box-shadow: 0 24px 60px rgb(18 20 26 / 22%);
+  background: var(--bg);
 }
 
-.handbook-head {
+/* 和首页同一套网格底纹，只铺中间一块，别抢内容 */
+.handbook-screen::before {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(30, 42, 64, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 42, 64, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+  content: '';
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.handbook-top {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--line);
+  gap: 16px;
+  padding: calc(14px + env(safe-area-inset-top)) clamp(16px, 4vw, 28px) 14px;
 }
 
-.handbook-head h2 {
+.handbook-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.handbook-heading h2 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-.btn.handbook-close {
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 9px;
-  font-size: 13px;
-}
-
-.handbook-body {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  overflow-y: auto;
-  padding: 16px 18px 20px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.handbook-section h3 {
-  margin: 0 0 6px;
+.handbook-count {
   color: var(--muted);
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
 }
 
-.handbook-list {
-  margin: 0;
-  padding-left: 18px;
+.handbook-close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--panel);
   color: var(--text);
-  font-size: 13.5px;
-  line-height: 1.75;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.handbook-text {
+.handbook-close:hover {
+  border-color: var(--line-strong);
+  background: var(--field);
+}
+
+.handbook-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px clamp(16px, 4vw, 32px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.handbook-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 64px);
+  width: min(1000px, 100%);
+  margin: auto;
+  padding: 8px 0 28px;
+  animation: handbook-page-in 0.24s ease;
+}
+
+.handbook-page.wide {
+  display: block;
+  width: min(920px, 100%);
+}
+
+@keyframes handbook-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.handbook-art {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: clamp(14px, 2.5vw, 22px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: 0 18px 44px rgb(23 32 48 / 8%);
+}
+
+.handbook-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.handbook-art figcaption {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.handbook-copy {
+  min-width: 0;
+}
+
+.handbook-copy h3 {
   margin: 0;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.handbook-list {
+  margin: 16px 0 0;
+  padding-left: 18px;
   color: var(--text);
-  font-size: 13.5px;
-  line-height: 1.75;
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.handbook-list li + li {
+  margin-top: 8px;
+}
+
+.handbook-list li::marker {
+  color: var(--accent);
+}
+
+.handbook-note {
+  margin: 20px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .handbook-parts {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
 }
 
 .handbook-part {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 10px;
-  padding: 6px 8px;
-  border-radius: 9px;
-  background: var(--panel-2);
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
 }
 
 .handbook-glyph {
   display: grid;
   place-items: center;
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
+  border-radius: 10px;
+  background: var(--panel-2);
 }
 
 .handbook-part p {
   margin: 0;
-  color: var(--text);
-  font-size: 13px;
-  line-height: 1.6;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.65;
 }
 
 .handbook-part b {
   display: block;
-  margin-bottom: 1px;
+  margin-bottom: 2px;
+  color: var(--text);
   font-size: 13.5px;
   font-weight: 600;
+}
+
+.handbook-foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 4vw, 28px);
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+.handbook-nav {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 13.5px;
+}
+
+.handbook-nav:disabled {
+  opacity: 0.3;
+}
+
+.handbook-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.handbook-dot {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.handbook-dot::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  content: '';
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.handbook-dot:hover::before {
+  background: var(--muted);
+}
+
+.handbook-dot.active::before {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .handbook-page {
+    animation: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .handbook-page {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 18px;
+    padding: 4px 0 20px;
+  }
+
+  .handbook-art {
+    max-width: 440px;
+  }
+
+  .handbook-copy h3 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 420px) {
+  .handbook-nav {
+    width: 44px;
+    padding: 0;
+  }
+
+  .handbook-nav span {
+    display: none;
+  }
 }
 
 .inspector::-webkit-scrollbar,

@@ -1,6 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { CellType } from '../game/types'
 import { ToolIcon } from './ToolIcon'
+import { ChevronLeft, ChevronRight, CrossIcon } from './icons'
+import { BasicsArt, BreakArt, LatchArt, PortsArt } from './HandbookArt'
 
 interface Props {
   onClose: () => void
@@ -23,86 +25,215 @@ const PARTS: { type: CellType; name: string; desc: string }[] = [
   { type: 'not', name: '非门', desc: '读后方，延迟 1 tick 输出反相。' },
 ]
 
-/** 查看教程：盖在游戏上面的规则速查页，电脑端和手机端共用 */
+interface Page {
+  title: string
+  /** 左栏示意图；没有就整页只排文字（例如五种元件那页） */
+  art?: ReactNode
+  /** 示意图下面的小字 */
+  figureNote?: string
+  /** 正文 */
+  body: ReactNode
+  /** 正文底部那句重点 */
+  note?: string
+  /** 整页单栏，示意图和正文不并排 */
+  wide?: boolean
+}
+
+const PAGES: Page[] = [
+  {
+    title: '基本规则',
+    art: <BasicsArt />,
+    figureNote: '同一个网络一起带电，导线本身不产生延迟。',
+    body: (
+      <ul className="handbook-list">
+        <li>导线传输无延迟、无衰减、无距离限制；贴边就相连。</li>
+        <li>中继器和非门延迟 1 tick 生效，其余元件在同一个 tick 内稳定。</li>
+      </ul>
+    ),
+    note: '导线 = 同一个网络；中继器 / 非门 = 晚 1 tick。',
+  },
+  {
+    title: '五种元件',
+    wide: true,
+    body: (
+      <div className="handbook-parts">
+        {PARTS.map((part) => (
+          <div className="handbook-part" key={part.type}>
+            <span className="handbook-glyph">
+              <ToolIcon type={part.type} dir={0} size={30} />
+            </span>
+            <p>
+              <b>{part.name}</b>
+              {part.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    title: '输入与输出',
+    art: <PortsArt />,
+    figureNote: '左边：输入朝四个方向发信号；右边：输出把四周的信号收进来。',
+    body: (
+      <ul className="handbook-list">
+        <li>
+          输入按拨的 0 / 1 朝四个方向同时发信号；点地图上的输入（交互模式）或波形行首的字母都能切换。
+        </li>
+        <li>输出收集四周朝它发出的信号，任意一个为 1 就是 1；自己不发信号。</li>
+      </ul>
+    ),
+    note: '输入是实心方块，输出是空心方块，字母写在中间。',
+  },
+  {
+    title: '中继器侧面锁存',
+    art: <LatchArt />,
+    figureNote: '三角形填实 = 输出被侧面顶住，原地保持。',
+    body: (
+      <ul className="handbook-list">
+        <li>
+          中继器被侧面相邻、正面顶过来并且正在输出 1 的中继器顶住时，不再采样后方，输出原地保持。
+        </li>
+        <li>侧面信号回到 0 才重新采样，照样延迟 1 tick。</li>
+        <li>所以「后方接 D、侧面接一个由 E 驱动的中继器」就是一个 D 锁存器。</li>
+      </ul>
+    ),
+    note: '空心 = 照常采样；填实 = 锁住不动。',
+  },
+  {
+    title: '充能器侧面断路',
+    art: <BreakArt />,
+    figureNote: '侧面被充能器顶住时，输出的那一段被掐断。',
+    body: (
+      <ul className="handbook-list">
+        <li>充能器正面顶住中继器的侧面并且输出 1 时，中继器的输出被掐断，相当于 Y = D ∧ ¬E。</li>
+        <li>断路那一拍按 0 采样，所以断开和恢复都跟着中继器晚 1 tick。</li>
+      </ul>
+    ),
+    note: '断路期间按 0 采样，不是保持。',
+  },
+]
+
+/**
+ * 查看教程：占满全屏的图文教程，一页讲一件事。
+ * 底部左右按钮、键盘 ← / → 翻页，右上角 × 或 Esc 关闭；电脑端和手机端共用。
+ */
 export function Handbook({ onClose }: Props) {
-  // 按 Esc 收起，和菜单、关卡信息一个习惯
+  const [page, setPage] = useState(0)
+  const total = PAGES.length
+  const current = PAGES[page]
+
+  // 按 Esc 关闭，← / → 翻页；和菜单、关卡信息一个习惯。
+  // 教程盖在最上面时，底下的地图 / 元件栏不该再收到键盘：在捕获阶段拦住，
+  // 不让 ← / → 同时把地图平移走，Esc 也只会关教程。
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      event.stopPropagation()
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        setPage((value) => Math.max(0, value - 1))
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        setPage((value) => Math.min(total - 1, value + 1))
+      }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+    window.addEventListener('keydown', onKey, { capture: true })
+    return () => window.removeEventListener('keydown', onKey, { capture: true })
+  }, [onClose, total])
+
+  // 教程占满全屏时，别让底下的首页 / 地图跟着滚
+  useEffect(() => {
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [])
+
+  const go = (step: number) => setPage((value) => Math.min(total - 1, Math.max(0, value + step)))
 
   return (
-    <div
-      className="handbook-screen"
-      role="dialog"
-      aria-modal="true"
-      aria-label="查看教程"
-      // 点卡片外面那层遮罩收起；点卡片里的内容（冒泡上来）不算
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose()
-      }}
-    >
-      <div className="handbook-card">
-        <header className="handbook-head">
+    <div className="handbook-screen" role="dialog" aria-modal="true" aria-label="查看教程">
+      <header className="handbook-top">
+        <div className="handbook-heading">
           <h2>查看教程</h2>
-          <button type="button" className="btn menu-btn handbook-close" onClick={onClose}>
-            收起
-          </button>
-        </header>
-
-        <div className="handbook-body">
-          <section className="handbook-section">
-            <h3>基本规则</h3>
-            <ul className="handbook-list">
-              <li>导线传输无延迟、无衰减、无距离限制；贴边就相连。</li>
-              <li>中继器和非门延迟 1 tick 生效，其余元件在同一个 tick 内稳定。</li>
-            </ul>
-          </section>
-
-          <section className="handbook-section">
-            <h3>五种元件</h3>
-            <div className="handbook-parts">
-              {PARTS.map((part) => (
-                <div className="handbook-part" key={part.type}>
-                  <span className="handbook-glyph">
-                    <ToolIcon type={part.type} dir={0} size={26} />
-                  </span>
-                  <p>
-                    <b>{part.name}</b>
-                    {part.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="handbook-section">
-            <h3>输入 / 输出</h3>
-            <ul className="handbook-list">
-              <li>输入按拨的 0 / 1 朝四个方向同时发信号；点地图上的输入（交互模式）或波形行首的字母都能切换。</li>
-              <li>输出收集四周朝它发出的信号，任意一个为 1 就是 1；自己不发信号。</li>
-            </ul>
-          </section>
-
-          <section className="handbook-section">
-            <h3>中继器侧面锁存</h3>
-            <p className="handbook-text">
-              中继器被侧面相邻、正面顶过来并且正在输出 1 的中继器顶住时，不再采样后方，输出原地保持，三角形变成实心；侧面信号回到 0 才重新采样（照样延迟 1 tick）。
-              所以「后方接 D、侧面接一个由 E 驱动的中继器」就是一个 D 锁存器。
-            </p>
-          </section>
-
-          <section className="handbook-section">
-            <h3>充能器侧面断路</h3>
-            <p className="handbook-text">
-              充能器正面顶住中继器的侧面并且输出 1 时，中继器的输出被掐断，相当于 Y = D ∧ ¬E。断路那一拍按 0 采样，所以断开和恢复都跟着中继器晚 1 tick。
-            </p>
-          </section>
+          <span className="handbook-count" aria-hidden="true">
+            {page + 1} / {total}
+          </span>
         </div>
+        <button
+          type="button"
+          className="handbook-close"
+          onClick={onClose}
+          aria-label="关闭教程"
+          title="关闭"
+        >
+          <CrossIcon size={16} />
+        </button>
+      </header>
+
+      <div className="handbook-stage">
+        <section
+          key={page}
+          className={current.wide ? 'handbook-page wide' : 'handbook-page'}
+          aria-label={`第 ${page + 1} 页：${current.title}`}
+        >
+          {current.art ? (
+            <figure className="handbook-art">
+              {current.art}
+              {current.figureNote ? <figcaption>{current.figureNote}</figcaption> : null}
+            </figure>
+          ) : null}
+
+          <div className="handbook-copy">
+            <h3>{current.title}</h3>
+            {current.body}
+            {current.note ? <p className="handbook-note">{current.note}</p> : null}
+          </div>
+        </section>
       </div>
+
+      <footer className="handbook-foot">
+        <button
+          type="button"
+          className="btn handbook-nav"
+          onClick={() => go(-1)}
+          disabled={page === 0}
+          aria-label="上一页"
+        >
+          <ChevronLeft />
+          <span>上一页</span>
+        </button>
+
+        <div className="handbook-dots" role="tablist" aria-label="教程页">
+          {PAGES.map((item, index) => (
+            <button
+              key={item.title}
+              type="button"
+              role="tab"
+              aria-selected={index === page}
+              aria-label={`第 ${index + 1} 页：${item.title}`}
+              className={index === page ? 'handbook-dot active' : 'handbook-dot'}
+              onClick={() => setPage(index)}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="btn handbook-nav"
+          onClick={() => go(1)}
+          disabled={page === total - 1}
+          aria-label="下一页"
+        >
+          <span>下一页</span>
+          <ChevronRight />
+        </button>
+      </footer>
     </div>
   )
 }

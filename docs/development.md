@@ -36,6 +36,8 @@ src/
     solution.ts     把参考解的布局和电路状态复制出来盖到地图上
     GameDesktop.tsx 电脑端两栏布局与顶栏（菜单、返回选关）
     GameMobile.tsx  手机端单列布局、整屏菜单和回放
+    Handbook.tsx    查看教程：全屏图文教程，一页一件事，底部按钮 / 键盘翻页
+    HandbookArt.tsx 教程示意图：用和地图同一套画法画的 SVG 电路图
     LevelSelect.tsx 选关页（按章节分组的卡片）
     StartScreen.tsx 首页
     levels-meta.ts  关卡章节分组
