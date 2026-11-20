@@ -1,6 +1,5 @@
 import type { Level } from '../game/types'
 import { CHAPTERS, chapterLevels, padNo } from './levels-meta'
-import { Logo } from './icons'
 
 interface Props {
   levels: Level[]
@@ -18,7 +17,6 @@ export function LevelSelect({ levels, onSelect, onFree, onHome }: Props) {
         <h1>选择关卡</h1>
         <div className="level-head-actions">
           <button type="button" className="btn" onClick={onHome}>
-            <Logo size={15} />
             首页
           </button>
           <button
