@@ -20,8 +20,15 @@ const ACTIVE_PARTS: { type: CellType; name: string; desc: string }[] = [
   { type: 'not', name: '非门', desc: '读后方，延迟 1 tick 输出反相。' },
 ]
 
+/** 元件卡上的内容：图标用哪一种元件、写什么名字 */
+interface RosterPart {
+  type: CellType
+  id?: string
+  name: string
+}
+
 /** 第一页的全家福：5 种基本元件 + 输入 / 输出 */
-const ROSTER: { type: CellType; id?: string; name: string }[] = [
+const ROSTER: RosterPart[] = [
   { type: 'wire', name: '导线' },
   { type: 'cross', name: '交叉导线' },
   { type: 'charger', name: '充能器' },
@@ -30,6 +37,25 @@ const ROSTER: { type: CellType; id?: string; name: string }[] = [
   { type: 'input', id: 'P', name: '输入' },
   { type: 'output', id: 'Y', name: '输出' },
 ]
+
+/** 第二页只讲导线和交叉导线：就是第一页全家福里的前两种 */
+const WIRE_PARTS = ROSTER.slice(0, 2)
+
+/** 元件图：图标加名字的小卡片，第一页的全家福和第二页的两张都用它 */
+function PartCards({ parts, pair = false }: { parts: RosterPart[]; pair?: boolean }) {
+  return (
+    <div className={pair ? 'handbook-roster pair' : 'handbook-roster'}>
+      {parts.map((part) => (
+        <div className="handbook-roster-item" key={`${part.type}-${part.id ?? ''}`}>
+          <span className="handbook-glyph">
+            <ToolIcon type={part.type} id={part.id} dir={0} size={30} />
+          </span>
+          <span className="handbook-roster-name">{part.name}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 interface Page {
   title: string
@@ -43,6 +69,8 @@ interface Page {
   note?: string
   /** 整页单栏，示意图和正文不并排 */
   wide?: boolean
+  /** 图放正文右边（窄屏放到正文下面）；默认图在左 */
+  artRight?: boolean
 }
 
 const PAGES: Page[] = [
@@ -55,30 +83,24 @@ const PAGES: Page[] = [
           这是一款简化的 Minecraft 红石电路模拟器，仅由 5 种基本元件和输入 / 输出端口构成。电路整体按 tick
           同步运行：每个 tick 所有元件一起更新，彼此传递 0 / 1 信号，从而可以搭建具备计算、存储和脉冲处理能力的电路。
         </p>
-        <div className="handbook-roster">
-          {ROSTER.map((part) => (
-            <div className="handbook-roster-item" key={`${part.type}-${part.id ?? ''}`}>
-              <span className="handbook-glyph">
-                <ToolIcon type={part.type} id={part.id} dir={0} size={30} />
-              </span>
-              <span className="handbook-roster-name">{part.name}</span>
-            </div>
-          ))}
-        </div>
+        <PartCards parts={ROSTER} />
       </>
     ),
   },
   {
     title: '导线与交叉导线',
     art: <WireCrossSim />,
+    artRight: true,
     body: (
-      <ul className="handbook-list">
-        <li>导线连成一片就是同一个网络，一起带电；传输在同一个 tick 内完成，没有延迟。</li>
-        <li>交叉导线在一个格子里放横、竖两条独立通道，各走各的，互不导通。</li>
-        <li>A 走横线、B 走竖线时，两条信号在交叉处只是穿过，不会混在一起。</li>
-      </ul>
+      <>
+        <PartCards parts={WIRE_PARTS} pair />
+        <ul className="handbook-list">
+          <li>导线将相邻元件连在一起并传递信号，无延迟，无距离限制，无信号衰减。</li>
+          <li>交叉导线提供横竖两条信号通道，互不干扰。</li>
+        </ul>
+      </>
     ),
-    note: '交叉处的横线向下绕半圈跨过竖线，表示两条线没有接上。',
+    note: '参考 Minecraft 物品：红石粉。',
   },
   {
     title: '充能器、中继器、非门',
@@ -187,6 +209,13 @@ export function Handbook({ onClose }: Props) {
 
   const go = (step: number) => setPage((value) => Math.min(total - 1, Math.max(0, value + step)))
 
+  const figure = current.art ? (
+    <figure className="handbook-art">
+      {current.art}
+      {current.figureNote ? <figcaption>{current.figureNote}</figcaption> : null}
+    </figure>
+  ) : null
+
   return (
     <div className="handbook-screen" role="dialog" aria-modal="true" aria-label="查看教程">
       <header className="handbook-top">
@@ -210,21 +239,24 @@ export function Handbook({ onClose }: Props) {
       <div className="handbook-stage">
         <section
           key={page}
-          className={current.wide ? 'handbook-page wide' : 'handbook-page'}
+          className={[
+            'handbook-page',
+            current.wide ? 'wide' : '',
+            current.artRight ? 'art-right' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           aria-label={`第 ${page + 1} 页：${current.title}`}
         >
-          {current.art ? (
-            <figure className="handbook-art">
-              {current.art}
-              {current.figureNote ? <figcaption>{current.figureNote}</figcaption> : null}
-            </figure>
-          ) : null}
+          {current.artRight ? null : figure}
 
           <div className="handbook-copy">
             <h3>{current.title}</h3>
             {current.body}
             {current.note ? <p className="handbook-note">{current.note}</p> : null}
           </div>
+
+          {current.artRight ? figure : null}
         </section>
       </div>
 

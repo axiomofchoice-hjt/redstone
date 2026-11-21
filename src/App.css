@@ -1322,6 +1322,15 @@ button.wave-tag:hover:not(:disabled) {
   width: min(920px, 100%);
 }
 
+/* 图在正文右边：DOM 里正文在前（窄屏就正好排在图上边），电脑端把图挪到第二列 */
+.handbook-page.art-right .handbook-copy {
+  grid-column: 1;
+}
+
+.handbook-page.art-right .handbook-art {
+  grid-column: 2;
+}
+
 @keyframes handbook-page-in {
   from {
     opacity: 0;
@@ -1444,6 +1453,13 @@ button.wave-tag:hover:not(:disabled) {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel);
+}
+
+/* 第二页标题下的两张元件卡：固定大小，不跟着栏宽拉伸 */
+.handbook-roster.pair {
+  grid-template-columns: repeat(2, 96px);
+  justify-content: start;
+  margin-top: 18px;
 }
 
 .handbook-roster-name {
@@ -1597,6 +1613,12 @@ button.wave-tag:hover:not(:disabled) {
     align-items: start;
     gap: 18px;
     padding: 4px 0 20px;
+  }
+
+  /* 单栏时不再分列，正文在前、图在后 */
+  .handbook-page.art-right .handbook-copy,
+  .handbook-page.art-right .handbook-art {
+    grid-column: auto;
   }
 
   .handbook-art {
