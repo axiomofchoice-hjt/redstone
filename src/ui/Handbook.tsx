@@ -3,7 +3,7 @@ import type { CellType } from '../game/types'
 import { ToolIcon } from './ToolIcon'
 import { ChevronLeft, ChevronRight, CrossIcon } from './icons'
 import { BreakArt, LatchArt, PortsArt } from './HandbookArt'
-import { SourceSim, WireCrossSim } from './HandbookSim'
+import { SourceSim, InverterSim, WireCrossSim } from './HandbookSim'
 
 interface Props {
   onClose: () => void
@@ -119,17 +119,16 @@ const PAGES: Page[] = [
   },
   {
     title: '反相器',
-    wide: true,
+    art: <InverterSim />,
+    artRight: true,
     body: (
       <>
         <PartCards parts={NOT_PARTS} />
-        <p className="handbook-lead">
-          反相器把输入反过来：被充能器或中继器的正面顶住、并且对方正在输出 1 时，输出 0；否则输出 1，晚 1 tick 生效。
-        </p>
         <ul className="handbook-list">
-          <li>它不读导线：导线或输入端口直接接到旁边，它不会有反应；要先用充能器 / 中继器把信号送进来。</li>
-          <li>它不分方向：四面都能被充能器 / 中继器的正面顶住；输出也从四面送出去，不用转朝向。</li>
-          <li>上一页的充能器和中继器，正面顶住它就是在给它输入。</li>
+          <li>
+            反相器用于反转 0/1 信号：在充能器或中继器向反相器输出 1 信号时，反相器被抑制，否则反相器向相邻元件输出 1 信号。
+          </li>
+          <li>反相器有 1 tick 延迟。</li>
         </ul>
       </>
     ),

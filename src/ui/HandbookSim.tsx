@@ -255,3 +255,44 @@ export function SourceSim() {
     </div>
   )
 }
+
+/** 第四页：中间一行是输入 A、充能器（朝右）、反相器、导线 */
+function makeInverterLevel(): Level {
+  const cells = new Array<Cell | null>(COLS * ROWS).fill(null)
+  cells[COLS] = { type: 'input', id: 'A' }
+  cells[COLS + 1] = { type: 'charger', dir: 1 }
+  cells[COLS + 2] = { type: 'not', dir: 1 }
+  cells[COLS + 3] = { type: 'wire' }
+  return { id: 'handbook-inverter', name: '', cols: COLS, rows: ROWS, cells, tests: [] }
+}
+
+/** A 未激活时反相器直接亮着；A 拨上后要等 1 tick，反相器才被充能器顶灭 */
+function InverterPanel({ active }: { active: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (ref.current) paint(ref.current, makeInverterLevel(), { A: active ? 1 : 0 }, active ? 1 : 0)
+  }, [active])
+
+  return (
+    <figure className="handbook-sim-panel">
+      <canvas ref={ref} />
+      <figcaption>{active ? 'A = 1' : 'A = 0'}</figcaption>
+    </figure>
+  )
+}
+
+/** 卡片里两张并排：左边 A 未激活，右边 A 激活 */
+export function InverterSim() {
+  return (
+    <div className="handbook-sim">
+      <section className="handbook-sim-section">
+        <p className="handbook-sim-title">反相器</p>
+        <div className="handbook-sim-row">
+          <InverterPanel active={false} />
+          <InverterPanel active />
+        </div>
+      </section>
+    </div>
+  )
+}

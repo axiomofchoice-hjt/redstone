@@ -38,7 +38,7 @@ src/
     GameMobile.tsx  手机端单列布局、整屏菜单和回放
     Handbook.tsx    查看教程：全屏图文教程，一页一件事，底部按钮 / 键盘翻页
     HandbookArt.tsx 教程示意图：用和地图同一套画法画的 SVG 电路图
-    HandbookSim.tsx 教程里的状态小电路（第二、三页）：用真实 Simulation 和 drawComponent 画
+    HandbookSim.tsx 教程里的状态小电路（第二、三、四页）：用真实 Simulation 和 drawComponent 画
     LevelSelect.tsx 选关页（按章节分组的卡片）
     StartScreen.tsx 首页
     levels-meta.ts  关卡章节分组
