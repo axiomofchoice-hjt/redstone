@@ -7,7 +7,7 @@ import type { Level } from '../game/types'
 export const freeLevel: Level = {
   id: 'free',
   name: '自由模式',
-  brief: '20×20 的空白沙盒：元件全开，随便搭电路。这里没有输入 / 输出元件，也没有测试和目标。',
+  brief: '20×20 的空白沙盒，随便搭电路。这里没有输入 / 输出元件，也没有测试和目标。',
   cols: 20,
   rows: 20,
   cells: new Array<null>(20 * 20).fill(null),

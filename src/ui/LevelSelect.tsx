@@ -23,7 +23,7 @@ export function LevelSelect({ levels, onSelect, onFree, onHome }: Props) {
             type="button"
             className="btn primary"
             onClick={onFree}
-            title="20×20 空白沙盒：元件全开，没有输入输出和测试"
+            title="20×20 空白沙盒，没有输入输出和测试"
           >
             自由模式
           </button>

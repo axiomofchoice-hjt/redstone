@@ -92,7 +92,7 @@ export const level18: Level = {
   id: 'level-18',
   no: 18,
   name: '交叉',
-  brief: '把左上、左下的 A、B 交换到右边对角：C = B，D = A。\n信号跑稳后检查，不限延迟。这关没有交叉导线，要用逻辑门做出交叉的效果。',
+  brief: '把左上、左下的 A、B 交换到右边对角：C = B，D = A。\n信号跑稳后检查，不限延迟。',
   cols,
   rows,
   inputs: ['A', 'B'],
