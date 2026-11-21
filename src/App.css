@@ -133,6 +133,26 @@ button:focus-visible,
   line-height: 0.95;
 }
 
+/* 标题左边的品牌图标：跟着标题字号缩放，大小约等于标题的视觉高 */
+.landing-title {
+  display: flex;
+  align-items: center;
+  gap: 0.18em;
+}
+
+.landing-mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--accent);
+}
+
+.landing-mark svg {
+  display: block;
+  width: 1.28em;
+  height: 1.28em;
+}
+
 .landing-copy p {
   max-width: 420px;
   margin: 24px 0 0;

@@ -1,4 +1,4 @@
-import { ArrowRight } from './icons'
+import { ArrowRight, Logo } from './icons'
 import { useMediaQuery } from './useMediaQuery'
 
 interface Props {
@@ -26,7 +26,12 @@ export function StartScreen({ onStart, onHandbook }: Props) {
       <div className="landing-main">
         <div className="landing-content">
           <div className="landing-copy">
-            <h1>红石电路</h1>
+            <h1 className="landing-title">
+              红石电路
+              <span className="landing-mark">
+                <Logo />
+              </span>
+            </h1>
             <p>简化红石电路模拟器 · 解谜游戏 · 教学工具</p>
 
             {narrow ? (

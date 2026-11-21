@@ -1,9 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="14" fill="#ffffff"/>
   <g transform="translate(8 8) scale(2)">
-    <path d="M2 7h15v5h5v5" fill="none" stroke="#f0562e" stroke-width="1.6"
-          stroke-linecap="butt" stroke-linejoin="miter"/>
-    <circle cx="2" cy="7" r="1.9" fill="#f0562e"/>
-    <circle cx="22" cy="17" r="1.9" fill="#f0562e"/>
+    <g transform="translate(0 0.55)">
+      <path d="M2 17h15v-5h5v-5" fill="none" stroke="#f0562e" stroke-width="1.6"
+            stroke-linecap="butt" stroke-linejoin="miter"/>
+      <polygon points="17.1,7 11.9,10 11.9,4" fill="#f0562e"/>
+      <circle cx="2" cy="17" r="1.9" fill="#f0562e"/>
+      <circle cx="22" cy="7" r="1.9" fill="#f0562e"/>
+    </g>
   </g>
 </svg>
