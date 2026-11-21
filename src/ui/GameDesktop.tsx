@@ -4,6 +4,7 @@ import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
 import { clampZoom, zoomAround, type Camera, type Viewport } from './camera'
 import { Inspector } from './Inspector'
+import { GoalDialog } from './GoalDialog'
 import { Handbook } from './Handbook'
 import {
   CheckIcon,
@@ -127,29 +128,22 @@ export function GameDesktop({
     setInfoOpen((open) => !open)
   }
 
-  // 点菜单 / 关卡信息外面或者按 Esc 都收起来
+  // 点菜单外面或者按 Esc 都收起来；本关目标是一张覆盖全屏的卡片，自己管点外面和 Esc
   useEffect(() => {
-    if (!menuOpen && !infoOpen) return
+    if (!menuOpen) return
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target
       // 面板里的内容和开关键交给它们自己的 onClick，别在这里抢
       if (
         target instanceof Element &&
-        (target.closest('.menu-panel') ||
-          target.closest('.menu-key') ||
-          target.closest('.info-panel') ||
-          target.closest('.info-key'))
+        (target.closest('.menu-panel') || target.closest('.menu-key'))
       ) {
         return
       }
       setMenuOpen(false)
-      setInfoOpen(false)
     }
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setMenuOpen(false)
-        setInfoOpen(false)
-      }
+      if (event.key === 'Escape') setMenuOpen(false)
     }
     document.addEventListener('pointerdown', onPointerDown)
     document.addEventListener('keydown', onKeyDown)
@@ -157,7 +151,7 @@ export function GameDesktop({
       document.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [menuOpen, infoOpen])
+  }, [menuOpen])
 
   const pick = (action: () => void) => () => {
     setMenuOpen(false)
@@ -257,6 +251,7 @@ export function GameDesktop({
             type="button"
             className="btn icon info-key"
             aria-label="关卡信息"
+            aria-haspopup="dialog"
             aria-expanded={infoOpen}
             aria-controls="level-info"
             title="关卡信息"
@@ -316,13 +311,6 @@ export function GameDesktop({
           >
             <ExitIcon />
           </button>
-
-          {infoOpen ? (
-            <section id="level-info" className="info-panel" aria-label="关卡信息">
-              <p className="info-label">{free ? '自由模式' : '本关目标'}</p>
-              <p className="info-text">{level.brief?.trim() || '这一关还没写目标说明。'}</p>
-            </section>
-          ) : null}
         </div>
       </header>
 
@@ -365,6 +353,14 @@ export function GameDesktop({
           />
         </main>
       </div>
+
+      {infoOpen ? (
+        <GoalDialog
+          label={free ? '自由模式' : '本关目标'}
+          text={level.brief?.trim() || '这一关还没写目标说明。'}
+          onClose={() => setInfoOpen(false)}
+        />
+      ) : null}
 
       {handbookOpen ? <Handbook onClose={() => setHandbookOpen(false)} /> : null}
     </div>

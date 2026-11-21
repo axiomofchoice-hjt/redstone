@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
+import { GoalDialog } from './GoalDialog'
 import { Handbook } from './Handbook'
 import {
   CheckIcon,
@@ -99,7 +100,7 @@ export function GameMobile({
   onExport,
   onLevels,
 }: Props) {
-  // 信息页只盖住地图和操控区，顶栏不动；再点一次 ⓘ 或「返回地图」就退出来
+  // 本关目标是一张盖住全屏的卡片，点外面、点「好的」或按 Esc 关掉
   const [infoOpen, setInfoOpen] = useState(false)
   // 查看教程盖在整屏上面，和菜单、目标页互不影响
   const [handbookOpen, setHandbookOpen] = useState(false)
@@ -134,6 +135,7 @@ export function GameMobile({
               type="button"
               className="menu"
               aria-label="本关目标"
+              aria-haspopup="dialog"
               aria-pressed={infoOpen}
               title="本关目标"
               onClick={toggleInfo}
@@ -187,21 +189,6 @@ export function GameMobile({
             </button>
             <button type="button" className="btn menu-btn" onClick={onLevels}>
               返回选关界面
-            </button>
-          </div>
-        </div>
-      ) : infoOpen ? (
-        // 只写本关目标：地图、工具栏、元件栏都不显示，顶栏保留
-        <div className="info-screen">
-          <div className="info-card">
-            <p className="info-label">{free ? '自由模式' : '本关目标'}</p>
-            <p className="info-text">{level.brief?.trim() || '这一关还没写目标说明。'}</p>
-            <button
-              type="button"
-              className="btn primary menu-btn"
-              onClick={() => setInfoOpen(false)}
-            >
-              返回地图
             </button>
           </div>
         </div>
@@ -315,6 +302,14 @@ export function GameMobile({
           )}
         </>
       )}
+
+      {infoOpen ? (
+        <GoalDialog
+          label={free ? '自由模式' : '本关目标'}
+          text={level.brief?.trim() || '这一关还没写目标说明。'}
+          onClose={() => setInfoOpen(false)}
+        />
+      ) : null}
 
       {handbookOpen ? <Handbook onClose={() => setHandbookOpen(false)} /> : null}
     </div>

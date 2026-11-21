@@ -349,23 +349,6 @@ button:focus-visible,
   box-shadow: 0 18px 40px rgba(23, 32, 48, 0.14);
 }
 
-/* 关卡信息：和菜单共用右上角的位置，展开成一张目标卡片 */
-.info-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: min(340px, calc(100vw - 32px));
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
-  box-shadow: 0 18px 40px rgba(23, 32, 48, 0.14);
-}
-
 .menu-item {
   height: 34px;
   padding: 0 12px;
@@ -1173,27 +1156,33 @@ button.wave-tag:hover:not(:disabled) {
   width: min(260px, 80%);
 }
 
-/* ⓘ 页：只留本关目标，顶栏照旧 */
-.info-screen {
+/* 本关目标：整屏压暗，中间一张卡片，文字下面一个「好的」 */
+.goal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
   display: flex;
-  flex: 1;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  background: rgba(23, 32, 48, 0.42);
 }
 
-.info-card {
+.goal-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   width: min(340px, 100%);
+  max-height: 100%;
   padding: 20px;
+  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--panel);
+  box-shadow: 0 24px 60px rgba(23, 32, 48, 0.18);
 }
 
-.info-label {
+.goal-label {
   margin: 0;
   color: var(--muted);
   font-size: 12.5px;
@@ -1201,12 +1190,19 @@ button.wave-tag:hover:not(:disabled) {
   letter-spacing: 0.04em;
 }
 
-.info-text {
+.goal-text {
   margin: 0;
   color: var(--text);
   font-size: 15px;
   line-height: 1.7;
   white-space: pre-wrap;
+}
+
+.goal-ok {
+  width: 100%;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 14px;
 }
 
 .btn.menu-btn {

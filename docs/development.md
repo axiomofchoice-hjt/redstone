@@ -36,8 +36,9 @@ src/
     solution.ts     把参考解的布局和电路状态复制出来盖到地图上
     GameDesktop.tsx 电脑端两栏布局与顶栏（菜单、返回选关）
     GameMobile.tsx  手机端单列布局、整屏菜单和回放
+    GoalDialog.tsx  本关目标：居中卡片加半透明背板，点外面 / 「好的」/ Esc 关闭，两端共用
     Handbook.tsx    查看教程：全屏图文教程，一页一件事，底部按钮 / 键盘翻页
-    HandbookSim.tsx 教程里的状态小电路（第二、三、四页）：用真实 Simulation 和 drawComponent 画
+    HandbookSim.tsx 教程里的状态小电路（第二至六页）：用真实 Simulation 和 drawComponent 画
     LevelSelect.tsx 选关页（按章节分组的卡片）
     StartScreen.tsx 首页
     levels-meta.ts  关卡章节分组
