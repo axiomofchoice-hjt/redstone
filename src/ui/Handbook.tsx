@@ -82,8 +82,8 @@ const PAGES: Page[] = [
     body: (
       <>
         <p className="handbook-lead">
-          这是一款简化的 Minecraft 红石电路模拟器，仅由 5 种基本元件和输入 / 输出端口构成。电路整体按 tick
-          同步运行：每个 tick 所有元件一起更新，彼此传递 0 / 1 信号，从而可以搭建具备计算、存储和脉冲处理能力的电路。
+          这是一款简化的 Minecraft 红石电路模拟器，仅由 5 种基本元件和输入、输出两种关卡元件构成。电路整体按 tick
+          同步运行：每个 tick 所有元件一起更新，彼此传递 0 / 1 信号，从而搭出能计算、能存储、能处理脉冲的电路。
         </p>
         <PartCards parts={ROSTER} />
       </>
@@ -97,7 +97,7 @@ const PAGES: Page[] = [
       <>
         <PartCards parts={WIRE_PARTS} pair />
         <ul className="handbook-list">
-          <li>导线将相邻元件连在一起并传递信号，无延迟，无距离限制，无信号衰减。</li>
+          <li>导线将相邻元件连在一起并传递信号，无延迟、无距离限制、无信号衰减。</li>
           <li>交叉导线提供横竖两条信号通道，互不干扰。</li>
         </ul>
       </>
@@ -112,9 +112,9 @@ const PAGES: Page[] = [
       <>
         <PartCards parts={SOURCE_PARTS} pair />
         <ul className="handbook-list">
-          <li>充能器和中继器将信号从后面传递到前面，即单向传输信号。</li>
+          <li>充能器和中继器只把信号从后面传到前面，不能反向。</li>
           <li>充能器没有延迟，中继器有 1 tick 延迟。</li>
-          <li>它们还能作为反相器的输入（具体见下一页：反相器）。</li>
+          <li>它们输出 1 时还能抑制前面的反相器（见下一页）。</li>
         </ul>
         <p className="handbook-note">参考 Minecraft 物品：红石中继器。</p>
       </>
@@ -129,7 +129,7 @@ const PAGES: Page[] = [
         <PartCards parts={NOT_PARTS} />
         <ul className="handbook-list">
           <li>
-            反相器用于反转 0/1 信号：在充能器或中继器向反相器输出 1 信号时，反相器被抑制，否则反相器向相邻元件输出 1 信号。
+            反相器把 0 / 1 信号反转：充能器或中继器向它输出 1 时，它被抑制，不输出信号；否则向相邻元件输出 1。
           </li>
           <li>反相器有 1 tick 延迟。</li>
         </ul>
@@ -146,7 +146,7 @@ const PAGES: Page[] = [
         <PartCards parts={PORT_PARTS} pair />
         <ul className="handbook-list">
           <li>输入和输出是关卡特有的元件。</li>
-          <li>游戏会指定动态的输入信号，并观察输出信号，由此判断测试是否通过。</li>
+          <li>游戏会给出随时间变化的输入信号，再检查输出信号是否符合预期，由此判断测试是否通过。</li>
         </ul>
       </>
     ),
@@ -158,13 +158,13 @@ const PAGES: Page[] = [
     body: (
       <ul className="handbook-list">
         <li>
-          断路器是组合结构，充能器对着中继器的侧面摆放。当充能器输出 1 信号时，中继器被抑制，不输出信号，否则输出背后的信号。
+          断路器是由充能器和中继器组成的复合结构，充能器对着中继器的侧面摆放。充能器输出 1 时，中继器被抑制、不输出信号；否则中继器照常输出背后的信号。
         </li>
         <li>
-          D 锁存器也是组合结构，中继器 X 对着中继器 D
-          的侧面摆放。当中继器 X 输出 1 信号时，中继器 D 维持输出信号不变，否则输出背后的信号。
+          D 锁存器是由两个中继器组成的复合结构，中继器 X 对着中继器 D
+          的侧面摆放。X 输出 1 时，D 保持输出不变；否则 D 照常输出背后的信号。
         </li>
-        <li>均有 1 tick 延迟。</li>
+        <li>两种复合结构都有 1 tick 延迟。</li>
       </ul>
     ),
     note: '断路器参考 Minecraft 红石比较器，D 锁存器参考 Minecraft 红石中继器的锁存功能。',
