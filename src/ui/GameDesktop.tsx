@@ -29,6 +29,8 @@ interface Props {
   level: Level
   /** 自由模式：没有关卡号、端口和测试，相关入口收起来 */
   free: boolean
+  /** 这次进关要不要自动弹本关目标：只有第一次进这一关才弹 */
+  goalOnEnter: boolean
   tool: Tool
   /** 电脑端左键模式：放置不覆盖已有元件、点输入元件拨 0 / 1 */
   mode: EditMode
@@ -72,6 +74,7 @@ interface Props {
 export function GameDesktop({
   level,
   free,
+  goalOnEnter,
   tool,
   mode,
   dir,
@@ -110,8 +113,8 @@ export function GameDesktop({
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 })
   const viewport = useRef<Viewport | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  // 进关先把本关目标亮出来；自由模式没有目标，不弹
-  const [infoOpen, setInfoOpen] = useState(!free)
+  // 第一次进这一关才自动把本关目标亮出来；自由模式没有目标，不弹
+  const [infoOpen, setInfoOpen] = useState(!free && goalOnEnter)
   const [handbookOpen, setHandbookOpen] = useState(false)
 
   const zoomTo = (zoom: number) => {

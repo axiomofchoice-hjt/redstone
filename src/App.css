@@ -281,11 +281,43 @@ button:focus-visible,
 }
 
 .level-name {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   font-size: 17px;
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 通关的关卡：整张卡片带一点绿色，右侧再挂一个绿色「已通关」标记 */
+.level-card.cleared {
+  border-color: rgba(23, 138, 85, 0.35);
+  background: #f1faf5;
+}
+
+.level-card.cleared:hover {
+  border-color: rgba(23, 138, 85, 0.55);
+  background: #e8f7ef;
+}
+
+.level-card.cleared .level-no {
+  color: var(--ok);
+}
+
+.level-clear {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--ok);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 /* ────────────────────────── 电脑端游戏 ────────────────────────── */

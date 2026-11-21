@@ -25,6 +25,8 @@ interface Props {
   level: Level
   /** 自由模式：没有关卡号、端口和测试，相关按钮收起来 */
   free: boolean
+  /** 这次进关要不要自动弹本关目标：只有第一次进这一关才弹 */
+  goalOnEnter: boolean
   tool: Tool
   dir: Dir
   run: LevelRun | null
@@ -67,6 +69,7 @@ interface Props {
 export function GameMobile({
   level,
   free,
+  goalOnEnter,
   tool,
   dir,
   run,
@@ -100,8 +103,8 @@ export function GameMobile({
   onExport,
   onLevels,
 }: Props) {
-  // 进关先把本关目标亮出来；自由模式没有目标，不弹
-  const [infoOpen, setInfoOpen] = useState(!free)
+  // 第一次进这一关才自动把本关目标亮出来；自由模式没有目标，不弹
+  const [infoOpen, setInfoOpen] = useState(!free && goalOnEnter)
   // 查看教程盖在整屏上面，和菜单、目标页互不影响
   const [handbookOpen, setHandbookOpen] = useState(false)
 

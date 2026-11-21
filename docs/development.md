@@ -42,6 +42,7 @@ src/
     LevelSelect.tsx 选关页（按章节分组的卡片）
     StartScreen.tsx 首页
     levels-meta.ts  关卡章节分组
+    progress.ts     关卡进度：localStorage 读写、已通关 / 目标已看过的标记
     useMediaQuery.ts 响应式断点
     ToolIcon.tsx    元件栏按钮上的小图标
     icons.tsx       品牌、方向、测试等小图标

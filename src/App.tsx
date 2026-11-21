@@ -12,6 +12,14 @@ import { checksOf, pairsOf, refLevelOf, refSimOf, replayStep, type TraceInfo } f
 import type { Tool } from './ui/tools'
 import { editAction, type EditMode } from './ui/edit-mode'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
+import {
+  isGoalSeen,
+  loadProgress,
+  markGoalSeen,
+  markLevelCleared,
+  saveProgress,
+  type Progress,
+} from './ui/progress'
 import { StartScreen } from './ui/StartScreen'
 import { Handbook } from './ui/Handbook'
 import { LevelSelect } from './ui/LevelSelect'
@@ -128,6 +136,10 @@ export default function App() {
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
   const [menuOpen, setMenuOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('start')
+  // 存在浏览器里的关卡进度：已通关的关卡、已经自动弹过目标的关卡
+  const [progress, setProgress] = useState<Progress>(loadProgress)
+  // 这次进入关卡要不要自动弹本关目标；只有第一次进这一关才弹
+  const [goalOnEnter, setGoalOnEnter] = useState(false)
   // 首页的「查看教程」：教程页和游戏内菜单里的是同一个，进游戏前也能先看一眼规则
   const [handbookOpen, setHandbookOpen] = useState(false)
   // 仿真在后台推进，只在画面有变化时重绘
@@ -323,6 +335,14 @@ export default function App() {
   const startLevel = (next: Level) => {
     const level = { ...next, cells: next.cells.slice() }
     const sim = new Simulation(level)
+    // 第一次进这一关才自动弹目标；一进来就记下，之后从选关页再进来不再弹
+    const firstVisit = !isFreeLevel(level) && !isGoalSeen(progress, level.id)
+    if (firstVisit) {
+      const seen = markGoalSeen(progress, level.id)
+      setProgress(seen)
+      saveProgress(seen)
+    }
+    setGoalOnEnter(firstVisit)
     setEditing({ level, sim, history: [waveSample(level, sim)] })
     // 换关后元件选择也回到这关的默认元件，模式回到默认的覆盖，别把上一关的选择带过来
     lastTool.current = { type: defaultTool(level) }
@@ -436,7 +456,14 @@ export default function App() {
     const saved = leaveTrace()
     const live = saved?.sim ?? sim
     const snapshot = live.fork()
-    setRun({ result: runLevel(snapshot.level, snapshot), snapshot })
+    const result = runLevel(snapshot.level, snapshot)
+    setRun({ result, snapshot })
+    // 全部通过就记下这一关通关；自由模式没有测试，也不会进来
+    if (result.passed && !free) {
+      const cleared = markLevelCleared(progress, level.id)
+      setProgress(cleared)
+      saveProgress(cleared)
+    }
     if (saved) repaint()
   }
 
@@ -468,6 +495,7 @@ export default function App() {
     return (
       <LevelSelect
         levels={LEVELS}
+        cleared={progress.cleared}
         onSelect={startLevel}
         onFree={startFree}
         onHome={goHome}
@@ -481,6 +509,7 @@ export default function App() {
         key={level.id}
         level={level}
         free={free}
+        goalOnEnter={goalOnEnter}
         tool={tool}
         mode={mode}
         dir={dir}
@@ -523,6 +552,7 @@ export default function App() {
     <GameMobile
       level={level}
       free={free}
+      goalOnEnter={goalOnEnter}
       tool={tool}
       dir={dir}
       run={run?.result ?? null}
