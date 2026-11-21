@@ -2,20 +2,19 @@ interface IconProps {
   size?: number
 }
 
-/** 品牌图标：一条折线电路，两头各一个节点 */
+/** 品牌图标：一条两步阶梯的折线电路，四段一样长，两头各一个实心圆节点 */
 export function Logo({ size = 18 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
-        d="M5 7h5.5v5H16v5"
+        d="M2 7h15v5h5v5"
         stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeWidth="1.6"
+        strokeLinecap="butt"
+        strokeLinejoin="miter"
       />
-      <circle cx="5" cy="7" r="2.2" fill="currentColor" />
-      <circle cx="10.5" cy="12" r="1.6" fill="currentColor" opacity="0.55" />
-      <circle cx="16" cy="17" r="2.2" fill="currentColor" />
+      <circle cx="2" cy="7" r="1.9" fill="currentColor" />
+      <circle cx="22" cy="17" r="1.9" fill="currentColor" />
     </svg>
   )
 }
