@@ -96,7 +96,7 @@ export class Simulation {
     this.repeaterOut = new Array<boolean>(n).fill(false)
     const fresh = new Array<boolean>(n).fill(true)
 
-    // 电路改动后重建时，已有非门/中继器保持原状态，新放的从关开始
+    // 电路改动后重建时，已有反相器/中继器保持原状态，新放的从关开始
     if (previous && previous.level.cells.length === n) {
       for (let i = 0; i < n; i++) {
         const now = level.cells[i]?.type
@@ -160,7 +160,7 @@ export class Simulation {
     this.netAdj = this.buildAdjacency()
     this.initSignals()
 
-    // 新放的非门不摆出一个通电的 tick：当下被充能就直接是关
+    // 新放的反相器不摆出一个通电的 tick：当下被充能就直接是关
     if (fresh.some(Boolean)) {
       const queue: number[] = []
       for (let i = 0; i < n; i++) {
@@ -508,7 +508,7 @@ export class Simulation {
     }
   }
 
-  /** 非门是否正被相邻、且前方指向它的充能器/中继器充能 */
+  /** 反相器是否正被相邻、且前方指向它的充能器/中继器充能 */
   private chargerPowered(i: number): boolean {
     const { cols, cells } = this.level
     const x = i % cols

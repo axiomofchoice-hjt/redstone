@@ -10,7 +10,7 @@ const at = (x: number, y: number) => y * cols + x
 cells[at(1, 3)] = { type: 'input', id: 'A', locked: true }
 cells[at(5, 3)] = { type: 'output', id: 'B', locked: true }
 
-// 参考解：A 经充能器、非门接 B
+// 参考解：A 经充能器、反相器接 B
 const solution = cellsFrom(cols * rows, {
   22: { type: 'input', id: 'A', locked: true },
   23: { type: 'charger', dir: 1 },
@@ -29,12 +29,12 @@ const solutionState = stateFrom({
   26: 1,
 })
 
-/** 第三关：非门，B = NOT A，只放开导线、充能器、非门 */
+/** 第三关：非门，B = NOT A，只放开导线、充能器、反相器 */
 export const level03: Level = {
   id: 'level-03',
   no: 3,
   name: '非门',
-  brief: 'B = NOT A：A 为 1 时 B 为 0，A 为 0 时 B 为 1。\n这一关可用导线、充能器、非门。',
+  brief: 'B = NOT A：A 为 1 时 B 为 0，A 为 0 时 B 为 1。\n这一关可用导线、充能器、反相器。',
   cols,
   rows,
   inputs: ['A'],

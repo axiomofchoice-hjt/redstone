@@ -7,17 +7,17 @@ const rows = 10
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
 /**
- * 参考解：中继器读左边的导线、往右把非门翻一下，非门再往右送 Y，
+ * 参考解：中继器读左边的导线、往右把反相器翻一下，反相器再往右送 Y，
  * 同时从下面把结果灌回左边那条导线，绕一圈正好 2 tick，所以导线 2 tick 高、2 tick 低。
  */
 const solution = cellsFrom(cols * rows, {
-  // 第 0 行：左边导线 → 中继器 → 非门 → 右边导线接 Y
+  // 第 0 行：左边导线 → 中继器 → 反相器 → 右边导线接 Y
   0: { type: 'wire' },
   1: { type: 'repeater', dir: 1 },
   2: { type: 'not', dir: 1 },
   3: { type: 'wire' },
   4: { type: 'output', id: 'Y' },
-  // 第 1 行：导线把非门的输出接回左边那条导线
+  // 第 1 行：导线把反相器的输出接回左边那条导线
   10: { type: 'wire' },
   11: { type: 'wire' },
   12: { type: 'wire' },

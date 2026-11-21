@@ -7,11 +7,11 @@ const rows = 10
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
 /**
- * 参考解：使能 E 控制的两个非门交叉反馈（D 锁存器）。
+ * 参考解：使能 E 控制的两个反相器交叉反馈（D 锁存器）。
  * E 开着时 Y 跟着 D 走，E 关掉后把当时的电平锁住。
  */
 const solution = cellsFrom(cols * rows, {
-  // 第 0 行：D 进来，两路非门
+  // 第 0 行：D 进来，两路反相器
   0: { type: 'input', id: 'D' },
   1: { type: 'charger', dir: 1 },
   2: { type: 'not', dir: 1 },
@@ -26,7 +26,7 @@ const solution = cellsFrom(cols * rows, {
   14: { type: 'charger', dir: 2 },
   16: { type: 'wire' },
   18: { type: 'wire' },
-  // 第 2 行：E 这一路，和锁存的两个非门
+  // 第 2 行：E 这一路，和锁存的两个反相器
   20: { type: 'input', id: 'E' },
   21: { type: 'charger', dir: 1 },
   22: { type: 'not', dir: 1 },

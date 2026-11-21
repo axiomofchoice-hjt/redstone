@@ -16,7 +16,7 @@ describe('第十八关', () => {
     expect(level18.cells.filter(Boolean)).toHaveLength(4)
   })
 
-  it('只放开导线、充能器、中继器、非门，没有交叉', () => {
+  it('只放开导线、充能器、中继器、反相器，没有交叉', () => {
     expect(level18.tools).toEqual(['wire', 'charger', 'repeater', 'not'])
     expect(level18.tools).not.toContain('cross')
   })

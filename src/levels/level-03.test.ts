@@ -25,7 +25,7 @@ describe('第三关', () => {
     expect(result.outcomes[0].passed).toBe(false)
   })
 
-  it('充能器 + 非门 + 导线接通后通过', () => {
+  it('充能器 + 反相器 + 导线接通后通过', () => {
     expect(runLevel(solved()).passed).toBe(true)
   })
 

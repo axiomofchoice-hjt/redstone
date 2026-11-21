@@ -17,7 +17,7 @@ const ACTIVE_PARTS: { type: CellType; name: string; desc: string }[] = [
     name: '中继器',
     desc: '读后方，延迟 1 tick 输出到正面；侧面被顶住会锁存或断路。',
   },
-  { type: 'not', name: '非门', desc: '读后方，延迟 1 tick 输出反相。' },
+  { type: 'not', name: '反相器', desc: '读后方，延迟 1 tick 输出反相。' },
 ]
 
 /** 元件卡上的内容：图标用哪一种元件、写什么名字 */
@@ -33,7 +33,7 @@ const ROSTER: RosterPart[] = [
   { type: 'cross', name: '交叉导线' },
   { type: 'charger', name: '充能器' },
   { type: 'repeater', name: '中继器' },
-  { type: 'not', name: '非门' },
+  { type: 'not', name: '反相器' },
   { type: 'input', id: 'P', name: '输入' },
   { type: 'output', id: 'Y', name: '输出' },
 ]
@@ -103,11 +103,11 @@ const PAGES: Page[] = [
     note: '参考 Minecraft 物品：红石粉。',
   },
   {
-    title: '充能器、中继器、非门',
+    title: '充能器、中继器、反相器',
     wide: true,
     body: (
       <>
-        <p className="handbook-lead">三种元件都只朝正面输出；中继器和非门还要晚 1 tick 才生效。</p>
+        <p className="handbook-lead">三种元件都只朝正面输出；中继器和反相器还要晚 1 tick 才生效。</p>
         <div className="handbook-parts compact">
           {ACTIVE_PARTS.map((part) => (
             <div className="handbook-part" key={part.type}>

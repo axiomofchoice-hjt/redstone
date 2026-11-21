@@ -6,7 +6,7 @@ const rows = 10
 // 输入 A、B 和输出 C 由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
-// 参考解：两路非门合到 C，C = A AND B
+// 参考解：两路反相器合到 C，C = A AND B
 const solution = cellsFrom(cols * rows, {
   0: { type: 'input', id: 'A' },
   1: { type: 'charger', dir: 1 },

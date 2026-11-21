@@ -110,7 +110,7 @@ describe('导线', () => {
   })
 })
 
-describe('非门', () => {
+describe('反相器', () => {
   const level = makeLevel(
     4,
     1,
@@ -191,7 +191,7 @@ describe('中继器', () => {
     expect(runLevel(wired).passed).toBe(true)
   })
 
-  it('能当作非门的输入', () => {
+  it('能当作反相器的输入', () => {
     const toNot = makeLevel(
       4,
       1,
@@ -203,7 +203,7 @@ describe('中继器', () => {
       ],
       [
         {
-          name: '中继器后接非门',
+          name: '中继器后接反相器',
           events: onAt(0, { A: 1 }),
           checks: [
             { from: 0, outputs: { L: 1 } },
@@ -306,7 +306,7 @@ describe('输出不用等下一个 tick 就能读到', () => {
   })
 })
 
-it('后接上的回馈线不会让两个非门震荡', () => {
+it('后接上的回馈线不会让两个反相器震荡', () => {
   const cols = 6
   const rows = 5
   const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
@@ -340,7 +340,7 @@ it('后接上的回馈线不会让两个非门震荡', () => {
   }
 })
 
-it('新放的非门若当下被充能，直接就是关，不先亮一个 tick', () => {
+it('新放的反相器若当下被充能，直接就是关，不先亮一个 tick', () => {
   const cols = 5
   const rows = 3
   const cells: (Cell | null)[] = new Array(cols * rows).fill(null)

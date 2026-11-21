@@ -15,7 +15,7 @@ const wires = (points: [number, number][]) =>
   points.map(([x, y]): [number, number, Cell] => [x, y, { type: 'wire' }])
 
 /**
- * 已知的 2 tick 高、2 tick 低解法：非门 + 中继器（各 1 tick 延迟）绕成一圈，
+ * 已知的 2 tick 高、2 tick 低解法：反相器 + 中继器（各 1 tick 延迟）绕成一圈，
  * 输出接到这条环上。环延迟 2 tick，信号周期就是 4。
  */
 const solution = build([
@@ -37,7 +37,7 @@ const solution = build([
   [0, 9, { type: 'output', id: 'Y' }],
 ])
 
-/** 只有非门 1 tick 延迟的环，周期 2：1 tick 高、1 tick 低 */
+/** 只有反相器 1 tick 延迟的环，周期 2：1 tick 高、1 tick 低 */
 const quick = build([
   [1, 1, { type: 'charger', dir: 1 }],
   [2, 1, { type: 'not', dir: 2 }],

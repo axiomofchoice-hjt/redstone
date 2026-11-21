@@ -7,11 +7,11 @@ const rows = 10
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
 /**
- * 参考解：A 一路经非门，另一路经两个中继器再经非门，两路相或后翻回来接 Y；
+ * 参考解：A 一路经反相器，另一路经两个中继器再经反相器，两路相或后翻回来接 Y；
  * 宽度不足 3 tick 的脉冲在相或里被吞掉，够宽的脉冲原样通过（晚 5 tick、宽度不变）。
  */
 const solution = cellsFrom(cols * rows, {
-  // 第 0 行：A 这一路经非门、中继器、非门，右边导线接 Y
+  // 第 0 行：A 这一路经反相器、中继器、反相器，右边导线接 Y
   0: { type: 'input', id: 'A' },
   1: { type: 'charger', dir: 1 },
   2: { type: 'not', dir: 1 },
@@ -22,7 +22,7 @@ const solution = cellsFrom(cols * rows, {
   7: { type: 'wire' },
   8: { type: 'wire' },
   9: { type: 'output', id: 'Y' },
-  // 第 1 行：A 晚 2 tick 的那一路，进下面的非门
+  // 第 1 行：A 晚 2 tick 的那一路，进下面的反相器
   10: { type: 'wire' },
   11: { type: 'repeater', dir: 1 },
   12: { type: 'repeater', dir: 1 },

@@ -28,7 +28,7 @@ export const TOOLS: { type: CellType; label: string }[] = [
   { type: 'cross', label: '交叉' },
   { type: 'charger', label: '充能' },
   { type: 'repeater', label: '中继' },
-  { type: 'not', label: '非门' },
+  { type: 'not', label: '反相器' },
 ]
 
 /** 换关时默认选这关能用的第一个元件 */

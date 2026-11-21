@@ -7,16 +7,16 @@ const rows = 10
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
 /**
- * 参考解：两个非门交叉反馈的 NOR 锁存器。
+ * 参考解：两个反相器交叉反馈的 NOR 锁存器。
  * Y = ¬R ∧ (S ∨ Y)：S 拉一下置 1、R 拉一下清 0，都不拉时保持。
  */
 const solution = cellsFrom(cols * rows, {
-  // 第 0 行：S 进来，充能器读它、非门往左下反馈
+  // 第 0 行：S 进来，充能器读它、反相器往左下反馈
   0: { type: 'input', id: 'S' },
   1: { type: 'wire' },
   2: { type: 'charger', dir: 1 },
   3: { type: 'not', dir: 3 },
-  // 第 1 行：R 并进这条导线，另一个非门把结果送回 Y 和 S 那条线
+  // 第 1 行：R 并进这条导线，另一个反相器把结果送回 Y 和 S 那条线
   11: { type: 'not', dir: 3 },
   12: { type: 'charger', dir: 3 },
   13: { type: 'wire' },

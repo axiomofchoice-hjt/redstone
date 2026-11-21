@@ -7,12 +7,12 @@ const rows = 10
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
 /**
- * 参考解：A 分两路——一路经非门晚 1 tick，另一路经两个中继器晚 2 tick，两路在导线上相或。
- * 上升沿后第 1 tick 两路都还是 0，导线上空出 1 tick 的低电平，第二个非门把它翻成高电平，
+ * 参考解：A 分两路——一路经反相器晚 1 tick，另一路经两个中继器晚 2 tick，两路在导线上相或。
+ * 上升沿后第 1 tick 两路都还是 0，导线上空出 1 tick 的低电平，第二个反相器把它翻成高电平，
  * 再经三个中继器送到 Y，正好是上升沿后第 5 tick 的 1 tick 脉冲。
  */
 const solution = cellsFrom(cols * rows, {
-  // 第 0 行：晚 1 tick 的那一路，缺口从这里进非门
+  // 第 0 行：晚 1 tick 的那一路，缺口从这里进反相器
   0: { type: 'input', id: 'A' },
   1: { type: 'charger', dir: 1 },
   2: { type: 'not', dir: 1 },

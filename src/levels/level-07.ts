@@ -6,7 +6,7 @@ const rows = 10
 // 三个输入 A、B、C 和输出 Y 由玩家自己放
 const cells: (Cell | null)[] = new Array(cols * rows).fill(null)
 
-/** 参考解：三组「输入 + 非门」分别算 A AND B、A AND C、B AND C，再用交叉导线汇到 Y */
+/** 参考解：三组「输入 + 反相器」分别算 A AND B、A AND C、B AND C，再用交叉导线汇到 Y */
 const solution = cellsFrom(cols * rows, {
   // 第 0 行：A 的支路
   0: { type: 'input', id: 'A' },

@@ -67,7 +67,7 @@ interface RunState {
 
 /**
  * 回放的起跑仿真：拿「测试」那一刻的快照状态，tick 归零。
- * 回放的横轴从 0 数、测试事件也按 0 起的 tick 排，但电路内部状态（非门、中继器、
+ * 回放的横轴从 0 数、测试事件也按 0 起的 tick 排，但电路内部状态（反相器、中继器、
  * 导线电平和输入）保持快照里的样子，放出来的就是当时那次测试。
  */
 function replayStart(snapshot: Simulation): Simulation {
