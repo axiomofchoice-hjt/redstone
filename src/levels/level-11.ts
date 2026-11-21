@@ -45,7 +45,7 @@ export const level11: Level = {
   id: 'level-11',
   no: 11,
   name: '上升沿感应器',
-  brief: 'A 从 0 变 1 之后第 5 tick，让 Y 出 1 tick 的脉冲；其余时候 Y = 0，下降沿不出脉冲。\n输入 A 和输出 Y 的位置自己定。',
+  brief: '在 A 的上升沿，延迟 5 tick 后向 Y 输出 1 tick 脉冲，其余时间 Y = 0。',
   cols,
   rows,
   inputs: ['A'],

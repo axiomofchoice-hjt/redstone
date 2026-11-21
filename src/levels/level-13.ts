@@ -73,7 +73,7 @@ export const level13: Level = {
   id: 'level-13',
   no: 13,
   name: '双边沿感应器',
-  brief: 'A 每次翻转（0→1 或 1→0）之后第 5 tick，让 Y 出 1 tick 的脉冲；其余时候 Y = 0。\n输入 A 和输出 Y 的位置自己定。',
+  brief: '在 A 的上升沿和下降沿，延迟 5 tick 后向 Y 输出 1 tick 脉冲，其余时间 Y = 0。',
   cols,
   rows,
   inputs: ['A'],

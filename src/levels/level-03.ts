@@ -34,7 +34,7 @@ export const level03: Level = {
   id: 'level-03',
   no: 3,
   name: '非门',
-  brief: 'B = NOT A：A 为 1 时 B 为 0，A 为 0 时 B 为 1。',
+  brief: 'B = NOT A：A 为 1 时 B 为 0，A 为 0 时 B 为 1。\n电路延迟不能超过 10 tick。',
   cols,
   rows,
   inputs: ['A'],

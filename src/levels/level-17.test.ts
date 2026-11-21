@@ -33,7 +33,7 @@ describe('第十七关 JK 触发器', () => {
     expect(level17.cells.filter(Boolean)).toHaveLength(0)
     expect(level17.tests.map((t) => t.name)).toEqual([
       '上升沿置位、复位，之后保持',
-      'C 高电平期间改 J、K 都不跟，下降沿也不动',
+      '下降沿不动',
       'J=K=1 时每个上升沿翻一次，C 一直高着也只翻一次',
       'J、K 先改好，等下一个上升沿才生效',
     ])

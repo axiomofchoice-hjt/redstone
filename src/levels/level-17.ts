@@ -110,7 +110,8 @@ const reset = (values: { J: 0 | 1; K: 0 | 1; C: 0 | 1 }) => ({ tick: 0, values }
 /**
  * 第十七关：JK 触发器。只在时钟 C 的上升沿按当时（拉高那一刻）的 J、K 改 Y：
  * J=1、K=0 置 1，J=0、K=1 清 0，J=K=0 保持，J=K=1 翻转。
- * 下降沿不动；C 不动时 J、K 怎么变都不影响 Y，C 一直高着也只在上升沿动一次。
+ * 下降沿不动；C = 0 时 J、K 怎么变都不影响 Y。
+ * 目标里保证 C 的脉冲长度不小于 2、且 C = 1 时 J、K 保持不变，下面的测试数据也遵守这个前提。
  *
  * 每组都从 C=0 起，第一次上升沿放在第 20 tick：从编辑器里任意状态点「运行测试」
  * 时，C 之前是高是低都不影响第一次边沿之前的结果，检查一律从边沿后第 10 tick 开始。
@@ -119,7 +120,8 @@ export const level17: Level = {
   id: 'level-17',
   no: 17,
   name: 'JK 触发器',
-  brief: '只在时钟 C 的上升沿按当时的 J、K 改 Y：J=1、K=0 置 1；J=0、K=1 清 0；J=K=0 保持；J=K=1 翻转。\nC 高着的时候改 J、K 不生效，下降沿也不动。\n输入 J、K、C 和输出 Y 的位置自己定。',
+  brief:
+    '在 C 的上升沿：如果 J = 1，K = 0 那么 Y = 1；如果 J = 0，K = 1 那么 Y = 0；如果 J = 0，K = 0 那么 Y 保持不变；如果 J = 1，K = 1 那么 Y 翻转一次。\n保证 C 的脉冲长度不小于 2，且 C = 1 时 J、K 保持不变。\n电路延迟不能超过 10 tick。',
   cols,
   rows,
   inputs: ['J', 'K', 'C'],
@@ -146,23 +148,15 @@ export const level17: Level = {
       ],
     },
     {
-      name: 'C 高电平期间改 J、K 都不跟，下降沿也不动',
+      name: '下降沿不动',
       events: [
         reset({ J: 1, K: 0, C: 0 }),
         { tick: 20, values: { C: 1 } },
-        { tick: 40, values: { J: 0, K: 1 } },
-        { tick: 60, values: { J: 1, K: 1 } },
-        { tick: 80, values: { C: 0 } },
-        { tick: 100, values: { J: 0, K: 1 } },
-        { tick: 120, values: { C: 1 } },
+        { tick: 60, values: { C: 0 } },
       ],
       checks: [
-        { from: 30, to: 39, outputs: { Y: 1 } },
-        { from: 50, to: 59, outputs: { Y: 1 } },
-        { from: 70, to: 79, outputs: { Y: 1 } },
-        { from: 90, to: 99, outputs: { Y: 1 } },
-        { from: 110, to: 119, outputs: { Y: 1 } },
-        { from: 130, to: 140, outputs: { Y: 0 } },
+        { from: 30, to: 59, outputs: { Y: 1 } },
+        { from: 70, to: 90, outputs: { Y: 1 } },
       ],
     },
     {
@@ -196,8 +190,7 @@ export const level17: Level = {
         { tick: 40, values: { J: 0, K: 0, C: 0 } },
         { tick: 60, values: { J: 1, K: 0 } },
         { tick: 80, values: { C: 1 } },
-        { tick: 100, values: { J: 0, K: 1 } },
-        { tick: 120, values: { C: 0 } },
+        { tick: 100, values: { J: 0, K: 1, C: 0 } },
         { tick: 140, values: { C: 1 } },
       ],
       checks: [

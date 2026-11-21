@@ -65,7 +65,8 @@ export const level15: Level = {
   id: 'level-15',
   no: 15,
   name: 'D 锁存器',
-  brief: 'E 开着时 Y 跟着 D 走；E 关掉后 Y 锁住那一刻的值，D 再怎么变都不影响。\n再打开 E，Y 重新跟上当前的 D。\n输入 D、E 和输出 Y 的位置自己定。',
+  brief:
+    '如果 E = 1 那么 Y = D；如果 E = 0 那么 Y 保持不变。\n保证 E 的脉冲长度不小于 2，且 E 的脉冲时间内 D 保持不变。\n电路延迟不能超过 10 tick。',
   cols,
   rows,
   inputs: ['D', 'E'],

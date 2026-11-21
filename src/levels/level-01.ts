@@ -30,7 +30,7 @@ export const level01: Level = {
   id: 'level-01',
   no: 1,
   name: '导线',
-  brief: '用导线把 A 接到 B，让 B 始终等于 A：A=1 时 B=1，A=0 时 B=0。',
+  brief: '用导线把 A 接到 B，让 B 始终等于 A：A=1 时 B=1，A=0 时 B=0。\n电路延迟不能超过 10 tick。',
   cols,
   rows,
   inputs: ['A'],

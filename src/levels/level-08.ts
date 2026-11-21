@@ -62,7 +62,7 @@ export const level08: Level = {
   id: 'level-08',
   no: 8,
   name: '时钟',
-  brief: '没有输入，让 Y 自己振荡：2 tick 高、2 tick 低，一直循环。\n输出 Y 的位置自己定，先高先低都可以。',
+  brief: '没有输入，让 Y 自己振荡：2 tick 高、2 tick 低，一直循环。',
   cols,
   rows,
   outputs: ['Y'],

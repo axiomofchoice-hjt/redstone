@@ -46,7 +46,8 @@ export const level14: Level = {
   id: 'level-14',
   no: 14,
   name: 'RS 锁存器',
-  brief: 'S 拉一下让 Y 变 1，R 拉一下让 Y 变 0；S、R 都不拉时保持上一次的值。\nS、R 同时为 1 的情况不用管。\n输入 S、R 和输出 Y 的位置自己定。',
+  brief:
+    '如果 S = 1，R = 0 那么 Y = 1；如果 S = 0，R = 1 那么 Y = 0；如果 S = 0，R = 0 那么 Y 保持不变。\n保证 S、R 的脉冲长度不小于 2，且 S、R 不同时为 1。\n电路延迟不能超过 10 tick。',
   cols,
   rows,
   inputs: ['S', 'R'],

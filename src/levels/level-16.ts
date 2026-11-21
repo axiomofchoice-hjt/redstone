@@ -122,7 +122,7 @@ export const level16: Level = {
   id: 'level-16',
   no: 16,
   name: 'T 触发器',
-  brief: 'T 每来一个上升沿（0→1），Y 翻转一次；没有上升沿就保持。\nT 一直高着只翻一次，下降沿不动。\n输入 T 和输出 Y 的位置自己定。',
+  brief: 'T 的每一个上升沿，Y 翻转一次。\n保证 T 的脉冲长度不小于 2。\n电路延迟不能超过 10 tick。',
   cols,
   rows,
   inputs: ['T'],
