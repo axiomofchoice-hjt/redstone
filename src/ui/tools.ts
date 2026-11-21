@@ -11,9 +11,12 @@ export interface ToolSpec {
 /** 元件栏当前选中的东西：某个元件，或者删除 / 交互这些模式 */
 export type Tool = ToolSpec | 'erase' | 'interact'
 
-/** 元件栏里的一项：元件本身 + 按钮上的字 + 这关能不能用 */
+/** 元件栏里的一项：元件本身 + 按钮上的字 + 完整名称 + 这关能不能用 */
 export interface ToolItem extends ToolSpec {
+  /** 按钮上显示的字；五个基础元件统一两字，输入 / 输出写「输入 A」 */
   label: string
+  /** 完整名称：悬停提示和读屏用，教程里也用这一套 */
+  name: string
   disabled: boolean
 }
 
@@ -22,13 +25,13 @@ export function toolEnabled(level: Level, type: CellType): boolean {
   return !level.tools || level.tools.includes(type)
 }
 
-/** 元件栏里的顺序，也是选默认元件时的优先级 */
-export const TOOLS: { type: CellType; label: string }[] = [
-  { type: 'wire', label: '导线' },
-  { type: 'cross', label: '交叉' },
-  { type: 'charger', label: '充能' },
-  { type: 'repeater', label: '中继' },
-  { type: 'not', label: '反相器' },
+/** 元件栏里的顺序，也是选默认元件时的优先级；按钮两字，完整名称放 name */
+export const TOOLS: { type: CellType; label: string; name: string }[] = [
+  { type: 'wire', label: '导线', name: '导线' },
+  { type: 'cross', label: '交叉', name: '交叉导线' },
+  { type: 'charger', label: '充能', name: '充能器' },
+  { type: 'repeater', label: '中继', name: '中继器' },
+  { type: 'not', label: '反相', name: '反相器' },
 ]
 
 /** 换关时默认选这关能用的第一个元件 */
@@ -41,13 +44,16 @@ export function defaultTool(level: Level): CellType {
  * 元件栏、电脑端面板和数字键都按这一个顺序排，不会各排各的。
  */
 export const toolItems = (level: Level, ports: Port[]): ToolItem[] => [
-  ...TOOLS.map(({ type, label }) => ({ type, label, disabled: !toolEnabled(level, type) })),
-  ...ports.map(({ type, id }) => ({
+  ...TOOLS.map(({ type, label, name }) => ({
     type,
-    id,
-    label: `${type === 'input' ? '输入' : '输出'} ${id}`,
-    disabled: false,
+    label,
+    name,
+    disabled: !toolEnabled(level, type),
   })),
+  ...ports.map(({ type, id }) => {
+    const name = `${type === 'input' ? '输入' : '输出'} ${id}`
+    return { type, id, label: name, name, disabled: false }
+  }),
 ]
 
 /** 元件栏里这一项是不是当前选中的 */

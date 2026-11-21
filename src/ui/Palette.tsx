@@ -30,8 +30,8 @@ export function Palette({ level, tool, dir, onTool, onDir }: Props) {
               type="button"
               className={active ? 'tool active' : 'tool'}
               disabled={item.disabled}
-              aria-label={item.label}
-              title={`${index + 1 <= 9 ? `${index + 1} · ` : ''}${item.label}`}
+              aria-label={item.name}
+              title={`${index + 1 <= 9 ? `${index + 1} · ` : ''}${item.name}`}
               onClick={() => onTool(toolSpec(item))}
             >
               <ToolIcon type={item.type} id={item.id} dir={dir} invert={active} />

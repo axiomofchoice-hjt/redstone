@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Cell, Level } from '../game/types'
 import { portsFor } from './ports'
-import { defaultTool, toolEnabled } from './tools'
+import { defaultTool, toolEnabled, toolItems } from './tools'
 
 function makeLevel(cells: (Cell | null)[]): Level {
   return { id: 't', name: 't', cols: cells.length, rows: 1, cells, inputs: ['A', 'B'], outputs: ['C'], tests: [] }
@@ -22,6 +22,14 @@ describe('元件栏的输入输出按钮', () => {
   it('没锁的预置元件不隐藏按钮', () => {
     const ports = portsFor(makeLevel([{ type: 'input', id: 'A' }]))
     expect(ports.map((p) => p.id)).toEqual(['A', 'B', 'C'])
+  })
+})
+
+describe('元件栏按钮上的字', () => {
+  it('五个基础元件按钮统一两字，完整名称放在提示和读屏名里', () => {
+    const items = toolItems(makeLevel([null]), [])
+    expect(items.map((item) => item.label)).toEqual(['导线', '交叉', '充能', '中继', '反相'])
+    expect(items.map((item) => item.name)).toEqual(['导线', '交叉导线', '充能器', '中继器', '反相器'])
   })
 })
 

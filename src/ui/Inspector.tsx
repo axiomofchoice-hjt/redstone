@@ -79,7 +79,8 @@ export function Inspector({
               type="button"
               className={active ? 'tool-tile active' : 'tool-tile'}
               disabled={item.disabled || replay}
-              title={item.label}
+              aria-label={item.name}
+              title={item.name}
               onClick={() => onTool(toolSpec(item))}
             >
               <ToolIcon type={item.type} id={item.id} dir={dir} size={38} />
