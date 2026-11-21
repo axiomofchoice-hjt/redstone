@@ -92,7 +92,7 @@ export const level18: Level = {
   id: 'level-18',
   no: 18,
   name: '交叉',
-  brief: '把左上、左下的 A、B 交换到右边对角：C = B，D = A。\n信号跑稳后检查，电路延迟不能超过 10 tick。',
+  brief: 'C = B，D = A。\n电路延迟不能超过 10 tick。',
   cols,
   rows,
   inputs: ['A', 'B'],
