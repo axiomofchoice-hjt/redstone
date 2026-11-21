@@ -114,8 +114,11 @@ function paint(
   level: Level,
   inputs: Record<string, 0 | 1>,
   steps = 0,
+  /** 先把电路拨到某个状态再走几步（锁存器要先把 0 锁住，再看输入变化） */
+  prime?: (sim: Simulation) => void,
 ): void {
   const sim = new Simulation(level)
+  prime?.(sim)
   sim.setInputs(inputs)
   for (let i = 0; i < steps; i++) sim.step()
   const { cells, cols, rows } = level
@@ -139,6 +142,8 @@ function paint(
         CELL,
         sim.powerAt(i),
         linkedDirs(cells, level, x, y),
+        undefined,
+        sim.isLocked(i),
       )
     }
   }
@@ -291,6 +296,135 @@ export function InverterSim() {
         <div className="handbook-sim-row">
           <InverterPanel active={false} />
           <InverterPanel active />
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/** 第五页：中间两格放端口，左图两个输入（A、B），右图两个输出（Y、Z） */
+function makePortsLevel(kind: 'input' | 'output'): Level {
+  const cells = new Array<Cell | null>(COLS * ROWS).fill(null)
+  const ids = kind === 'input' ? ['A', 'B'] : ['Y', 'Z']
+  cells[COLS + 1] = { type: kind, id: ids[0] }
+  cells[COLS + 2] = { type: kind, id: ids[1] }
+  return { id: `handbook-${kind}s`, name: '', cols: COLS, rows: ROWS, cells, tests: [] }
+}
+
+function PortsPanel({ kind }: { kind: 'input' | 'output' }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (ref.current) {
+      paint(ref.current, makePortsLevel(kind), kind === 'input' ? { A: 0, B: 0 } : {})
+    }
+  }, [kind])
+
+  return (
+    <figure className="handbook-sim-panel">
+      <canvas ref={ref} />
+      <figcaption>{kind === 'input' ? '输入' : '输出'}</figcaption>
+    </figure>
+  )
+}
+
+/** 卡片里两张并排：左边两个输入，右边两个输出 */
+export function PortsSim() {
+  return (
+    <div className="handbook-sim">
+      <section className="handbook-sim-section">
+        <p className="handbook-sim-title">输入与输出</p>
+        <div className="handbook-sim-row">
+          <PortsPanel kind="input" />
+          <PortsPanel kind="output" />
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/**
+ * 第六页：两种侧面结构都占 3×4。B 从最上面一格下来，驱动中间一格的元件；
+ * 最下面一行是 A、导线、中继器（朝右）、导线。
+ */
+function makeSideLevel(kind: 'breaker' | 'latch'): Level {
+  const cells = new Array<Cell | null>(COLS * ROWS).fill(null)
+  cells[2] = { type: 'input', id: 'B' }
+  cells[COLS + 2] = kind === 'breaker' ? { type: 'charger', dir: 2 } : { type: 'repeater', dir: 2 }
+  cells[COLS * 2] = { type: 'input', id: 'A' }
+  cells[COLS * 2 + 1] = { type: 'wire' }
+  cells[COLS * 2 + 2] = { type: 'repeater', dir: 1 }
+  cells[COLS * 2 + 3] = { type: 'wire' }
+  return { id: `handbook-${kind}`, name: '', cols: COLS, rows: ROWS, cells, tests: [] }
+}
+
+/** 断路器：B 充能时，上面的充能器把下面中继器的输出掐断 */
+function BreakerPanel({ both }: { both: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (ref.current) {
+      paint(ref.current, makeSideLevel('breaker'), { A: 1, B: both ? 1 : 0 }, 1)
+    }
+  }, [both])
+
+  return (
+    <figure className="handbook-sim-panel">
+      <canvas ref={ref} />
+      <figcaption>{both ? 'A = 1，B = 1' : 'A = 1，B = 0'}</figcaption>
+    </figure>
+  )
+}
+
+/**
+ * D 锁存器：先把 B = 1、A = 0 走两拍，让下面的中继器锁住 0；右图再把 A 拨上，
+ * 中继器仍然保持 0，这就是「两个都激活但下面的中继器不激活」。
+ */
+function LatchPanel({ both }: { both: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    if (ref.current) {
+      paint(
+        ref.current,
+        makeSideLevel('latch'),
+        { A: both ? 1 : 0, B: 1 },
+        both ? 1 : 2,
+        both
+          ? (sim) => {
+              sim.setInputs({ A: 0, B: 1 })
+              sim.step()
+              sim.step()
+            }
+          : undefined,
+      )
+    }
+  }, [both])
+
+  return (
+    <figure className="handbook-sim-panel">
+      <canvas ref={ref} />
+      <figcaption>{both ? 'A = 1，B = 1' : 'A = 0，B = 1'}</figcaption>
+    </figure>
+  )
+}
+
+/** 卡片里两组：上面断路器看抑制，下面 D 锁存器看保持 */
+export function BreakerLatchSim() {
+  return (
+    <div className="handbook-sim">
+      <section className="handbook-sim-section">
+        <p className="handbook-sim-title">断路器</p>
+        <div className="handbook-sim-row">
+          <BreakerPanel both={false} />
+          <BreakerPanel both />
+        </div>
+      </section>
+      <section className="handbook-sim-section">
+        <p className="handbook-sim-title">D 锁存器</p>
+        <div className="handbook-sim-row">
+          <LatchPanel both={false} />
+          <LatchPanel both />
         </div>
       </section>
     </div>

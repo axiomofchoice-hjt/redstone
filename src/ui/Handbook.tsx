@@ -2,8 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { CellType } from '../game/types'
 import { ToolIcon } from './ToolIcon'
 import { ChevronLeft, ChevronRight, CrossIcon } from './icons'
-import { BreakArt, LatchArt, PortsArt } from './HandbookArt'
-import { SourceSim, InverterSim, WireCrossSim } from './HandbookSim'
+import { SourceSim, InverterSim, PortsSim, BreakerLatchSim, WireCrossSim } from './HandbookSim'
 
 interface Props {
   onClose: () => void
@@ -39,6 +38,12 @@ const SOURCE_PARTS: RosterPart[] = [
 /** 第四页标题下的一张元件卡 */
 const NOT_PARTS: RosterPart[] = [{ type: 'not', name: '反相器' }]
 
+/** 第五页的两张元件卡：输入和输出，字母和第一页全家福一致 */
+const PORT_PARTS: RosterPart[] = [
+  { type: 'input', id: 'P', name: '输入' },
+  { type: 'output', id: 'Y', name: '输出' },
+]
+
 /** 元件图：图标加名字的小卡片，第一页的全家福和前几页的元件卡都用它 */
 function PartCards({ parts, pair = false }: { parts: RosterPart[]; pair?: boolean }) {
   const layout = parts.length === 1 ? 'single' : pair ? 'pair' : ''
@@ -60,8 +65,6 @@ interface Page {
   title: string
   /** 左栏示意图；没有就整页单栏排（例如简介和元件卡片那页） */
   art?: ReactNode
-  /** 示意图下面的小字 */
-  figureNote?: string
   /** 正文 */
   body: ReactNode
   /** 正文底部那句重点 */
@@ -136,44 +139,35 @@ const PAGES: Page[] = [
   },
   {
     title: '输入与输出',
-    art: <PortsArt />,
-    figureNote: '左边：输入朝四个方向发信号；右边：输出把四周的信号收进来。',
+    art: <PortsSim />,
+    artRight: true,
+    body: (
+      <>
+        <PartCards parts={PORT_PARTS} pair />
+        <ul className="handbook-list">
+          <li>输入和输出是关卡特有的元件。</li>
+          <li>游戏会指定动态的输入信号，并观察输出信号，由此判断测试是否通过。</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: '断路器与 D 锁存器',
+    art: <BreakerLatchSim />,
+    artRight: true,
     body: (
       <ul className="handbook-list">
         <li>
-          输入按拨的 0 / 1 朝四个方向同时发信号；点地图上的输入（交互模式）或波形行首的字母都能切换。
+          断路器是组合结构，充能器对着中继器的侧面摆放。当充能器输出 1 信号时，中继器被抑制，不输出信号，否则输出背后的信号。
         </li>
-        <li>输出收集四周朝它发出的信号，任意一个为 1 就是 1；自己不发信号。</li>
-      </ul>
-    ),
-    note: '输入是实心方块，输出是空心方块，字母写在中间。',
-  },
-  {
-    title: '中继器侧面锁存',
-    art: <LatchArt />,
-    figureNote: '三角形填实 = 输出被侧面顶住，原地保持。',
-    body: (
-      <ul className="handbook-list">
         <li>
-          中继器被侧面相邻、正面顶过来并且正在输出 1 的中继器顶住时，不再采样后方，输出原地保持。
+          D 锁存器也是组合结构，中继器 X 对着中继器 D
+          的侧面摆放。当中继器 X 输出 1 信号时，中继器 D 维持输出信号不变，否则输出背后的信号。
         </li>
-        <li>侧面信号回到 0 才重新采样，照样延迟 1 tick。</li>
-        <li>所以「后方接 D、侧面接一个由 E 驱动的中继器」就是一个 D 锁存器。</li>
+        <li>均有 1 tick 延迟。</li>
       </ul>
     ),
-    note: '空心 = 照常采样；填实 = 锁住不动。',
-  },
-  {
-    title: '充能器侧面断路',
-    art: <BreakArt />,
-    figureNote: '侧面被充能器顶住时，输出的那一段被掐断。',
-    body: (
-      <ul className="handbook-list">
-        <li>充能器正面顶住中继器的侧面并且输出 1 时，中继器的输出被掐断，相当于 Y = D ∧ ¬E。</li>
-        <li>断路那个 tick 按 0 采样，所以断开和恢复都跟着中继器晚 1 tick。</li>
-      </ul>
-    ),
-    note: '断路期间按 0 采样，不是保持。',
+    note: '断路器参考 Minecraft 红石比较器，D 锁存器参考 Minecraft 红石中继器的锁存功能。',
   },
 ]
 
@@ -219,12 +213,7 @@ export function Handbook({ onClose }: Props) {
 
   const go = (step: number) => setPage((value) => Math.min(total - 1, Math.max(0, value + step)))
 
-  const figure = current.art ? (
-    <figure className="handbook-art">
-      {current.art}
-      {current.figureNote ? <figcaption>{current.figureNote}</figcaption> : null}
-    </figure>
-  ) : null
+  const figure = current.art ? <figure className="handbook-art">{current.art}</figure> : null
 
   return (
     <div className="handbook-screen" role="dialog" aria-modal="true" aria-label="查看教程">
@@ -252,6 +241,7 @@ export function Handbook({ onClose }: Props) {
           className={[
             'handbook-page',
             current.wide ? 'wide' : '',
+            !current.wide && !current.art ? 'solo' : '',
             current.artRight ? 'art-right' : '',
           ]
             .filter(Boolean)

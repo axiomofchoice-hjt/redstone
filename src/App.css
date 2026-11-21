@@ -1322,6 +1322,12 @@ button.wave-tag:hover:not(:disabled) {
   width: min(920px, 100%);
 }
 
+/* 没有示意图的页：单栏居左，别把正文挤在双栏的左半边 */
+.handbook-page.solo {
+  display: block;
+  width: min(640px, 100%);
+}
+
 /* 图在正文右边：DOM 里正文在前（窄屏就正好排在图上边），电脑端把图挪到第二列 */
 .handbook-page.art-right .handbook-copy {
   grid-column: 1;
@@ -1357,21 +1363,7 @@ button.wave-tag:hover:not(:disabled) {
   box-shadow: 0 18px 44px rgb(23 32 48 / 8%);
 }
 
-.handbook-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
-.handbook-art figcaption {
-  color: var(--muted);
-  font-size: 12.5px;
-  line-height: 1.6;
-  text-align: center;
-}
-
-/* 教程第二、三页的状态图：每张都是真实引擎画出的小地图 */
+/* 教程第二、三、四页的状态图：每张都是真实引擎画出的小地图 */
 .handbook-sim {
   display: flex;
   flex-direction: column;
