@@ -58,7 +58,7 @@
   height: 50px;
   padding: 0 22px;
   border-radius: 11px;
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .btn.icon {
@@ -157,8 +157,8 @@ button:focus-visible,
   max-width: 420px;
   margin: 24px 0 0;
   color: var(--muted);
-  font-size: 15.5px;
-  line-height: 1.8;
+  font-size: 18px;
+  line-height: 1.7;
 }
 
 .landing-actions {
@@ -212,6 +212,12 @@ button:focus-visible,
   gap: 8px;
 }
 
+.level-head-actions .btn {
+  height: 42px;
+  padding: 0 18px;
+  font-size: 15px;
+}
+
 .chapters {
   display: flex;
   flex-direction: column;
@@ -232,7 +238,7 @@ button:focus-visible,
 .chapter-head h2 {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.14em;
 }
@@ -269,14 +275,14 @@ button:focus-visible,
 .level-no {
   color: var(--accent-strong);
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
 }
 
 .level-name {
   overflow: hidden;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -312,21 +318,21 @@ button:focus-visible,
 }
 
 .brand-name {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
 }
 
 .crumb {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
   min-width: 0;
 }
 
 .crumb-kicker {
   color: #6f7b91;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
@@ -336,7 +342,7 @@ button:focus-visible,
 .crumb-title {
   margin: 0;
   overflow: hidden;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: 0.01em;
   text-overflow: ellipsis;
@@ -349,6 +355,18 @@ button:focus-visible,
   align-items: center;
   gap: 8px;
   margin-left: auto;
+}
+
+/* 顶栏里的按钮跟着标题一起放大 */
+.appbar-actions .btn {
+  height: 42px;
+  padding: 0 17px;
+  font-size: 15px;
+}
+
+.appbar-actions .btn.icon {
+  width: 42px;
+  padding: 0;
 }
 
 /* 右上角的菜单：一个菜单键，展开成一条竖着的操作列表 */
@@ -840,10 +858,10 @@ button.wave-tag:hover:not(:disabled) {
 
 .inspector-hint {
   margin: 0;
-  color: #97a0b1;
+  color: var(--muted);
   font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  letter-spacing: 0.02em;
 }
 
 /* ────────────────────────── 手机端游戏 ────────────────────────── */
@@ -970,10 +988,10 @@ button.wave-tag:hover:not(:disabled) {
 
 /* 电脑端顶栏里跟 .btn 一样高，只显示状态，不进入回放 */
 .result.topbar {
-  height: 38px;
-  padding: 0 13px;
+  height: 42px;
+  padding: 0 14px;
   border-radius: 9px;
-  font-size: 13.5px;
+  font-size: 15px;
   cursor: default;
 }
 
@@ -1274,14 +1292,14 @@ button.wave-tag:hover:not(:disabled) {
 
 .handbook-heading h2 {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.01em;
 }
 
 .handbook-count {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13.5px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
 }
@@ -1394,7 +1412,7 @@ button.wave-tag:hover:not(:disabled) {
 .handbook-sim-title {
   margin: 0;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -1421,7 +1439,7 @@ button.wave-tag:hover:not(:disabled) {
 .handbook-sim-panel figcaption {
   margin-top: 7px;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 14px;
   text-align: center;
 }
 
@@ -1431,7 +1449,7 @@ button.wave-tag:hover:not(:disabled) {
 
 .handbook-copy h3 {
   margin: 0;
-  font-size: clamp(24px, 3vw, 32px);
+  font-size: clamp(27px, 3.375vw, 36px);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -1440,7 +1458,7 @@ button.wave-tag:hover:not(:disabled) {
 .handbook-lead {
   margin: 16px 0 0;
   color: var(--text);
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.85;
 }
 
@@ -1478,16 +1496,16 @@ button.wave-tag:hover:not(:disabled) {
 
 .handbook-roster-name {
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.2;
   text-align: center;
 }
 
 .handbook-list {
   margin: 16px 0 0;
-  padding-left: 18px;
+  padding-left: 20px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.85;
 }
 
@@ -1501,12 +1519,12 @@ button.wave-tag:hover:not(:disabled) {
 
 .handbook-note {
   margin: 20px 0 0;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-left: 3px solid var(--accent);
   border-radius: 0 8px 8px 0;
   background: var(--panel-2);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14.5px;
   line-height: 1.7;
 }
 
@@ -1531,10 +1549,10 @@ button.wave-tag:hover:not(:disabled) {
 }
 
 .handbook-nav {
-  height: 44px;
-  padding: 0 18px;
+  height: 46px;
+  padding: 0 20px;
   border-radius: 999px;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 
 .handbook-nav:disabled {
@@ -1603,7 +1621,7 @@ button.wave-tag:hover:not(:disabled) {
   }
 
   .handbook-copy h3 {
-    font-size: 24px;
+    font-size: 27px;
   }
 }
 
@@ -1680,7 +1698,7 @@ button.wave-tag:hover:not(:disabled) {
 
   .landing-copy p {
     max-width: none;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .landing-actions {
