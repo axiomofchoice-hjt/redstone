@@ -3,22 +3,11 @@ import type { CellType } from '../game/types'
 import { ToolIcon } from './ToolIcon'
 import { ChevronLeft, ChevronRight, CrossIcon } from './icons'
 import { BreakArt, LatchArt, PortsArt } from './HandbookArt'
-import { WireCrossSim } from './HandbookSim'
+import { SourceSim, WireCrossSim } from './HandbookSim'
 
 interface Props {
   onClose: () => void
 }
-
-/** 剩下三种元件的速查条目，和元件栏用同一套图标 */
-const ACTIVE_PARTS: { type: CellType; name: string; desc: string }[] = [
-  { type: 'charger', name: '充能器', desc: '朝正面一个方向给相邻元件供能。' },
-  {
-    type: 'repeater',
-    name: '中继器',
-    desc: '读后方，延迟 1 tick 输出到正面；侧面被顶住会锁存或断路。',
-  },
-  { type: 'not', name: '反相器', desc: '不读导线；四面都能被充能器 / 中继器正面顶住，被顶住且对方输出 1 时输出 0，否则 1，晚 1 tick，输出不分方向。' },
-]
 
 /** 元件卡上的内容：图标用哪一种元件、写什么名字 */
 interface RosterPart {
@@ -40,6 +29,12 @@ const ROSTER: RosterPart[] = [
 
 /** 第二页只讲导线和交叉导线：就是第一页全家福里的前两种 */
 const WIRE_PARTS = ROSTER.slice(0, 2)
+
+/** 第三页的两张元件卡：只留图标和名字，说明都写在正文列表里 */
+const SOURCE_PARTS: RosterPart[] = [
+  { type: 'charger', name: '充能器' },
+  { type: 'repeater', name: '中继器' },
+]
 
 /** 元件图：图标加名字的小卡片，第一页的全家福和第二页的两张都用它 */
 function PartCards({ parts, pair = false }: { parts: RosterPart[]; pair?: boolean }) {
@@ -103,26 +98,37 @@ const PAGES: Page[] = [
     note: '参考 Minecraft 物品：红石粉。',
   },
   {
-    title: '充能器、中继器、反相器',
+    title: '充能器和中继器',
     wide: true,
     body: (
       <>
-        <p className="handbook-lead">充能器在同一 tick 生效，中继器和反相器晚 1 tick；充能器和中继器只朝正面输出，反相器不分方向、四面都送。</p>
-        <div className="handbook-parts compact">
-          {ACTIVE_PARTS.map((part) => (
-            <div className="handbook-part" key={part.type}>
-              <span className="handbook-glyph">
-                <ToolIcon type={part.type} dir={0} size={30} />
-              </span>
-              <p>
-                <b>{part.name}</b>
-                {part.desc}
-              </p>
-            </div>
-          ))}
-        </div>
+        <PartCards parts={SOURCE_PARTS} pair />
+        <ul className="handbook-list">
+          <li>充能器和中继器将信号从后面传递到前面，即单向传输信号。</li>
+          <li>充能器没有延迟，中继器有 1 tick 延迟。</li>
+          <li>它们还能作为反相器的输入（具体见下一页：反相器）。</li>
+        </ul>
+        <p className="handbook-note">参考 Minecraft 物品：红石中继器。</p>
+        <SourceSim />
       </>
     ),
+  },
+  {
+    title: '反相器',
+    wide: true,
+    body: (
+      <>
+        <p className="handbook-lead">
+          反相器把输入反过来：被充能器或中继器的正面顶住、并且对方正在输出 1 时，输出 0；否则输出 1，晚 1 tick 生效。
+        </p>
+        <ul className="handbook-list">
+          <li>它不读导线：导线或输入端口直接接到旁边，它不会有反应；要先用充能器 / 中继器把信号送进来。</li>
+          <li>它不分方向：四面都能被充能器 / 中继器的正面顶住；输出也从四面送出去，不用转朝向。</li>
+          <li>上一页的充能器和中继器，正面顶住它就是在给它输入。</li>
+        </ul>
+      </>
+    ),
+    note: '反相器不分方向：四面都能被顶住，输出也从四面出去。',
   },
   {
     title: '输入与输出',

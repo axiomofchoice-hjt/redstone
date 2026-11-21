@@ -1397,6 +1397,12 @@ button.wave-tag:hover:not(:disabled) {
   gap: 24px;
 }
 
+/* 第三页正文下面的元件图：和示意图一样包在圆角卡片里，宽一点、靠左对齐正文 */
+.handbook-figures {
+  max-width: 520px;
+  margin: 24px 0 0;
+}
+
 .handbook-sim-panel {
   min-width: 0;
   margin: 0;
@@ -1496,28 +1502,6 @@ button.wave-tag:hover:not(:disabled) {
   line-height: 1.7;
 }
 
-.handbook-parts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-  margin-top: 20px;
-}
-
-/* 三种有源元件那页：卡片别被宽屏拉得太散 */
-.handbook-parts.compact {
-  max-width: 760px;
-}
-
-.handbook-part {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--panel);
-}
-
 .handbook-glyph {
   display: grid;
   place-items: center;
@@ -1526,21 +1510,6 @@ button.wave-tag:hover:not(:disabled) {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--panel-2);
-}
-
-.handbook-part p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12.5px;
-  line-height: 1.65;
-}
-
-.handbook-part b {
-  display: block;
-  margin-bottom: 2px;
-  color: var(--text);
-  font-size: 13.5px;
-  font-weight: 600;
 }
 
 .handbook-foot {
