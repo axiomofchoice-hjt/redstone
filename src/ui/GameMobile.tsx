@@ -100,8 +100,8 @@ export function GameMobile({
   onExport,
   onLevels,
 }: Props) {
-  // 本关目标是一张盖住全屏的卡片，点外面、点「好的」或按 Esc 关掉
-  const [infoOpen, setInfoOpen] = useState(false)
+  // 进关先把本关目标亮出来；自由模式没有目标，不弹
+  const [infoOpen, setInfoOpen] = useState(!free)
   // 查看教程盖在整屏上面，和菜单、目标页互不影响
   const [handbookOpen, setHandbookOpen] = useState(false)
 

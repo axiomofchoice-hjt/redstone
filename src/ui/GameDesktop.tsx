@@ -110,7 +110,8 @@ export function GameDesktop({
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 })
   const viewport = useRef<Viewport | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [infoOpen, setInfoOpen] = useState(false)
+  // 进关先把本关目标亮出来；自由模式没有目标，不弹
+  const [infoOpen, setInfoOpen] = useState(!free)
   const [handbookOpen, setHandbookOpen] = useState(false)
 
   const zoomTo = (zoom: number) => {
