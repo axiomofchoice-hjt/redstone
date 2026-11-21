@@ -117,8 +117,8 @@ export default function App() {
   const [tool, setTool] = useState<Tool>({ type: 'wire' })
   // 再点一次「交互」还原成上一次选的元件（手机端交互时元件栏换成了波形图）
   const lastTool = useRef<Tool>({ type: 'wire' })
-  // 电脑端左键模式：默认放置（只填空格、不覆盖已有元件），切到覆盖才会替换
-  const [mode, setMode] = useState<EditMode>('place')
+  // 电脑端左键模式：默认覆盖（放元件直接替换已有元件），切到放置才会只填空格
+  const [mode, setMode] = useState<EditMode>('overwrite')
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   // 最近一次「运行测试」的结果：改电路、拨输入都不清，点「测试」或换关才变
   const [run, setRun] = useState<RunState | null>(null)
@@ -324,10 +324,10 @@ export default function App() {
     const level = { ...next, cells: next.cells.slice() }
     const sim = new Simulation(level)
     setEditing({ level, sim, history: [waveSample(level, sim)] })
-    // 换关后元件选择也回到这关的默认元件，模式回到默认的放置，别把上一关的选择带过来
+    // 换关后元件选择也回到这关的默认元件，模式回到默认的覆盖，别把上一关的选择带过来
     lastTool.current = { type: defaultTool(level) }
     setTool(lastTool.current)
-    setMode('place')
+    setMode('overwrite')
     setDir(INITIAL_DIR)
     setInputs({})
     // 换关：上一关的结果不属于这一关
