@@ -17,7 +17,7 @@ const ACTIVE_PARTS: { type: CellType; name: string; desc: string }[] = [
     name: '中继器',
     desc: '读后方，延迟 1 tick 输出到正面；侧面被顶住会锁存或断路。',
   },
-  { type: 'not', name: '反相器', desc: '读后方，延迟 1 tick 输出反相。' },
+  { type: 'not', name: '反相器', desc: '不读导线；四面都能被充能器 / 中继器正面顶住，被顶住且对方输出 1 时输出 0，否则 1，晚 1 tick，输出不分方向。' },
 ]
 
 /** 元件卡上的内容：图标用哪一种元件、写什么名字 */
@@ -107,7 +107,7 @@ const PAGES: Page[] = [
     wide: true,
     body: (
       <>
-        <p className="handbook-lead">三种元件都只朝正面输出；中继器和反相器还要晚 1 tick 才生效。</p>
+        <p className="handbook-lead">充能器在同一 tick 生效，中继器和反相器晚 1 tick；充能器和中继器只朝正面输出，反相器不分方向、四面都送。</p>
         <div className="handbook-parts compact">
           {ACTIVE_PARTS.map((part) => (
             <div className="handbook-part" key={part.type}>
