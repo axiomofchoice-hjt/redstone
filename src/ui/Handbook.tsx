@@ -99,7 +99,8 @@ const PAGES: Page[] = [
   },
   {
     title: '充能器和中继器',
-    wide: true,
+    art: <SourceSim />,
+    artRight: true,
     body: (
       <>
         <PartCards parts={SOURCE_PARTS} pair />
@@ -109,7 +110,6 @@ const PAGES: Page[] = [
           <li>它们还能作为反相器的输入（具体见下一页：反相器）。</li>
         </ul>
         <p className="handbook-note">参考 Minecraft 物品：红石中继器。</p>
-        <SourceSim />
       </>
     ),
   },

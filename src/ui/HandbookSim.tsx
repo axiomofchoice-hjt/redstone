@@ -241,19 +241,17 @@ function SourcePanel({ spec }: { spec: SourceSpec }) {
 /** 卡片里两组图：充能器看方向，中继器看 1 tick 延迟 */
 export function SourceSim() {
   return (
-    <div className="handbook-art handbook-figures">
-      <div className="handbook-sim">
-        {SOURCE_SECTIONS.map((section) => (
-          <section className="handbook-sim-section" key={section.title}>
-            <p className="handbook-sim-title">{section.title}</p>
-            <div className="handbook-sim-row">
-              {section.panels.map((spec) => (
-                <SourcePanel key={spec.label} spec={spec} />
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+    <div className="handbook-sim">
+      {SOURCE_SECTIONS.map((section) => (
+        <section className="handbook-sim-section" key={section.title}>
+          <p className="handbook-sim-title">{section.title}</p>
+          <div className="handbook-sim-row">
+            {section.panels.map((spec) => (
+              <SourcePanel key={spec.label} spec={spec} />
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   )
 }

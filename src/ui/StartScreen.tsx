@@ -27,7 +27,7 @@ export function StartScreen({ onStart, onHandbook }: Props) {
         <div className="landing-content">
           <div className="landing-copy">
             <h1>红石电路</h1>
-            <p>在网格上摆放导线、中继器和逻辑门，让信号按你的逻辑走。</p>
+            <p>简化红石电路模拟器 · 解谜游戏 · 教学工具</p>
 
             {narrow ? (
               <div className="landing-art">

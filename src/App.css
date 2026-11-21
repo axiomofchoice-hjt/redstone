@@ -1371,7 +1371,7 @@ button.wave-tag:hover:not(:disabled) {
   text-align: center;
 }
 
-/* 第二页四张状态图：每张都是真实引擎画出的小地图 */
+/* 教程第二、三页的状态图：每张都是真实引擎画出的小地图 */
 .handbook-sim {
   display: flex;
   flex-direction: column;
@@ -1395,12 +1395,6 @@ button.wave-tag:hover:not(:disabled) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
-}
-
-/* 第三页正文下面的元件图：和示意图一样包在圆角卡片里，宽一点、靠左对齐正文 */
-.handbook-figures {
-  max-width: 520px;
-  margin: 24px 0 0;
 }
 
 .handbook-sim-panel {
