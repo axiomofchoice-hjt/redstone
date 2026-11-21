@@ -36,10 +36,14 @@ const SOURCE_PARTS: RosterPart[] = [
   { type: 'repeater', name: '中继器' },
 ]
 
-/** 元件图：图标加名字的小卡片，第一页的全家福和第二页的两张都用它 */
+/** 第四页标题下的一张元件卡 */
+const NOT_PARTS: RosterPart[] = [{ type: 'not', name: '反相器' }]
+
+/** 元件图：图标加名字的小卡片，第一页的全家福和前几页的元件卡都用它 */
 function PartCards({ parts, pair = false }: { parts: RosterPart[]; pair?: boolean }) {
+  const layout = parts.length === 1 ? 'single' : pair ? 'pair' : ''
   return (
-    <div className={pair ? 'handbook-roster pair' : 'handbook-roster'}>
+    <div className={['handbook-roster', layout].filter(Boolean).join(' ')}>
       {parts.map((part) => (
         <div className="handbook-roster-item" key={`${part.type}-${part.id ?? ''}`}>
           <span className="handbook-glyph">
@@ -98,7 +102,7 @@ const PAGES: Page[] = [
     note: '参考 Minecraft 物品：红石粉。',
   },
   {
-    title: '充能器和中继器',
+    title: '充能器与中继器',
     art: <SourceSim />,
     artRight: true,
     body: (
@@ -118,6 +122,7 @@ const PAGES: Page[] = [
     wide: true,
     body: (
       <>
+        <PartCards parts={NOT_PARTS} />
         <p className="handbook-lead">
           反相器把输入反过来：被充能器或中继器的正面顶住、并且对方正在输出 1 时，输出 0；否则输出 1，晚 1 tick 生效。
         </p>
@@ -128,7 +133,7 @@ const PAGES: Page[] = [
         </ul>
       </>
     ),
-    note: '反相器不分方向：四面都能被顶住，输出也从四面出去。',
+    note: '参考 Minecraft 物品：红石火把。',
   },
   {
     title: '输入与输出',

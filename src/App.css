@@ -1455,9 +1455,16 @@ button.wave-tag:hover:not(:disabled) {
   background: var(--panel);
 }
 
-/* 第二页标题下的两张元件卡：固定大小，不跟着栏宽拉伸 */
+/* 第二、三页标题下的两张元件卡：固定大小，不跟着栏宽拉伸 */
 .handbook-roster.pair {
   grid-template-columns: repeat(2, 96px);
+  justify-content: start;
+  margin-top: 18px;
+}
+
+/* 第四页标题下只有一张反相器卡：和上面两张一样宽，靠左 */
+.handbook-roster.single {
+  grid-template-columns: 96px;
   justify-content: start;
   margin-top: 18px;
 }
