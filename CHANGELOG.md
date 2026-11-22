@@ -4,6 +4,10 @@
 
 ## [未发布]
 
+## [0.2.1] - 2026-11-22
+
+第十九关补上参考答案，目标说明改成按下边沿检测脉冲长度。
+
 ### 新增
 
 - 第十九关补上参考答案：布局用导出的 20×20 地图，保存时的状态是 P=0、只有输出 2 为 1（tick 1317）
@@ -265,6 +269,7 @@
 - `index.html` 中文化，加移动端 viewport、theme-color 与 iOS 全屏 meta
 - 清理 Vite 模板遗留资源
 
-[未发布]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.2.0...HEAD
+[未发布]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/axiomofchoice-hjt/redstone/releases/tag/v0.1.0
