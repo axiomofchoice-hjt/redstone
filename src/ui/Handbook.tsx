@@ -1,8 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { CellType } from '../game/types'
 import { ToolIcon } from './ToolIcon'
 import { ChevronLeft, ChevronRight, CrossIcon } from './icons'
 import { SourceSim, InverterSim, PortsSim, BreakerLatchSim, WireCrossSim } from './HandbookSim'
+import { trapTab, useFocusTrap } from './focus-trap'
 
 interface Props {
   onClose: () => void
@@ -181,13 +182,19 @@ export function Handbook({ onClose }: Props) {
   const [page, setPage] = useState(0)
   const total = PAGES.length
   const current = PAGES[page]
+  const screen = useRef<HTMLDivElement>(null)
+  useFocusTrap(screen)
 
   // 按 Esc 关闭，← / → 翻页；和菜单、关卡信息一个习惯。
   // 教程盖在最上面时，底下的地图 / 元件栏不该再收到键盘：在捕获阶段拦住，
-  // 不让 ← / → 同时把地图平移走，Esc 也只会关教程。
+  // 不让 ← / → 同时把地图平移走，Esc 也只会关教程；Tab 只在教程里的按钮之间循环。
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return
+      if (event.key === 'Tab') {
+        trapTab(event, screen.current)
+        return
+      }
       event.stopPropagation()
       if (event.key === 'Escape') {
         event.preventDefault()
@@ -218,7 +225,14 @@ export function Handbook({ onClose }: Props) {
   const figure = current.art ? <figure className="handbook-art">{current.art}</figure> : null
 
   return (
-    <div className="handbook-screen" role="dialog" aria-modal="true" aria-label="查看教程">
+    <div
+      className="handbook-screen"
+      role="dialog"
+      aria-modal="true"
+      aria-label="查看教程"
+      ref={screen}
+      tabIndex={-1}
+    >
       <header className="handbook-top">
         <div className="handbook-heading">
           <h2>查看教程</h2>

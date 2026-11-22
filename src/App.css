@@ -72,6 +72,12 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
+/* 弹层本身只是焦点的落脚点（tabIndex=-1），Tab 进到里面的按钮后再画按钮的焦点框 */
+.goal-card:focus,
+.handbook-screen:focus {
+  outline: none;
+}
+
 /* ────────────────────────── 首页 ────────────────────────── */
 
 .landing {
