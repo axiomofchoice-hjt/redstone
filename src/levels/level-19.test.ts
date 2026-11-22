@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { runLevel } from '../game/sim'
+import { runLevel, Simulation } from '../game/sim'
 import type { Cell } from '../game/types'
 import { level19 } from './level-19'
 
@@ -45,5 +45,13 @@ describe('第十九关 脉冲长度感应器', () => {
     expect(run.passed).toBe(false)
     // 落沿之后应该还有一路亮着，这里四个都灭了
     expect(run.outcomes[0].passed).toBe(false)
+  })
+
+  it('导出的参考解能通过全部测试', () => {
+    const solution = level19.solution!
+    const sim = new Simulation({ ...level19, cells: solution.cells })
+    sim.restore(solution.state)
+    const run = runLevel({ ...level19, cells: solution.cells }, sim)
+    expect(run.passed).toBe(true)
   })
 })
