@@ -13,12 +13,14 @@ export interface WaveSample {
 
 /**
  * 给当前这一 tick 拍一帧采样。
- * 输出按关卡声明的端口逐个记：没放到地图上的输出就是 0；
- * 输入记的是玩家设过的值，输入元件删掉后这个值也还留着（sim 里会一直保存）。
+ * 输出读实时值（`liveOutput`），和地图、行尾显示的是同一个「现在」；
+ * 测试检查用的每个 tick 开头采样是另一份，不能拿来画波形。
+ * 没放到地图上的输出就是 0；输入记的是玩家设过的值，输入元件删掉后这个值也还留着
+ * （sim 里会一直保存）。
  */
 export function waveSample(level: Level, sim: Simulation): WaveSample {
   const outputs: Record<string, 0 | 1> = {}
-  for (const id of level.outputs ?? []) outputs[id] = sim.output(id) ? 1 : 0
+  for (const id of level.outputs ?? []) outputs[id] = sim.liveOutput(id) ? 1 : 0
   return { tick: sim.tick, inputs: sim.inputValues(), outputs }
 }
 

@@ -206,7 +206,8 @@ export default function App() {
   // 画布只按需取可见格子的状态，不再每帧生成整张 powers
   const powerAt = useCallback((index: number) => sim.powerAt(index), [sim])
   const lockedAt = useCallback((index: number) => sim.isLocked(index), [sim])
-  const outputAt = useCallback((id: string) => sim.output(id), [sim])
+  // 行尾显示「现在」，和地图一样读实时输出；`output()` 是测试用的 tick 开头采样
+  const outputAt = useCallback((id: string) => sim.liveOutput(id), [sim])
 
   /** 改一格元件并重建仿真；锁住的格子不动 */
   const writeCell = (index: number, next: Cell | null) => {

@@ -99,6 +99,36 @@ describe('波形采样', () => {
     expect(waveRuns(history, 'outputs', 'Z', 41)).toEqual([{ from: 0, to: 32, value: 0 }])
   })
 
+  it('波形读实时输出：5 级中继器链第 5 tick 就亮，测试采样还停在上一拍', () => {
+    const level: Level = {
+      id: 'chain',
+      name: 'chain',
+      cols: 7,
+      rows: 1,
+      inputs: ['A'],
+      outputs: ['Y'],
+      cells: [
+        { type: 'input', id: 'A' },
+        { type: 'repeater', dir: 1 },
+        { type: 'repeater', dir: 1 },
+        { type: 'repeater', dir: 1 },
+        { type: 'repeater', dir: 1 },
+        { type: 'repeater', dir: 1 },
+        { type: 'output', id: 'Y' },
+      ],
+      tests: [],
+    }
+    const sim = new Simulation(level)
+    sim.setInputs({ A: 1 })
+    for (let i = 0; i < 5; i++) sim.step()
+    expect(sim.tick).toBe(5)
+    // 测试检查用的 output() 是这一拍开头的采样，第 5 个中继器还没算进去
+    expect(sim.output('Y')).toBe(false)
+    // 地图、波形和行尾读实时输出，这一拍已经亮了
+    expect(sim.liveOutput('Y')).toBe(true)
+    expect(waveSample(level, sim).outputs.Y).toBe(1)
+  })
+
   it('采样把声明的输出都记上，没放的输出记 0', () => {
     const level: Level = {
       id: 't',

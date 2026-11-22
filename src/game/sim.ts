@@ -211,6 +211,17 @@ export class Simulation {
   }
 
   /**
+   * 当前这一刻的实时输出，地图、波形和行尾显示都用它。
+   *
+   * `output()` 是 `step()` 开头采的那一份，专门给测试检查和回放对齐；它要等下一次
+   * `step()` 才会看到这一拍刚算好的延迟元件。显示要的是「现在」，所以走这里，
+   * 5 级中继器链跑到第 5 tick 就能亮，不用等到第 6 tick。
+   */
+  liveOutput(id: string): boolean {
+    return this.collectOutputs()[id] ?? false
+  }
+
+  /**
    * 按当前内部状态重新采集一遍输出。
    *
    * `step()` 是在换上新状态之前采样的，跑完一拍后 `output()` 还停在这一拍开头看到的值；
