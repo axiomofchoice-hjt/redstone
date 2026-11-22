@@ -4,6 +4,10 @@
 
 ## [未发布]
 
+## [0.2.2] - 2026-11-22
+
+第十二关参考解换成紧凑版，补上能测出相邻窄脉冲的测试。
+
 ### 修复
 
 - 第十二关「脉冲过滤器」参考解换成按「连续 3 tick 都是 1」判定的紧凑版（只占 10×10 的上 4 行、29 个元件）：原来只看首尾两拍（A(t-3) ∧ A(t-5)），`1 0 1` 这种中间断开的窄脉冲会被当成 3 tick 宽的脉冲放过去。`state` 取 A=0 跑稳之后（tick 375）。测试补三组相邻脉冲：两个 1 tick 脉冲隔 1 tick、两个 2 tick 脉冲隔 1 tick、宽脉冲后紧跟窄脉冲，原来的四组都是孤立脉冲，测不出两种判定的区别；单元测试再加一组 8 tick 以内全部波形的穷举对拍，并把旧参考解留作反例（`src/levels/level-12.ts`）
@@ -273,7 +277,8 @@
 - `index.html` 中文化，加移动端 viewport、theme-color 与 iOS 全屏 meta
 - 清理 Vite 模板遗留资源
 
-[未发布]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.2.1...HEAD
+[未发布]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/axiomofchoice-hjt/redstone/releases/tag/v0.1.0
