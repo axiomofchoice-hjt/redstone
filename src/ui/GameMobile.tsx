@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { LevelRun } from '../game/sim'
 import type { Dir, Level } from '../game/types'
 import { Board } from './Board'
@@ -27,6 +27,8 @@ interface Props {
   free: boolean
   /** 这次进关要不要自动弹本关目标：只有第一次进这一关才弹 */
   goalOnEnter: boolean
+  /** 目标卡片关掉了，外面把「自动弹」消费掉，跨断点重挂载不再弹 */
+  onGoalClose: () => void
   tool: Tool
   dir: Dir
   run: LevelRun | null
@@ -70,6 +72,7 @@ export function GameMobile({
   level,
   free,
   goalOnEnter,
+  onGoalClose,
   tool,
   dir,
   run,
@@ -105,6 +108,11 @@ export function GameMobile({
 }: Props) {
   // 第一次进这一关才自动把本关目标亮出来；自由模式没有目标，不弹
   const [infoOpen, setInfoOpen] = useState(!free && goalOnEnter)
+  // 关掉卡片后就把「这次进关自动弹」消费掉：跨 1024px 断点会重挂载，
+  // 不消费的话新挂载又拿 goalOnEnter 初始化 infoOpen，卡片会再弹一次
+  useEffect(() => {
+    if (!infoOpen) onGoalClose()
+  }, [infoOpen, onGoalClose])
   // 查看教程盖在整屏上面，和菜单、目标页互不影响
   const [handbookOpen, setHandbookOpen] = useState(false)
 

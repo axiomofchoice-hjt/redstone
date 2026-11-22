@@ -104,6 +104,9 @@ export default function App() {
   const [progress, setProgress] = useState<Progress>(loadProgress)
   // 这次进入关卡要不要自动弹本关目标；只有第一次进这一关才弹
   const [goalOnEnter, setGoalOnEnter] = useState(false)
+  // 目标卡片关掉后由游戏界面通知这里消费掉：跨 1024px 断点会换布局重挂载，
+  // 不清掉的话新挂载的界面会拿它再初始化一次，卡片又弹出来
+  const dismissGoal = useCallback(() => setGoalOnEnter(false), [])
   // 首页的「查看教程」：教程页和游戏内菜单里的是同一个，进游戏前也能先看一眼规则
   const [handbookOpen, setHandbookOpen] = useState(false)
   // 仿真在后台推进，只在画面有变化时重绘
@@ -475,6 +478,7 @@ export default function App() {
         level={level}
         free={free}
         goalOnEnter={goalOnEnter}
+        onGoalClose={dismissGoal}
         tool={tool}
         mode={mode}
         dir={dir}
@@ -518,6 +522,7 @@ export default function App() {
       level={level}
       free={free}
       goalOnEnter={goalOnEnter}
+      onGoalClose={dismissGoal}
       tool={tool}
       dir={dir}
       run={run?.result ?? null}

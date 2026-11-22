@@ -31,6 +31,8 @@ interface Props {
   free: boolean
   /** 这次进关要不要自动弹本关目标：只有第一次进这一关才弹 */
   goalOnEnter: boolean
+  /** 目标卡片关掉了，外面把「自动弹」消费掉，跨断点重挂载不再弹 */
+  onGoalClose: () => void
   tool: Tool
   /** 电脑端左键模式：放置不覆盖已有元件、点输入元件拨 0 / 1 */
   mode: EditMode
@@ -75,6 +77,7 @@ export function GameDesktop({
   level,
   free,
   goalOnEnter,
+  onGoalClose,
   tool,
   mode,
   dir,
@@ -115,6 +118,11 @@ export function GameDesktop({
   const [menuOpen, setMenuOpen] = useState(false)
   // 第一次进这一关才自动把本关目标亮出来；自由模式没有目标，不弹
   const [infoOpen, setInfoOpen] = useState(!free && goalOnEnter)
+  // 关掉卡片后就把「这次进关自动弹」消费掉：跨 1024px 断点会重挂载，
+  // 不消费的话新挂载又拿 goalOnEnter 初始化 infoOpen，卡片会再弹一次
+  useEffect(() => {
+    if (!infoOpen) onGoalClose()
+  }, [infoOpen, onGoalClose])
   const [handbookOpen, setHandbookOpen] = useState(false)
 
   const zoomTo = (zoom: number) => {
