@@ -4,23 +4,23 @@
 
 ## 快速开始
 
-需要 Node.js 20.19+ 和 pnpm。
+需要 Node.js 20.19+ 和 npm。
 
 ```bash
-pnpm install
-pnpm dev          # http://localhost:5173
+npm install
+npm run dev       # http://localhost:5173
 ```
 
 其他命令：
 
 | 命令 | 说明 |
 | --- | --- |
-| `pnpm build` | 类型检查并打包到 `dist/` |
-| `pnpm build:only` | 跳过类型检查直接打包 |
-| `pnpm preview` | 预览打包结果 |
-| `pnpm typecheck` | 只做 TypeScript 类型检查 |
-| `pnpm lint` | oxlint 静态检查 |
-| `pnpm test` | 运行 vitest 单元测试 |
+| `npm run build` | 类型检查并打包到 `dist/` |
+| `npm run build:only` | 跳过类型检查直接打包 |
+| `npm run preview` | 预览打包结果 |
+| `npm run typecheck` | 只做 TypeScript 类型检查 |
+| `npm run lint` | oxlint 静态检查 |
+| `npm test` | 运行 vitest 单元测试 |
 
 ## 文档
 

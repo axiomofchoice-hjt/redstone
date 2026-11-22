@@ -22,25 +22,20 @@ jobs:
       - name: 检出
         uses: actions/checkout@v4
 
-      - name: 安装 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11
-
       - name: 安装 Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
+          cache: npm
 
       - name: 安装依赖
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: 测试
-        run: pnpm test
+        run: npm test
 
       - name: 构建 dist
-        run: pnpm build
+        run: npm run build
 
       - name: 发布到 gh-pages
         uses: peaceiris/actions-gh-pages@v4
