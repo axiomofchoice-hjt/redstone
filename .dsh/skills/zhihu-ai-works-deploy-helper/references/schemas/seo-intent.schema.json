@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "title": "AI Works seo-intent collection file v1",
+  "description": "UTF-8 without BOM; max 65536 bytes. Producer also validates UTF-8 byte limits, positive int64 timestamps, unique record IDs and total Query count <= 50.",
+  "required": [
+    "schema_version",
+    "collection_id",
+    "project_name",
+    "intents"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "collection_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "project_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "intents": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "intent_id",
+          "intent",
+          "queries",
+          "first_observed_at_ms",
+          "last_observed_at_ms"
+        ],
+        "properties": {
+          "intent_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "intent": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "queries": {
+            "type": "array",
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          },
+          "first_observed_at_ms": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9223372036854775807
+          },
+          "last_observed_at_ms": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9223372036854775807
+          }
+        }
+      }
+    }
+  }
+}

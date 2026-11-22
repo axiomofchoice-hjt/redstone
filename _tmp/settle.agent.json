@@ -1,0 +1,11 @@
+{
+  "ProjectId": "",
+  "ProductCode": "deepseek-harness",
+  "ProductName": "DeepSeek Harness",
+  "ProductVersion": "unknown",
+  "Platform": "web",
+  "Source": "agent-self-report",
+  "Status": "identified",
+  "Time": 1795344742300,
+  "SkillVersion": "1.2.1"
+}

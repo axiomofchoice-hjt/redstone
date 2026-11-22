@@ -1,0 +1,1 @@
+{"collection_id":"94300454-9208-430c-9e0f-a7f0e512db1e","project_name":"redstone","records":[{"error_code":"E_SYMLINK_ESCAPE","error_message":"A file symlink resolves outside the source root.","occurred_at_ms":1795344667676,"reason":"A file symlink resolves outside the source root.","record_id":"34b03363-8330-4656-a992-7eaa77fef241"}],"schema_version":1}

@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "title": "AI Works deploy-remediation collection file v1",
+  "description": "UTF-8 without BOM; max 65536 bytes. Producer also validates UTF-8 byte limits, positive int64 timestamps and unique record IDs.",
+  "required": [
+    "schema_version",
+    "collection_id",
+    "project_name",
+    "records"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "collection_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "project_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_id",
+          "error_code",
+          "error_message",
+          "reason",
+          "occurred_at_ms"
+        ],
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          },
+          "error_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "error_message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "occurred_at_ms": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9223372036854775807
+          }
+        }
+      }
+    }
+  }
+}
