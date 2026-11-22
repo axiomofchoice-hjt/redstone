@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import type { Cell, Dir, Level } from '../game/types'
 import { baseCell } from './board-layout'
-import { cellIndexAt, gridLine } from './board-hit'
+import { cellIndexAt, cellIndexAtClamped, gridLine } from './board-hit'
 import {
   clampCamera,
   clampZoom,
@@ -14,6 +14,7 @@ import {
 import { drawComponent, linkedDirs } from './glyph'
 import { advanceFade, tweenValue, type Fade } from './fade'
 import { isTypingTarget } from './keyboard'
+import { selectionBetween, type Selection } from './selection'
 import { useMediaQuery } from './useMediaQuery'
 import type { Tool } from './tools'
 
@@ -35,6 +36,12 @@ interface Props {
   previewDir?: Dir
   /** 电脑端放置模式：输入元件可以拨，已有元件不会被覆盖，悬停时别画覆盖预览 */
   placeMode?: boolean
+  /** 电脑端 Ctrl + 点击 / 拖动画出的矩形选区，由外面持有（操作按钮也放在外面） */
+  selection?: Selection | null
+  /** 框选结果：松手时交给外面，点到别处时传 null 清掉 */
+  onSelect?: (selection: Selection | null) => void
+  /** 回放时地图只是旁观，不能框选 */
+  selectable?: boolean
   /**
    * 电脑端工作台：相机由外面持有（右侧滑轨缩放），滚轮换朝向，
    * 左键按下就放、拖过去连续放；手机上不传，保留拖动平移 / 双指缩放。
@@ -52,6 +59,9 @@ const BG = '#e8eef7'
 const GRID = '#dfe6f2'
 const MAP_BG = '#ffffff'
 const CHECKER = '#f1f5fc'
+/** 框选用蓝色，和橙色的放置 / 悬停预览区分开 */
+const SELECT_FILL = 'rgba(63, 107, 255, 0.10)'
+const SELECT_LINE = 'rgba(47, 84, 220, 0.95)'
 /** 滚轮每像素的缩放速度（手机 / 平板接鼠标时用） */
 const WHEEL_ZOOM = 0.0015
 /** 电脑端滚轮要攒到这个量才转一格，触控板的小幅滚动不会一滑转好几圈 */
@@ -126,6 +136,9 @@ export function Board({
   preview = null,
   previewDir,
   placeMode = false,
+  selection = null,
+  onSelect,
+  selectable = false,
   workbench,
   viewportRef,
 }: Props) {
@@ -146,6 +159,10 @@ export function Board({
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<Pinch | null>(null)
   const stroke = useRef<Stroke | null>(null)
+  /** 电脑端 Ctrl + 拖动框选：起点格子；拖到哪一格由 pointermove 更新，松手才交给外面 */
+  const selecting = useRef<{ id: number; anchor: number } | null>(null)
+  /** 拖动过程中的临时选区，只让画布自己重渲染，不惊动整页 */
+  const [draft, setDraft] = useState<Selection | null>(null)
   /** 最近一次按下是不是手指，用来区分右键和触屏长按 */
   const touched = useRef(false)
   /** 电脑端滚轮累积量，攒够 WHEEL_STEP 才转一格 */
@@ -160,6 +177,8 @@ export function Board({
   // 每格的通电渐变进度。rAF 只推进这张表、重画画布，不触发 React 重渲染
   const fades = useRef(new Map<number, Fade>())
   const reduceMotion = useMediaQuery(REDUCE_MOTION_QUERY)
+  // 正在框选时画临时矩形；松手后画外面保存下来的选区
+  const shownSelection = draft ?? selection
 
   useEffect(() => {
     camRef.current = cam
@@ -230,7 +249,8 @@ export function Board({
         lockedAt,
         cam,
         geom.current,
-        hover,
+        draft ? -1 : hover,
+        shownSelection,
         hoverPreview,
         previewDir,
         placeMode,
@@ -258,6 +278,8 @@ export function Board({
     cam,
     revision,
     hover,
+    draft,
+    shownSelection,
     preview,
     previewDir,
     placeMode,
@@ -458,6 +480,32 @@ export function Board({
     )
   }
 
+  /** 框选时指针可以甩出画布，落点夹在最近的边格上 */
+  const cellIndexAtPointerClamped = (
+    event: { clientX: number; clientY: number },
+    element: HTMLElement,
+  ): number => {
+    const rect = element.getBoundingClientRect()
+    return cellIndexAtClamped(
+      geom.current,
+      level.cols,
+      level.rows,
+      event.clientX - rect.left,
+      event.clientY - rect.top,
+    )
+  }
+
+  /** 两个格子下标之间的矩形 */
+  const selectionAt = (anchor: number, index: number): Selection => {
+    const cols = level.cols
+    return selectionBetween(
+      cols,
+      level.rows,
+      { col: anchor % cols, row: Math.floor(anchor / cols) },
+      { col: index % cols, row: Math.floor(index / cols) },
+    )
+  }
+
   const handlePointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     // 触屏长按会先来一次 pointerdown，再触发 contextmenu，记下来别当右键
     touched.current = event.pointerType === 'touch'
@@ -465,6 +513,29 @@ export function Board({
     if (event.pointerType === 'mouse') {
       setHover(cellIndexAtPointer(event, event.currentTarget))
     }
+
+    // 电脑端 Ctrl（Mac 的 Cmd 也认）+ 左键：开始框选，不放置也不删除
+    if (
+      workbench &&
+      selectable &&
+      onSelect &&
+      event.pointerType === 'mouse' &&
+      event.button === 0 &&
+      (event.ctrlKey || event.metaKey)
+    ) {
+      const index = cellIndexAtPointer(event, event.currentTarget)
+      if (index < 0) return
+      event.preventDefault()
+      event.currentTarget.setPointerCapture(event.pointerId)
+      selecting.current = { id: event.pointerId, anchor: index }
+      setDraft(selectionAt(index, index))
+      setHover(index)
+      return
+    }
+
+    // 普通点击 / 拖动先把旧选区收掉，再照常编辑
+    if (workbench && selection) onSelect?.(null)
+
     // 电脑端：左键按下就放一格、右键删一格，按住拖过去都连续执行
     if (workbench && event.pointerType === 'mouse' && (event.button === 0 || event.button === 2)) {
       const index = cellIndexAtPointer(event, event.currentTarget)
@@ -516,6 +587,14 @@ export function Board({
     // 鼠标即使没按下也要更新悬停格，预览是跟着光标走的
     if (event.pointerType === 'mouse') {
       setHover(cellIndexAtPointer(event, event.currentTarget))
+    }
+
+    // 正在框选：只更新临时矩形，松手才把结果交给外面
+    const picking = selecting.current
+    if (picking && picking.id === event.pointerId) {
+      const index = cellIndexAtPointerClamped(event, event.currentTarget)
+      if (index >= 0) setDraft(selectionAt(picking.anchor, index))
+      return
     }
 
     // 电脑端拖动连续编辑：两次事件之间跳过的格子按直线补齐
@@ -603,6 +682,16 @@ export function Board({
   const handlePointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     releasePointer(event.pointerId)
 
+    // 框选松手：按起点和当前落点定下矩形，交给外面的操作按钮
+    const picking = selecting.current
+    if (picking && picking.id === event.pointerId) {
+      const index = cellIndexAtPointerClamped(event, event.currentTarget)
+      selecting.current = null
+      setDraft(null)
+      if (index >= 0) onSelect?.(selectionAt(picking.anchor, index))
+      return
+    }
+
     // 电脑端按下时已经放 / 删过了，松手不用再来一次
     if (stroke.current?.id === event.pointerId) {
       stroke.current = null
@@ -632,6 +721,8 @@ export function Board({
           releasePointer(event.pointerId)
           drag.current = null
           stroke.current = null
+          selecting.current = null
+          setDraft(null)
           setHover(-1)
         }}
       />
@@ -650,6 +741,7 @@ function render(
   cam: { x: number; y: number; zoom: number },
   geom: Geom,
   hover: number,
+  selection: Selection | null,
   preview: Tool | null,
   previewDir: Dir | undefined,
   placeMode: boolean,
@@ -738,6 +830,22 @@ function render(
         mixAt(i, true),
       )
     }
+  }
+
+  // 框选：盖在元件上面的一层淡蓝底和虚线框
+  if (selection) {
+    const left = ox + selection.col * cell
+    const top = oy + selection.row * cell
+    const width = selection.cols * cell
+    const height = selection.rows * cell
+    ctx.save()
+    ctx.fillStyle = SELECT_FILL
+    ctx.fillRect(left, top, width, height)
+    ctx.strokeStyle = SELECT_LINE
+    ctx.lineWidth = 2
+    ctx.setLineDash([6, 4])
+    ctx.strokeRect(left + 1, top + 1, width - 2, height - 2)
+    ctx.restore()
   }
 
   // 鼠标悬停：锁住的格子画红虚线，删除模式画红色叉，其它工具画半透明预览

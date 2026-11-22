@@ -11,6 +11,15 @@ import { pushSample, waveSample, type WaveSample } from './ui/waveform'
 import { checksOf, pairsOf, refLevelOf, replaySimTo, replayStep, replayTo, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/tools'
 import { editAction, type EditMode } from './ui/edit-mode'
+import {
+  captureSelection,
+  eraseSelection,
+  hasClipboardContent,
+  pasteCircuitState,
+  pasteClipboard,
+  type Clipboard,
+  type Selection,
+} from './ui/selection'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
 import {
   isGoalSeen,
@@ -113,6 +122,9 @@ export default function App() {
   const [version, repaint] = useReducer((n: number) => n + 1, 0)
   // 调试用：暂停自动 tick
   const [paused, setPaused] = useState(false)
+  // 电脑端地图框选，以及同一次进关里共用的剪贴板；退出关卡时一起清掉
+  const [selection, setSelection] = useState<Selection | null>(null)
+  const [clipboard, setClipboard] = useState<Clipboard | null>(null)
   // 自由模式没有关卡号、端口和测试，界面上要把这些入口收起来
   const free = isFreeLevel(level)
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
@@ -230,6 +242,77 @@ export default function App() {
     setReplay(null)
   }
 
+  /** 把选区里的元件和状态收进剪贴板；锁定元件（例如第一关的输入 / 输出）按空格处理 */
+  const copySelection = () => {
+    if (!selection || replay) return
+    const clip = captureSelection(
+      level.cells,
+      level.cols,
+      level.rows,
+      selection,
+      (index) => sim.powerAt(index),
+    )
+    setClipboard(hasClipboardContent(clip) ? clip : null)
+  }
+
+  /** 删除选区里的元件；锁定元件不动 */
+  const removeSelection = (rect: Selection) => {
+    setEditing((prev) => {
+      const result = eraseSelection(prev.level.cells, prev.level.cols, rect)
+      if (!result.changed) return prev
+      const next = { ...prev.level, cells: result.cells }
+      const nextSim = new Simulation(next, prev.sim)
+      // 重建后把手动开关的输入接着用
+      nextSim.setInputs(inputs)
+      return {
+        level: next,
+        sim: nextSim,
+        history: pushSample(prev.history, waveSample(next, nextSim)),
+      }
+    })
+    setReplay(null)
+  }
+
+  /** 剪切：先复制，再删掉选区内能删的元件 */
+  const cutSelection = () => {
+    if (!selection || replay) return
+    const clip = captureSelection(
+      level.cells,
+      level.cols,
+      level.rows,
+      selection,
+      (index) => sim.powerAt(index),
+    )
+    setClipboard(hasClipboardContent(clip) ? clip : null)
+    removeSelection(selection)
+  }
+
+  const deleteSelection = () => {
+    if (!selection || replay) return
+    removeSelection(selection)
+  }
+
+  /** 粘贴到当前选区左上角：空格也覆盖目标，越界丢弃，锁定目标格不动 */
+  const pasteSelection = () => {
+    if (!selection || !clipboard || replay) return
+    const result = pasteClipboard(level.cells, level.cols, level.rows, selection, clipboard)
+    if (!result.changed) return
+
+    const state = sim.circuitState()
+    const next = { ...level, cells: result.cells }
+    const nextSim = new Simulation(next, sim)
+    // 保留现场状态，再把剪贴板里每格的激活状态盖到贴上去的位置
+    const pasted = pasteCircuitState(state, inputs, result.placed)
+    nextSim.restore({ ...state, ...pasted })
+    setEditing({
+      level: next,
+      sim: nextSim,
+      history: pushSample(history, waveSample(next, nextSim)),
+    })
+    setInputs(pasted.inputs)
+    setReplay(null)
+  }
+
   /** 选元件；「交互」再点一次就回到上一次选的元件 */
   const pickTool = useCallback((next: Tool) => {
     if (next === 'interact') {
@@ -296,6 +379,8 @@ export default function App() {
     // 参考解把 tick 拨回去了，旧波形接不上，从这个 tick 重新记
     setEditing({ level: next, sim, history: [waveSample(next, sim)] })
     setInputs(solution.state.inputs)
+    // 地图整个换了，旧选区不再对应任何东西
+    setSelection(null)
     setReplay(null)
     setMenuOpen(false)
   }
@@ -323,6 +408,9 @@ export default function App() {
     setReplay(null)
     setPaused(false)
     setMenuOpen(false)
+    // 剪贴板只在这一关里有效；换关 / 退出时清掉
+    setSelection(null)
+    setClipboard(null)
     setScreen('game')
   }
 
@@ -362,6 +450,8 @@ export default function App() {
     })
     setEditing({ level: tested, sim: cold.sim, history: cold.history })
     setInputs(cold.sim.inputValues())
+    // 回放里不能编辑，选区也收掉
+    setSelection(null)
     setPaused(true)
     repaint()
   }
@@ -441,12 +531,16 @@ export default function App() {
   const goHome = () => {
     setMenuOpen(false)
     setHandbookOpen(false)
+    setSelection(null)
+    setClipboard(null)
     setScreen('start')
   }
 
   const goLevels = () => {
     setMenuOpen(false)
     setHandbookOpen(false)
+    setSelection(null)
+    setClipboard(null)
     setScreen('levels')
   }
 
@@ -481,6 +575,8 @@ export default function App() {
         onGoalClose={dismissGoal}
         tool={tool}
         mode={mode}
+        selection={selection}
+        clipboard={clipboard}
         dir={dir}
         inputs={inputs}
         history={replay ? replay.history : history}
@@ -497,6 +593,11 @@ export default function App() {
         onTool={pickTool}
         onMode={() => setMode((value) => (value === 'place' ? 'overwrite' : 'place'))}
         onDir={setDir}
+        onSelect={setSelection}
+        onCut={cutSelection}
+        onCopy={copySelection}
+        onPaste={pasteSelection}
+        onDelete={deleteSelection}
         onCell={handleCell}
         onErase={handleErase}
         onToggleInput={toggleInput}

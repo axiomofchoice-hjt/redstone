@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cellIndexAt, gridLine } from './board-hit'
+import { cellIndexAt, cellIndexAtClamped, gridLine } from './board-hit'
 
 const geom = { cell: 20, ox: 10, oy: 30 }
 
@@ -27,6 +27,23 @@ describe('画布坐标找格子', () => {
   it('宽高等参数不同也按传入的列数算', () => {
     // 4 列地图，第 1 行第 3 列
     expect(cellIndexAt(geom, 4, 3, 10 + 3 * 20, 30 + 20)).toBe(7)
+  })
+})
+
+describe('拖出地图后夹到最近的边格', () => {
+  it('地图内的位置和普通换算一样', () => {
+    expect(cellIndexAtClamped(geom, 5, 4, 10 + 2 * 20, 30 + 20)).toBe(7)
+  })
+
+  it('四个方向的越界都夹住', () => {
+    expect(cellIndexAtClamped(geom, 5, 4, -100, -100)).toBe(0)
+    expect(cellIndexAtClamped(geom, 5, 4, 999, -100)).toBe(4)
+    expect(cellIndexAtClamped(geom, 5, 4, -100, 999)).toBe(15)
+    expect(cellIndexAtClamped(geom, 5, 4, 999, 999)).toBe(19)
+  })
+
+  it('还没画过时仍然返回 -1', () => {
+    expect(cellIndexAtClamped({ cell: 0, ox: 10, oy: 30 }, 5, 4, 10, 30)).toBe(-1)
   })
 })
 

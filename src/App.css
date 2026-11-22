@@ -461,11 +461,67 @@ button:focus-visible,
 /* 画布 */
 
 .stage {
+  position: relative;
   display: flex;
   min-width: 0;
   min-height: 0;
   padding: 14px;
   background: radial-gradient(ellipse at 50% 40%, #ffffff 0%, var(--bg) 72%);
+}
+
+/* 框选后浮在地图左下角的四个操作，竖着排；不进左侧控制栏 */
+.selection-actions {
+  position: absolute;
+  bottom: 26px;
+  left: 26px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 26px rgba(23, 32, 48, 0.14);
+  backdrop-filter: blur(6px);
+}
+
+.selection-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-width: 108px;
+  height: 32px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 0.14s ease,
+    border-color 0.14s ease;
+}
+
+.selection-btn:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--field);
+}
+
+.selection-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.selection-key {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .stage .board {

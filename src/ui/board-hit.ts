@@ -24,6 +24,23 @@ export function cellIndexAt(
 }
 
 /**
+ * 和 `cellIndexAt` 一样找格子，但拖出地图时把位置夹在最近的边上。
+ * Ctrl 拖动框选时指针甩出画布也要继续扩到大图边界。
+ */
+export function cellIndexAtClamped(
+  geom: HitGeom,
+  cols: number,
+  rows: number,
+  x: number,
+  y: number,
+): number {
+  if (geom.cell <= 0) return -1
+  const col = Math.min(cols - 1, Math.max(0, Math.floor((x - geom.ox) / geom.cell)))
+  const row = Math.min(rows - 1, Math.max(0, Math.floor((y - geom.oy) / geom.cell)))
+  return row * cols + col
+}
+
+/**
  * 两次指针事件之间可能隔着好几格，拖动连续放置时按布雷森汉姆算法把中间的格子补齐。
  * 返回包含起点和终点的 [列, 行] 序列。
  */

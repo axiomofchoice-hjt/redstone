@@ -21,6 +21,8 @@ import {
 } from './icons'
 import { previewDirOf, type Tool } from './tools'
 import type { EditMode } from './edit-mode'
+import { selectionActionForKey, type Clipboard, type Selection } from './selection'
+import { isTypingTarget } from './keyboard'
 import type { TraceInfo } from './trace'
 import type { WaveSample } from './waveform'
 import { padNo } from './levels-meta'
@@ -36,6 +38,10 @@ interface Props {
   tool: Tool
   /** 电脑端左键模式：放置不覆盖已有元件、点输入元件拨 0 / 1 */
   mode: EditMode
+  /** 地图框选的矩形；为空时不显示左下角的选区操作 */
+  selection: Selection | null
+  /** 游戏内剪贴板；只在这一关里有效 */
+  clipboard: Clipboard | null
   dir: Dir
   inputs: Record<string, 0 | 1>
   history: WaveSample[]
@@ -55,6 +61,11 @@ interface Props {
   onTool: (tool: Tool) => void
   onMode: () => void
   onDir: (dir: Dir) => void
+  onSelect: (selection: Selection | null) => void
+  onCut: () => void
+  onCopy: () => void
+  onPaste: () => void
+  onDelete: () => void
   onCell: (index: number) => void
   onErase: (index: number) => void
   onToggleInput: (id: string) => void
@@ -80,6 +91,8 @@ export function GameDesktop({
   onGoalClose,
   tool,
   mode,
+  selection,
+  clipboard,
   dir,
   inputs,
   history,
@@ -96,6 +109,11 @@ export function GameDesktop({
   onTool,
   onMode,
   onDir,
+  onSelect,
+  onCut,
+  onCopy,
+  onPaste,
+  onDelete,
   onCell,
   onErase,
   onToggleInput,
@@ -124,6 +142,48 @@ export function GameDesktop({
     if (!infoOpen) onGoalClose()
   }, [infoOpen, onGoalClose])
   const [handbookOpen, setHandbookOpen] = useState(false)
+
+  // 回放时地图只是旁观，进回放前把选区收掉
+  useEffect(() => {
+    if (trace) onSelect(null)
+  }, [trace, onSelect])
+
+  // 选区快捷键：X 剪切、C 复制、V 粘贴、Delete 删除，Esc 取消选区。
+  // 输入框里不抢；弹层 / 菜单打开时也不在背后动地图。
+  useEffect(() => {
+    if (!selection || trace || infoOpen || handbookOpen || menuOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat || event.altKey) return
+      if (isTypingTarget(event.target)) return
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onSelect(null)
+        return
+      }
+      const action = selectionActionForKey(event.key)
+      if (!action) return
+      if (action === 'paste' && !clipboard) return
+      event.preventDefault()
+      if (action === 'cut') onCut()
+      else if (action === 'copy') onCopy()
+      else if (action === 'paste') onPaste()
+      else onDelete()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [
+    selection,
+    clipboard,
+    trace,
+    infoOpen,
+    handbookOpen,
+    menuOpen,
+    onSelect,
+    onCut,
+    onCopy,
+    onPaste,
+    onDelete,
+  ])
 
   const zoomTo = (zoom: number) => {
     const view = viewport.current
@@ -360,9 +420,62 @@ export function GameDesktop({
             preview={trace ? null : tool}
             previewDir={previewDirOf(tool, dir)}
             placeMode={mode === 'place' && trace === null}
+            selection={selection}
+            onSelect={onSelect}
+            selectable={trace === null}
             workbench={{ camera, onCamera: setCamera, onRotate: trace ? () => {} : onRotate }}
             viewportRef={viewport}
           />
+
+          {selection && trace === null ? (
+            <div className="selection-actions" role="toolbar" aria-label="选区操作">
+              <button
+                type="button"
+                className="selection-btn"
+                onClick={onCut}
+                title="剪切选区里的元件和状态（X）"
+                aria-keyshortcuts="X"
+              >
+                <span>剪切</span>
+                <kbd className="selection-key">X</kbd>
+              </button>
+              <button
+                type="button"
+                className="selection-btn"
+                onClick={onCopy}
+                title="复制选区里的元件和状态（C）"
+                aria-keyshortcuts="C"
+              >
+                <span>复制</span>
+                <kbd className="selection-key">C</kbd>
+              </button>
+              <button
+                type="button"
+                className="selection-btn"
+                onClick={onPaste}
+                disabled={!clipboard}
+                title={
+                  clipboard
+                    ? '粘贴到选区左上角，空格也会覆盖目标（V）'
+                    : '剪贴板里没有东西'
+                }
+                aria-keyshortcuts="V"
+              >
+                <span>粘贴</span>
+                <kbd className="selection-key">V</kbd>
+              </button>
+              <button
+                type="button"
+                className="selection-btn"
+                onClick={onDelete}
+                title="删除选区里的元件（Del）"
+                aria-keyshortcuts="Delete"
+              >
+                <span>删除</span>
+                <kbd className="selection-key">Del</kbd>
+              </button>
+            </div>
+          ) : null}
         </main>
       </div>
 
