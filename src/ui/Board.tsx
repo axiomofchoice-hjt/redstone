@@ -662,7 +662,7 @@ function render(
   ctx.fillRect(0, 0, w, h)
 
   // 格子大小取整，元件图标才能和网格线对齐。
-  // 电脑端 100% 时一格固定 36px、所有关卡一样大；手机端按屏幕自适应
+  // 电脑端 100% 时一格固定 54px、所有关卡一样大；手机端按屏幕自适应
   const base = baseCell(fixedCell, w, h, level.cols, level.rows)
   const cell = Math.max(12, Math.round(base * cam.zoom))
   const mapW = cell * level.cols

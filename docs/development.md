@@ -86,12 +86,12 @@ src/
 | 文档 | 管什么 |
 | --- | --- |
 | `docs/controls.md` | 两套布局、放置删除、平移缩放、快捷键、菜单、自由模式 |
-| `docs/waveform.md` | 交互模式和波形图、采样规则 |
+| `docs/waveform.md` | 放置 / 交互模式与波形图、采样规则 |
 | `docs/testing.md` | 测试按钮、结果状态、回放 |
 | `docs/rules.md` | 五种元件、输入 / 输出端口、中继器侧面锁存和充能器断路 |
 | `docs/simulation.md` | tick 延迟、增量更新、绘制策略 |
 | `docs/levels.md` | `Level` 字段、测试写法、导出地图 |
-| `docs/level-notes.md` | 各关设计说明、参考解取的状态 |
+| `docs/level-notes.md` | 第十八关的设计、各关参考解取的状态 |
 
 玩家能感知的改动记进 `CHANGELOG.md`，纯内部整理可以不记。
 

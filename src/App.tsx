@@ -94,7 +94,7 @@ export default function App() {
   const [dir, setDir] = useState<Dir>(INITIAL_DIR)
   // 最近一次「运行测试」的结果：改电路、拨输入都不清，点「测试」或换关才变
   const [run, setRun] = useState<RunState | null>(null)
-  // 测试没通过后点结果按钮进入的回放：元件栏换成波形图，电路从冷启动重跑
+  // 测试没通过后点结果按钮进入的回放：元件栏换成波形图，电路从测试快照起跑
   const [replay, setReplay] = useState<Replay | null>(null)
   // 编辑器里手动开关的输入
   const [inputs, setInputs] = useState<Record<string, 0 | 1>>({})
@@ -327,8 +327,8 @@ export default function App() {
   }
 
   /**
-   * 点「测试结果：×」进入回放：电路从冷启动重跑第一组没通过的测试，
-   * 输入全 0、由测试事件驱动，元件栏换成波形图。整组波形一进来就画满，
+   * 点「测试结果：×」进入回放：电路从点「测试」那一刻的快照起跑，重跑第一组
+   * 没通过的测试，输入由测试事件驱动，元件栏换成波形图。整组波形一进来就画满，
    * 红线只当播放头，地图跟着「继续」/「下一刻」走。
    */
   const openTrace = () => {
