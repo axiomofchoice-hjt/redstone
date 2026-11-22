@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CellType, Level } from '../game/types'
-import { dirForKey, rotateDir, toolForKey } from './keyboard'
+import { dirForKey, isMacUserAgent, rotateDir, toolForKey } from './keyboard'
 import type { Port } from './ports'
 
 const level: Level = {
@@ -47,6 +47,44 @@ describe('滚轮换朝向', () => {
     expect(rotateDir(3, -1)).toBe(2)
     // 转过去再转回来，方向不变
     expect(rotateDir(rotateDir(0, -1), 1)).toBe(0)
+  })
+})
+
+describe('框选修饰键的提示文案', () => {
+  it('Mac / iPhone / iPad 认成 Cmd', () => {
+    expect(
+      isMacUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36',
+      ),
+    ).toBe(true)
+    expect(
+      isMacUserAgent(
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1',
+      ),
+    ).toBe(true)
+    expect(
+      isMacUserAgent(
+        'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1',
+      ),
+    ).toBe(true)
+  })
+
+  it('Windows / Linux / Android 写成 Ctrl', () => {
+    expect(
+      isMacUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36',
+      ),
+    ).toBe(false)
+    expect(
+      isMacUserAgent(
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36',
+      ),
+    ).toBe(false)
+    expect(
+      isMacUserAgent(
+        'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/152.0.0.0 Mobile Safari/537.36',
+      ),
+    ).toBe(false)
   })
 })
 

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { Dir, Level } from '../game/types'
 import { MAX_ZOOM, MIN_ZOOM } from './camera'
-import { DIRECTIONS, usePaletteKeys } from './keyboard'
+import { DIRECTIONS, isMacUserAgent, usePaletteKeys } from './keyboard'
 import { portsFor } from './ports'
 import { isToolActive, toolItems, toolSpec, type Tool } from './tools'
 import { ToolIcon } from './ToolIcon'
@@ -63,6 +63,9 @@ export function Inspector({
   usePaletteKeys(level, ports, null, onTool, replay)
 
   const tools = useMemo(() => toolItems(level, ports), [level, ports])
+  // Mac 的键盘上是 Cmd，提示跟着平台换，免得让人去找 Ctrl
+  const selectModifier =
+    typeof navigator !== 'undefined' && isMacUserAgent(navigator.userAgent) ? 'Cmd' : 'Ctrl'
 
   // 波形把关卡声明的端口都列出来：没放到地图上的也占一行，输出按 0 画，输入按玩家设置
   const inputIds = level.inputs ?? []
@@ -186,6 +189,7 @@ export function Inspector({
 
       <div className="inspector-hints">
         <p className="inspector-hint">左键放置 · 右键删除 · 滚轮换朝向</p>
+        <p className="inspector-hint">{selectModifier} + 左键框选</p>
         <p className="inspector-hint">方向键移动地图 · + / - 缩放</p>
       </div>
     </aside>

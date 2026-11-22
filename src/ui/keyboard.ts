@@ -37,6 +37,13 @@ export const toolForKey = (key: string, level: Level, ports: Port[]): ToolSpec |
   return item && !item.disabled ? toolSpec(item) : null
 }
 
+/**
+ * 提示文案用：Mac / iPhone / iPad 的框选修饰键写作 Cmd，其它平台写 Ctrl。
+ * 只看 userAgent，不依赖已经废弃的 `navigator.platform`。
+ */
+export const isMacUserAgent = (userAgent: string): boolean =>
+  /Macintosh|Mac OS X|iPhone|iPad|iPod/i.test(userAgent)
+
 export const isTypingTarget = (target: EventTarget | null): boolean => {
   if (!(target instanceof HTMLElement)) return false
   return (
