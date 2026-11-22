@@ -1,10 +1,20 @@
 import { describe, expect, it } from 'vitest'
+import { level09 } from '../levels/level-09'
 import { level12 } from '../levels/level-12'
 import { level16 } from '../levels/level-16'
 import { level17 } from '../levels/level-17'
-import { Simulation, runLevel, testSpan } from '../game/sim'
+import { runLevel, testSpan } from '../game/sim'
 import { waveSample } from './waveform'
-import { checksOf, eventsAt, pairsOf, refLevelOf, refSimOf, replayStep } from './trace'
+import {
+  checksOf,
+  eventsAt,
+  pairsOf,
+  refLevelOf,
+  refSimOf,
+  replayPrepare,
+  replayStep,
+  replayTo,
+} from './trace'
 
 describe('测试回放', () => {
   const test = level12.tests[2]
@@ -70,19 +80,56 @@ describe('测试回放', () => {
 describe('回放推进', () => {
   it('按测试事件驱动输入，参考解走完正好对上每个检查区间', () => {
     const test = level12.tests[2]
-    const mine = new Simulation(level12)
-    const ref = refSimOf(level12)!
-    const samples: { tick: number; mine: boolean; ref: boolean }[] = []
-    for (let i = 0; i <= testSpan(test); i++) {
-      replayStep(test, mine, ref)
-      samples.push({ mine: mine.output('Y'), ref: ref.output('Y'), tick: mine.tick })
-    }
+    const refLevel = refLevelOf(level12)!
+    const { sim: mine, history, refHistory } = replayTo(
+      level12,
+      test,
+      refLevel,
+      testSpan(test),
+    )
     // 一开始输入全 0，15 tick 才拨成 1、18 tick 拨回 0
     expect(mine.inputValues()).toEqual({ A: 0 })
-    expect(samples[15].tick).toBe(16)
-    // 空电路一直没有输出；参考解从保存的通电状态起跑，20–23 出脉冲
-    expect(samples.every((s) => !s.mine)).toBe(true)
-    expect(samples.filter((s) => s.ref).map((s) => s.tick)).toEqual([21, 22, 23])
+    expect(history[15].tick).toBe(15)
+    expect(history[15].inputs.A).toBe(1)
+    // 空电路一直没有输出；参考解从保存的通电状态起跑，检查区间 20–22 出脉冲
+    expect(history.every((sample) => sample.outputs.Y === 0)).toBe(true)
+    expect(refHistory.filter((sample) => sample.outputs.Y === 1).map((sample) => sample.tick)).toEqual(
+      [20, 21, 22],
+    )
+  })
+
+  it('检查条件对应格的采样值等于期望值', () => {
+    // 第 9 关的脉冲晚 5 tick：第 20 tick 必须是 1，之前之后都是 0
+    const test = level09.tests[0]
+    const refLevel = refLevelOf(level09)!
+    const { refHistory } = replayTo(level09, test, refLevel, testSpan(test))
+    for (const check of checksOf(test)) {
+      for (let tick = check.from; tick <= check.to; tick++) {
+        const sample = refHistory.find((item) => item.tick === tick)
+        expect(sample, `缺少第 ${tick} tick 的采样`).toBeDefined()
+        for (const [id, expected] of Object.entries(check.outputs)) {
+          expect(sample!.outputs[id], `第 ${tick} tick 的 ${id}`).toBe(expected)
+        }
+      }
+    }
+    // 回归：这一格原来画在下一格，检查区间和波形正好错开一拍
+    expect(refHistory.find((item) => item.tick === 19)?.outputs.Y).toBe(0)
+    expect(refHistory.find((item) => item.tick === 20)?.outputs.Y).toBe(1)
+    expect(refHistory.find((item) => item.tick === 21)?.outputs.Y).toBe(0)
+  })
+
+  it('回放推进用与测试相同的时机采样，不靠 step() 之后多走一格', () => {
+    const test = level12.tests[2]
+    const ref = refSimOf(level12)!
+    replayPrepare(test, ref)
+    expect(ref.tick).toBe(0)
+    // 每次推进后，当前 tick 的 output 已按检查时机刷新
+    for (let tick = 0; tick < testSpan(test); tick++) {
+      if (tick === 20) expect(ref.output('Y')).toBe(true)
+      if (tick === 21) expect(ref.output('Y')).toBe(true)
+      replayStep(test, ref)
+      expect(ref.tick).toBe(tick + 1)
+    }
     expect(waveSample(level12, ref).outputs.Y).toBe(0)
   })
 })

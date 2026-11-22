@@ -210,6 +210,17 @@ export class Simulation {
     return this.outputValues[id] ?? false
   }
 
+  /**
+   * 按当前内部状态重新采集一遍输出。
+   *
+   * `step()` 是在换上新状态之前采样的，跑完一拍后 `output()` 还停在这一拍开头看到的值；
+   * 回放要在「下一拍开头」采一帧（也就是测试检查这个 tick 时看到的值），得先把这一拍
+   * 已经算好的延迟元件和导线状态刷进输出，不能再等一次 `step()`。
+   */
+  refreshOutputs(): void {
+    this.outputValues = this.collectOutputs()
+  }
+
   /** 当前所有输入元件的取值，按元件在地图里第一次出现的顺序 */
   inputValues(): Record<string, 0 | 1> {
     const result: Record<string, 0 | 1> = {}

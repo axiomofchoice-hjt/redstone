@@ -1,6 +1,7 @@
 import { Simulation } from '../game/sim'
 import type { Level, TestCase } from '../game/types'
 import { solutionCells } from './solution'
+import { pushSample, waveSample, type WaveSample } from './waveform'
 
 /** 测试里的一段检查：区间 [from, to] 内这些输出应该一直是给定取值 */
 export interface TraceCheck {
@@ -76,15 +77,67 @@ export function eventsAt(test: TestCase, tick: number): Record<string, 0 | 1> | 
 }
 
 /**
- * 回放推进一刻：先把这一 tick 的测试事件拨上（拨一次就保持），再让玩家电路和参考解一起走一步。
- * 两边共用同一份输入，波形才对得上。
+ * 把仿真准备到第 `mine.tick` 刻：拨上这一 tick 的测试事件，并按测试检查这一 tick 的
+ * 同一时机刷新输出。
+ *
+ * `runTest` 在每一拍开头先拨事件、再在 `step()` 里采输出；那时延迟元件还是上一拍算完的
+ * 状态，所以「第 t tick 的检查值」要等第 t 拍开始时才看得到。回放要采的就是这一份，
+ * 不能等 `step()` 把 tick 推到 t + 1 再采（那样整条波形和检查区间会差一格）。
  */
-export function replayStep(test: TestCase, mine: Simulation, ref?: Simulation | null): void {
+export function replayPrepare(test: TestCase, mine: Simulation, ref?: Simulation | null): void {
   const values = eventsAt(test, mine.tick)
   if (values) {
     mine.setInputs(values)
     ref?.setInputs(values)
   }
+  mine.refreshOutputs()
+  ref?.refreshOutputs()
+}
+
+/**
+ * 回放往前推一刻：先让两边各走一步，再把仿真准备到新的一刻。
+ * 调用前当前位置已经由 `replayPrepare` 准备过（进回放时也要先调它一次）。
+ */
+export function replayStep(test: TestCase, mine: Simulation, ref?: Simulation | null): void {
   mine.step()
   ref?.step()
+  replayPrepare(test, mine, ref)
+}
+
+/**
+ * 按测试事件跑到第 steps 个 tick，返回玩家电路和参考解两份仿真、各自的波形。
+ * 波形里第 t 帧就是测试检查第 t tick 时看到的值，所以整组波形和检查区间按同一套
+ * tick 编号对齐；回放进入（steps = 0）和「上一刻」都走这里。
+ * `start` 给了就从这份仿真（测试快照）起跑，没给就从冷启动的电路起跑。
+ */
+export function replayTo(
+  level: Level,
+  test: TestCase,
+  refLevel: Level | null,
+  steps: number,
+  start?: Simulation,
+) {
+  const sim = start ? start.fork() : new Simulation(level)
+  const refSim = refSimOf(level, refLevel)
+  const cap = steps + 2
+  replayPrepare(test, sim, refSim)
+  let history: WaveSample[] = [waveSample(level, sim)]
+  let refHistory: WaveSample[] = refSim && refLevel ? [waveSample(refLevel, refSim)] : []
+  for (let step = 0; step < steps; step++) {
+    replayStep(test, sim, refSim)
+    history = pushSample(history, waveSample(level, sim), cap)
+    if (refSim && refLevel) refHistory = pushSample(refHistory, waveSample(refLevel, refSim), cap)
+  }
+  return { sim, refSim, history, refHistory }
+}
+
+/**
+ * 从测试快照跑到第 steps 个 tick，只要仿真本身；停下时已经准备好这一 tick 的事件和输出。
+ * 回放的「上一刻」和点波形跳转都走这里：波形已经整组存下了，不用再采样。
+ */
+export function replaySimTo(test: TestCase, steps: number, start: Simulation): Simulation {
+  const sim = start.fork()
+  replayPrepare(test, sim)
+  for (let step = 0; step < steps; step++) replayStep(test, sim)
+  return sim
 }

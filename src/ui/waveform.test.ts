@@ -178,7 +178,7 @@ describe('回放播放头', () => {
       const width = playheadWidth(dpr)
       const first = playheadLeft(21, 0, lane, dpr)
       expect(first).toBeGreaterThanOrEqual(0)
-      // 回放会在测试结束后多走一步（tick = domain + 1），靠夹住不会再往右跑
+      // 播放头越过最后一格时夹在右端，不会跑到波形外面
       const last = playheadLeft(21, 22, lane, dpr)
       expect(last + width).toBeCloseTo(lane, 6)
       expect(playheadLeft(21, 30, lane, dpr) + width).toBeCloseTo(lane, 6)

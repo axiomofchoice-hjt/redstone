@@ -8,7 +8,7 @@ import { rotateDir } from './ui/keyboard'
 import { download, mapFileName, mapJson } from './ui/export'
 import { solutionMap } from './ui/solution'
 import { pushSample, waveSample, type WaveSample } from './ui/waveform'
-import { checksOf, pairsOf, refLevelOf, refSimOf, replayStep, type TraceInfo } from './ui/trace'
+import { checksOf, pairsOf, refLevelOf, replaySimTo, replayStep, replayTo, type TraceInfo } from './ui/trace'
 import type { Tool } from './ui/tools'
 import { editAction, type EditMode } from './ui/edit-mode'
 import { DESKTOP_QUERY, useMediaQuery } from './ui/useMediaQuery'
@@ -84,42 +84,6 @@ function replayStart(snapshot: Simulation): Simulation {
   return sim
 }
 
-/**
- * 按测试事件跑到第 steps 个 tick，返回玩家电路和参考解两份仿真、各自的波形。
- * 回放进入（steps = 0）和「上一刻」（回到前一个 tick）都走这里；
- * 进回放时再跑一遍整组，拿到一次画满整条横轴要用的波形。
- * `start` 给了就从这份仿真（测试快照）起跑，没给就从冷启动的电路起跑。
- */
-function replayTo(
-  level: Level,
-  test: TestCase,
-  refLevel: Level | null,
-  steps: number,
-  start?: Simulation,
-) {
-  const sim = start ? start.fork() : new Simulation(level)
-  const refSim = refSimOf(level, refLevel)
-  const cap = steps + 2
-  let history = [waveSample(level, sim)]
-  let refHistory = refSim && refLevel ? [waveSample(refLevel, refSim)] : []
-  for (let t = 0; t < steps; t++) {
-    replayStep(test, sim, refSim)
-    history = pushSample(history, waveSample(level, sim), cap)
-    if (refSim && refLevel) refHistory = pushSample(refHistory, waveSample(refLevel, refSim), cap)
-  }
-  return { sim, refSim, history, refHistory }
-}
-
-/**
- * 从测试快照跑到第 steps 个 tick，只要仿真本身。
- * 回放的「上一刻」和点波形跳转都走这里：波形已经整组存下了，不用再采样。
- */
-function replaySimTo(test: TestCase, steps: number, start: Simulation): Simulation {
-  const sim = start.fork()
-  for (let t = 0; t < steps; t++) replayStep(test, sim)
-  return sim
-}
-
 export default function App() {
   const [{ level, sim, history }, setEditing] = useState<Editing>(initial)
   const [tool, setTool] = useState<Tool>({ type: 'wire' })
@@ -151,8 +115,8 @@ export default function App() {
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
   // 手机菜单只在手机布局里算数；拖到桌面宽度时不应该把仿真停住
   const mobileMenuOpen = menuOpen && !isDesktop
-  // 回放已经走到最后一刻：仿真多走了一步才停，所以是 > lastTick
-  const traceEnd = replay !== null && sim.tick > replay.lastTick
+  // 回放最后一刻就是采样到 lastTick 的那一格，再往后没有检查了
+  const traceEnd = replay !== null && sim.tick >= replay.lastTick
 
   // 手机端的「交互」是元件栏里的工具；拖到电脑端后换成模式按钮，
   // 别留下一个电脑端没有入口再退出的交互工具
@@ -183,7 +147,7 @@ export default function App() {
   const stepOnce = () => {
     if (replay) {
       // 这组测试已经跑完，回放停在最后
-      if (sim.tick > replay.lastTick) {
+      if (sim.tick >= replay.lastTick) {
         setPaused(true)
         return
       }
@@ -191,7 +155,7 @@ export default function App() {
       replayStep(replay.test, sim)
       setInputs(sim.inputValues())
       // 这组测试跑完就停住
-      if (sim.tick > replay.lastTick) setPaused(true)
+      if (sim.tick >= replay.lastTick) setPaused(true)
       repaint()
       return
     }
@@ -377,7 +341,7 @@ export default function App() {
     // 起点那份仿真单独跑一次（steps = 0），用来把地图停在第一刻
     const start = replayStart(run.snapshot)
     const cold = replayTo(tested, test, refLevel, 0, start)
-    const whole = replayTo(tested, test, refLevel, lastTick + 1, start)
+    const whole = replayTo(tested, test, refLevel, lastTick, start)
     setReplay({
       info: {
         name: test.name ?? '测试',
@@ -428,11 +392,11 @@ export default function App() {
   /**
    * 点回放波形：从测试快照重跑到点到的那一格，地图、输入 / 输出和参考解的当前值
    * 一起停到那一刻。点完就暂停，方便对照着看；波形本身不动，只挪红线。
-   * 最后一格右边是测试走完，夹在 0–lastTick + 1 之间。
+   * 最后一格就是测试结束，夹在 0–lastTick 之间。
    */
   const seekTick = (target: number) => {
     if (!replay) return
-    const to = Math.max(0, Math.min(target, replay.lastTick + 1))
+    const to = Math.max(0, Math.min(target, replay.lastTick))
     if (to === sim.tick) {
       setPaused(true)
       return
