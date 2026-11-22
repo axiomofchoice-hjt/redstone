@@ -9,10 +9,21 @@
   --line-soft: #e9edf4;
   --text: #1b2230;
   --muted: #5c687c;
+  /* 装饰色：边框、图标、焦点环、图形，和白底对比 3.5:1，满足非文本的 3:1 */
   --accent: #f0562e;
-  --accent-strong: #cf4318;
-  --accent-ink: #ffffff;
+  /* 浅橙填充：上面放黑字。静止 11.3:1，悬停 9.7:1 */
+  --accent-fill: #fbd0c4;
+  --accent-fill-hover: #f7bda9;
+  /* 浅底上的强调色文字，白底 5.8:1、10% 橙色底 5.1:1 */
+  --accent-strong: #b83a12;
+  /* 只允许放在 --accent-fill / --accent-fill-hover 上 */
+  --accent-ink: #1b2230;
+  /* 装饰用的绿色：描边、浅绿底 */
   --ok: #178a55;
+  /* 绿色填充与浅绿卡上的绿字：白字 5.4:1、浅绿底 5.0:1 */
+  --ok-fill: #157a4b;
+  /* 失败状态的文字色，白底 6.5:1 */
+  --danger-ink: #b3261e;
   --redstone: #ed2b2b;
   --mono:
     ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;

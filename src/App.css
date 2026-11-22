@@ -44,14 +44,13 @@
 
 .btn.primary {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
   font-weight: 600;
 }
 
 .btn.primary:hover:not(:disabled) {
-  border-color: #ff7a55;
-  background: #ff7a55;
+  background: var(--accent-fill-hover);
 }
 
 .btn.large {
@@ -308,7 +307,7 @@ button:focus-visible,
 }
 
 .level-card.cleared .level-no {
-  color: var(--ok);
+  color: var(--ok-fill);
 }
 
 .level-clear {
@@ -319,7 +318,7 @@ button:focus-visible,
   margin-left: auto;
   padding: 5px 9px;
   border-radius: 999px;
-  background: var(--ok);
+  background: var(--ok-fill);
   color: #fff;
   font-size: 12px;
   font-weight: 600;
@@ -597,7 +596,8 @@ button:focus-visible,
 }
 
 .dir-btn.active {
-  background: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
 }
 
@@ -655,7 +655,7 @@ button:focus-visible,
 .mode-btn.mode-overwrite {
   border-color: rgba(237, 43, 43, 0.4);
   background: rgba(237, 43, 43, 0.06);
-  color: #b3261e;
+  color: var(--danger-ink);
 }
 
 .zoom-row {
@@ -702,7 +702,7 @@ button:focus-visible,
   margin-top: -4.5px;
   border: 0;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--accent-strong);
   appearance: none;
 }
 
@@ -717,7 +717,7 @@ button:focus-visible,
   height: 13px;
   border: 0;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--accent-strong);
 }
 
 .zoom-slider:focus-visible {
@@ -945,7 +945,7 @@ button.wave-tag:hover:not(:disabled) {
 .menu[aria-pressed='true'],
 .info-key[aria-expanded='true'] {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-strong);
 }
 
 .head h1 {
@@ -1011,12 +1011,12 @@ button.wave-tag:hover:not(:disabled) {
 
 .result.ok {
   border-color: rgba(23, 138, 85, 0.35);
-  color: var(--ok);
+  color: var(--ok-fill);
 }
 
 .result.fail {
   border-color: rgba(237, 43, 43, 0.4);
-  color: var(--redstone);
+  color: var(--danger-ink);
   cursor: pointer;
 }
 
@@ -1069,7 +1069,7 @@ button.wave-tag:hover:not(:disabled) {
 /* 「交互」跟暂停 / 下一刻 / 运行测试 排在同一行，选中时和元件按钮一样高亮 */
 .debug.active {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
   font-weight: 600;
 }
@@ -1085,8 +1085,9 @@ button.wave-tag:hover:not(:disabled) {
   padding: 10px 15px;
   border: 0;
   border-radius: 11px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
+  box-shadow: inset 0 0 0 1px var(--accent);
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -1147,7 +1148,7 @@ button.wave-tag:hover:not(:disabled) {
 .dir.active,
 .erase.active {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--accent-ink);
   font-weight: 600;
 }
@@ -1552,7 +1553,7 @@ button.wave-tag:hover:not(:disabled) {
 }
 
 .handbook-list li::marker {
-  color: var(--accent);
+  color: var(--accent-strong);
 }
 
 .handbook-note {
