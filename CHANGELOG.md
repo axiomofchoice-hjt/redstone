@@ -4,6 +4,10 @@
 
 ## [未发布]
 
+## [0.2.0] - 2026-11-22
+
+教程重排成六页、关卡目标改成居中的全屏卡片，加上地图框选复制粘贴、通关进度记忆和配色对比度修正。
+
 ### 新增
 
 - 电脑端地图支持 Ctrl（Mac 的 Cmd 也认）+ 左键点击 / 拖动框选矩形，地图左下角浮出竖排的「剪切 (X) / 复制 (C) / 粘贴 (V) / 删除 (Del)」；剪贴板记录选区里的元件和复制那一刻的激活状态，粘贴按当前选区左上角定位，空格也会覆盖目标、越界元件丢弃，锁定的目标格不覆盖；复制时锁定元件（第一关的输入 / 输出等）视为空格，只框到锁定端口时剪贴板为空；剪贴板只在当前关卡内有效，返回选关、回首页或换关时清空
@@ -253,5 +257,6 @@
 - `index.html` 中文化，加移动端 viewport、theme-color 与 iOS 全屏 meta
 - 清理 Vite 模板遗留资源
 
-[未发布]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.1.0...HEAD
+[未发布]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/axiomofchoice-hjt/redstone/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/axiomofchoice-hjt/redstone/releases/tag/v0.1.0
